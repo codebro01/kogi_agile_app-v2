@@ -1,7 +1,7 @@
 import React, { useState, useContext, useEffect, useCallback, memo } from 'react';
 import {
     Container, useTheme, Typography, Table, Button, TableBody, TableCell,
-    Select, MenuItem, TableContainer, TableHead, TableRow, Paper, Box, TextField, IconButton, Grid, InputLabel, Autocomplete,
+    Select, MenuItem, TableContainer, TableHead, TableRow, Paper, Box, TextField, IconButton, Grid, InputLabel, Autocomplete, Fade
 } from '@mui/material';
 import { StudentsContext } from '../../components/dataContext';
 import axios from 'axios';
@@ -19,6 +19,12 @@ import { useSelector, useDispatch } from 'react-redux';
 import { deleteStudent, fetchStudents, fetchStudentsFromComponent, filterStudents, resetStudentsData, setRowsPerPage, setPage, setCurrentPage, setSearchQuery, setStudents } from '../../components/studentsSlice.js';
 import { fetchSchools } from '../../components/schoolsSlice.js';
 import { SpinnerLoader } from '../../components/spinnerLoader.jsx';
+import UpgradeIcon from '@mui/icons-material/Upgrade';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import ArrowBackwardIcon from '@mui/icons-material/ArrowBack';
+import { AlertSnackbars } from '../../components/alertSnackbar.jsx';
 
 
 
@@ -41,13 +47,58 @@ export const AdminViewAllStudentsDataNoExport = () => {
     const studentsState = useSelector((state) => state.students);
     const { data: schoolsData, loading: schoolsLoading, error: schoolsError } = schoolsState;
     const { currentPage, totalRows, rowsPerPage, data, filteredStudents: studentsData, loading: studentsLoading, error: studentsError, searchQuery } = studentsState;
+    const [filters, setFilters] = useState({
+        ward: '',
+        presentClass: '',
+        sortBy: '',
+        sortOrder: "",
+        lga: '',
+        schoolId: '',
+        nationality: "",
+        stateOfOrigin: "",
+        enumerator: "",
+        dateFrom: "",
+        dateTo: "",
+        yearOfEnrollment: "",
+        yearOfAdmission: "",
+        status: "active",
+    });
+    const params = {
+        status: filters.status,
+        stateOfOrigin: filters.stateOfOrigin,
+        ward: filters.ward,
+        presentClass: filters.presentClass,
+        lga: filters.lga,
+        schoolId: filters.schoolId,
+        nationality: filters.nationality,
+        state: filters.state,
+        enumerator: filters.enumerator,
+        dateFrom: filters.dateFrom,
+        dateTo: filters.dateTo,
+        yearOfEnrollment: filters.yearOfEnrollment,
+        yearOfAdmission: filters.yearOfAdmission,
+        classAtEnrollment: filters.classAtEnrollment,
+    }
+    const filteredParams = Object.entries(params)
+        .filter(([_, value]) => value != null && value !== '') // Filter out empty values
+        .reduce((acc, [key, value]) => {
+            acc[key] = value;  // Directly add each key-value pair to the accumulator
+            return acc;
+        }, {})
+
+
+    const sortParam = {
+        sortBy: filters.sortBy,
+        sortOrder: filters.sortOrder,
+    };
+
     useEffect(() => {
 
         dispatch(fetchSchools());
     }, [dispatch]);
 
     useEffect(() => {
-        dispatch(fetchStudents({ page: currentPage, limit: rowsPerPage }));
+        dispatch(fetchStudentsFromComponent({ filteredParams, sortParam, page: currentPage, limit: rowsPerPage }));
     }, [dispatch, currentPage, rowsPerPage]);
 
     // const [filterLoading, setFilterLoading] = useState(false);
@@ -65,31 +116,31 @@ export const AdminViewAllStudentsDataNoExport = () => {
     const [selectedItem, setSelectedItem] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [filteredData, setFilteredData] = useState([]); // State for filtered data
+    const [checked, setChecked] = useState(false);
+    const [demotionChecked, setDemotionChecked] = useState(false);
+    const [bulkPromotionMessage, setBulkPromotionMessage] = useState('');
+    const [bulkPromotionLoading, setBulkPromotionLoading] = useState(false);
+    const [singlePromotionMessage, setSinglePromotionMessage] = useState('');
+    const [singlePromotionLoading, setSinglePromotionLoading] = useState(false);
+    const [bulkdemotionMessage, setBulkDemotionMessage] = useState('');
+    const [bulkdemotionLoading, setBulkDemotionLoading] = useState(false);
     const [allStudentsData, setAllStudentsData] = useState([]); // State for filtered data
-
-
-
-
-
+    const [snackbarOpen, setSnackbarOpen] = useState(true); // State to control visibility
+    const [singleSnackbarOpen, setSingleSnackbarOpen] = useState(false);
+    const [bulkSnackbarOpen, setBulkSnackbarOpen] = useState(false);
+    const [bulkDemotionSnackbarOpen, setBulkDemotionSnackbarOpen] = useState(false);
 
 
     const API_URL = `${import.meta.env.VITE_API_URL}/api/v1`
     const token = localStorage.getItem('token') || '';
-    const [filters, setFilters] = useState({
-        ward: '',
-        presentClass: '',
-        sortBy: '',
-        sortOrder: "",
-        lga: '',
-        schoolId: '',
-        nationality: "",
-        stateOfOrigin: "",
-        enumerator: "",
-        dateFrom: "",
-        dateTo: "",
-        yearOfEnrollment: "",
-        yearOfAdmission: "",
-    });
+
+
+    useEffect(() => {
+        if (singlePromotionMessage) setSingleSnackbarOpen(true);
+        if (bulkPromotionMessage) setBulkSnackbarOpen(true);
+        if (bulkDemotionMessage) setBulkDemotionSnackbarOpen(true);
+    }, [singlePromotionMessage, bulkPromotionMessage, bulkDemotionMessage]);
+
 
     useEffect(() => {
         if (schools && schools.length > 0) {
@@ -123,41 +174,6 @@ export const AdminViewAllStudentsDataNoExport = () => {
             }, 1000);
         });
     };
-
-
-
-
-
-
-
-    const params = {
-        stateOfOrigin: filters.stateOfOrigin,
-        ward: filters.ward,
-        presentClass: filters.presentClass,
-        lga: filters.lga,
-        schoolId: filters.schoolId,
-        nationality: filters.nationality,
-        state: filters.state,
-        enumerator: filters.enumerator,
-        dateFrom: filters.dateFrom,
-        dateTo: filters.dateTo,
-        yearOfEnrollment: filters.yearOfEnrollment,
-        yearOfAdmission: filters.yearOfAdmission,
-        classAtEnrollment: filters.classAtEnrollment,
-    }
-    const filteredParams = Object.entries(params)
-        .filter(([_, value]) => value != null && value !== '') // Filter out empty values
-        .reduce((acc, [key, value]) => {
-            acc[key] = value;  // Directly add each key-value pair to the accumulator
-            return acc;
-        }, {})
-
-
-    const sortParam = {
-        sortBy: filters.sortBy,
-        sortOrder: filters.sortOrder,
-    };
-
 
     const yearOfAdmissionOptions = [{ year: '2020' }, { year: '2021' }, { year: '2022' }, { year: '2023' }, { year: '2024' }, { year: '2025' }];
 
@@ -235,48 +251,14 @@ export const AdminViewAllStudentsDataNoExport = () => {
         { class: "JSS 3", id: 4 },
         { class: "SSS 1", id: 5 },
     ];
+    const classPromotionOptions = [
+        { class: "JSS 1", prevClass: "Primary 6", id: 1 },
+        { class: "JSS 2", prevClass: "JSS 1", id: 2 },
+        { class: "JSS 3", prevClass: "JSS 2", id: 3 },
+        { class: "SSS 1", prevClass: "JSS 3", id: 4 },
+        { class: "SSS 2", prevClass: "SSS 1", id: 5 },
+    ];
 
-
-    // useEffect(() => {
-    //     (async () => {
-    //         try {
-    //             setFetchLoading(true);
-    //             const response = await axios.get(`${API_URL}/student/admin-view-all-students`, {
-    //                 headers: {
-    //                     Authorization: `Bearer ${token}`,
-    //                 },
-    //                 // params: { ...filteredParams, ...sortParam },
-    //                 withCredentials: true,
-    //             })
-
-
-    //         } catch (error) {
-    //             setFilterError(error?.response?.statusText)
-    //         }
-    //     })()
-    // }, [])
-
-
-    // const fetchStudentsFromComponent = async () => {
-
-
-    //     try {
-    //         setFetchLoading(true);
-    //         const response = await axios.get(`${API_URL}/student/admin-view-all-students`, {
-    //             headers: {
-    //                 Authorization: `Bearer ${token}`,
-    //             },
-    //             params: { ...filteredParams, ...sortParam },
-    //             withCredentials: true,
-
-    //         })
-    //         console.log(response);
-    //         dispatch(setStudents(response.data.students))
-
-    //     } catch (error) {
-    //         setFilterError(error?.response?.statusText)
-    //     }
-    // }
 
 
 
@@ -295,16 +277,29 @@ export const AdminViewAllStudentsDataNoExport = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        dispatch(fetchStudentsFromComponent({ filteredParams, sortParam }));
+        dispatch(fetchStudentsFromComponent({ filteredParams, sortParam, page: currentPage, limit: rowsPerPage }));
 
     };
+
+    const handleChecked = () => {
+        setChecked((prev) => !prev);
+    }
+    const handleDemotionChecked = () => {
+        setDemotionChecked((prev) => !prev);
+    }
 
     // const handleEdit = (student) => {
     //     navigate(`/admin-dashboard/update-student/${student._id}`, { state: student })
     // };
 
     // console.log(filters);
-
+    function DowngradeIcon() {
+        return (
+            <Box sx={{ transform: 'rotate(180deg)' }}>
+                <UpgradeIcon sx={{ color: "red" }} />
+            </Box>
+        );
+    }
 
 
 
@@ -351,6 +346,7 @@ export const AdminViewAllStudentsDataNoExport = () => {
             }
         }
     };
+
 
     const customStyles = {
         rows: {
@@ -460,6 +456,46 @@ export const AdminViewAllStudentsDataNoExport = () => {
 
 
         (userPermissions.includes('handle_admins')) && {
+            name: 'Promote',
+            cell: (row) => (
+                <button
+                    onClick={() => handleSinglePromotion(row)}
+                    style={{
+                        padding: '5px 10px',
+                        backgroundColor: 'transparent', // Optional: color for the delete button
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '5px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                    }}
+                >
+                    <UpgradeIcon style={{ marginRight: '8px', color: "#196b57" }} />
+                </button>
+            ),
+        },
+        (userPermissions.includes('handle_admins')) && {
+            name: 'Promote',
+            cell: (row) => (
+                <button
+                    onClick={() => handleSinglePromotion(row)}
+                    style={{
+                        padding: '5px 10px',
+                        backgroundColor: 'transparent', // Optional: color for the delete button
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '5px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                    }}
+                >
+                    <DowngradeIcon />
+                </button>
+            ),
+        },
+        (userPermissions.includes('handle_admins')) && {
             name: 'Delete',
             cell: (row) => (
                 <button
@@ -492,11 +528,57 @@ export const AdminViewAllStudentsDataNoExport = () => {
         dispatch(setSearchQuery(query));
     };
 
-    const handleSinglePromotion = async (presentClass) => {
+    const handleSinglePromotion = async (row) => {
+        const studentRandomId = row.randomId;
+        const getNextClass = (currentClass) => {
+            const nextClassObj = classPromotionOptions.find(option => option.prevClass === currentClass);
+            return nextClassObj ? nextClassObj.class : null;
+        };
+        const currentClass = row.presentClass; // Assuming `row.class` contains the student's current class
+        const nextClass = getNextClass(currentClass);
         try {
+
+            const confirmUpdate = window.confirm(`This action will promote ${row.surname} ${row.firstname} to the ${nextClass}.`);
+            if (!confirmUpdate) return;
+            setSinglePromotionLoading(true)
             const token = localStorage.getItem('token');
             const response = await axios.patch(
-                `${API_URL}/student/promote/signle/student`,
+                `${API_URL}/student/promote/single/student`,
+                { studentRandomId },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                    // params: {...studentRandomId},
+                    withCredentials: true,
+                }
+            );
+            console.log(response);
+            setSinglePromotionLoading(false);
+            setSinglePromotionMessage(response.data.message)
+        } catch (err) {
+            console.error(err);
+            setSinglePromotionLoading(false)
+            setSinglePromotionMessage(err?.response?.data?.message)
+        }
+    };
+
+
+    const confirmFunc = (presentClass, newClass) => {
+        const confirmUpdate = window.confirm(`This action will demote all students in ${presentClass} to the previous class.`);
+        if (!confirmUpdate) return;
+    }
+
+    const handleBulkdemotion = async (presentClass) => {
+
+
+        try {
+            const token = localStorage.getItem('token');
+
+            confirmFunc(presentClass)
+            setBulkDemotionLoading(true)
+            const response = await axios.patch(
+                `${API_URL}/student/demote/plenty/students`,
                 { presentClass },
                 {
                     headers: {
@@ -506,14 +588,24 @@ export const AdminViewAllStudentsDataNoExport = () => {
                 }
             );
             console.log(response);
+            setBulkDemotionLoading(false)
+            setBulkDemotionMessage(response.data.message)
 
         } catch (err) {
             console.error(err);
+            setBulkDemotionLoading(false)
+            setBulkDemotionMessage(response?.data?.message)
+
         }
     };
     const handleBulkPromotion = async (presentClass) => {
+
+
         try {
             const token = localStorage.getItem('token');
+
+            confirmFunc(presentClass)
+            setBulkPromotionLoading(true)
             const response = await axios.patch(
                 `${API_URL}/student/promote/plenty/students`,
                 { presentClass },
@@ -525,9 +617,14 @@ export const AdminViewAllStudentsDataNoExport = () => {
                 }
             );
             console.log(response);
+            setBulkPromotionLoading(false)
+            setBulkPromotionMessage(response.data.message)
 
         } catch (err) {
             console.error(err);
+            setBulkPromotionLoading(false)
+            setBulkPromotionMessage(response?.data?.message)
+
         }
     };
 
@@ -551,36 +648,121 @@ export const AdminViewAllStudentsDataNoExport = () => {
                         Manage All Students
                     </Typography>
 
-
                     {/* Promotion section */}
-                    <Box sx={{ padding: "20px" }}>
-                        <Grid container spacing={2}>
 
-                        {classOptions.map((presentClass, index) => (
-                                <Grid
-                                    key={presentClass.id}
-                                    item
-                                    xs={12} // Full width on extra-small screens
-                                    sm={4}  // 3 buttons per row on small screens
-                                    md={2.4} // 5 buttons per row on medium and large screens
-                                >
-                                    <Button key={presentClass.id}
-                                        variant="contained"
-                                        fullWidth
-                                        sx={{
-                                            background: "#196b57",
-                                            "&:hover": {
-                                                background: "#145944", // Slightly darker for hover effect (optional)
-                                            },
-                                        }}
-                                        onClick={() => handleBulkPromotion(presentClass.class)}
-                                    >
-                                        Promote Students in {presentClass.class}
-                                    </Button>
-                                </Grid>
-                        ))}
-                        </Grid>
-                    </Box>
+                    <Paper elevation={3} sx={{
+                        padding: {
+                            xs: "8px",
+                            sm: "20px",
+                            md: "30px",
+                        }, background: "#f7f5f5", marginBottom: "30px"
+                    }}>
+                        <Box sx={{ padding: "20px", display: "flex", flexDirection: "column", gap: "1.2rem" }}>
+                            <Typography variant='h4'
+                                sx={{
+                                    fontWeight: "600"
+                                }}
+                            > Students Promotion</Typography>
+                            <Button
+                                variant="contained"
+                                sx={{
+                                    backgroundColor: '#196b57',
+                                    color: 'white',
+                                    display: "flex",
+                                    '&:hover': {
+                                        backgroundColor: '#155e4b', // Darker shade for hover effect
+                                    },
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                }}
+                                endIcon={checked ? <ArrowDropUpIcon /> : <ArrowDropDownIcon />}
+                                onClick={handleChecked}
+                            >
+                                Promote Students
+                            </Button>
+                            {checked && (
+
+                                <Fade in={checked}>
+                                    <Grid container spacing={2}>
+
+                                        {classPromotionOptions.map((presentClass, index) => (
+                                            <Grid
+                                                key={presentClass.id}
+                                                item
+                                                xs={12} // Full width on extra-small screens
+                                                sm={4}  // 3 buttons per row on small screens
+                                                md={2.4} // 5 buttons per row on medium and large screens
+                                            >
+                                                <Button key={presentClass.id}
+                                                    variant="contained"
+                                                    fullWidth
+                                                    sx={{
+                                                        background: "#196b57",
+                                                        "&:hover": {
+                                                            background: "#145944", // Slightly darker for hover effect (optional)
+                                                        },
+                                                    }}
+                                                    onClick={() => handleBulkPromotion(presentClass.prevClass)}
+                                                >
+
+                                                    {presentClass.prevClass} <ArrowForwardIcon></ArrowForwardIcon> {presentClass.class}
+                                                </Button>
+                                            </Grid>
+                                        ))}
+                                    </Grid>
+                                </Fade>
+                            )}
+                            <Button
+                                variant="contained"
+                                sx={{
+                                    backgroundColor: '#196b57',
+                                    color: 'white',
+                                    display: "flex",
+                                    '&:hover': {
+                                        backgroundColor: '#155e4b', // Darker shade for hover effect
+                                    },
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                }}
+                                endIcon={demotionChecked ? <ArrowDropUpIcon /> : <ArrowDropDownIcon />}
+                                onClick={handleDemotionChecked}
+                            >
+                                Demote Students
+                            </Button>
+                            {demotionChecked && (
+
+                                <Fade in={demotionChecked}>
+                                    <Grid container spacing={2}>
+
+                                        {classPromotionOptions.map((presentClass, index) => (
+                                            <Grid
+                                                key={presentClass.id}
+                                                item
+                                                xs={12} // Full width on extra-small screens
+                                                sm={4}  // 3 buttons per row on small screens
+                                                md={2.4} // 5 buttons per row on medium and large screens
+                                            >
+                                                <Button key={presentClass.id}
+                                                    variant="contained"
+                                                    fullWidth
+                                                    sx={{
+                                                        background: "#196b57",
+                                                        "&:hover": {
+                                                            background: "#145944", // Slightly darker for hover effect (optional)
+                                                        },
+                                                    }}
+                                                    onClick={() => handleBulkdemotion(presentClass.class)}
+                                                >
+
+                                                    {presentClass.prevClass}  <ArrowBackwardIcon /> {presentClass.class}
+                                                </Button>
+                                            </Grid>
+                                        ))}
+                                    </Grid>
+                                </Fade>
+                            )}
+                        </Box>
+                    </Paper>
 
 
                     {/* Filter Form */}
@@ -921,6 +1103,30 @@ export const AdminViewAllStudentsDataNoExport = () => {
                                     fullWidth
                                 />
                             </Grid>
+
+                            <Grid item xs={12} sm={6} md={4}>
+                                <InputLabel id="sortBy-label" sx={{ marginBottom: 1 }}>Active status</InputLabel>
+                                <Select
+                                    name="status"
+                                    value={filters.status || "active"}
+                                    onChange={handleInputChange}
+                                    displayEmpty
+                                    fullWidth
+                                    size="small"
+                                    labelId="sortBy-label"
+                                >
+                                    <MenuItem value="active">
+                                        Active
+                                    </MenuItem>
+                                    <MenuItem value="all">
+                                        All
+                                    </MenuItem>
+                                    <MenuItem value="inactive">
+                                        Inactive
+                                    </MenuItem>
+
+                                </Select>
+                            </Grid>
                         </Grid>
 
 
@@ -1004,24 +1210,25 @@ export const AdminViewAllStudentsDataNoExport = () => {
                         highlightOnHover
                         paginationPerPage={rowsPerPage} // Override default rows per page
 
-                        paginationRowsPerPageOptions={[10, 100, 200, 500]} // Custom options
+                        paginationRowsPerPageOptions={[100, 200, 500, 1000]} // Custom options
 
                         paginationTotalRows={totalRows} // Total rows from API
                         paginationDefaultPage={currentPage} // Use current page from Redux
                         onChangePage={(page) => {
                             dispatch(setCurrentPage(page)); // Update Redux state for current page
-                            dispatch(fetchStudents({ page, limit: rowsPerPage })); // Fetch data for the selected page
+                            dispatch(fetchStudentsFromComponent({ filteredParams, sortParam, page, limit: rowsPerPage })); // Fetch data for the selected page
                         }}
                         onChangeRowsPerPage={(newLimit) => {
                             // Update rowsPerPage in Redux state and fetch new data
 
                             dispatch(setRowsPerPage(newLimit)); // Update rowsPerPage in Redux
-                            dispatch(fetchStudents({ page: 1, limit: newLimit })); // Fetch new data with updated limit
+                            dispatch(fetchStudents({ filteredParams, sortParam, page: 1, limit: newLimit })); // Fetch new data with updated limit
                         }}
                         customStyles={customStyles} // Applying the custom styles
 
 
                     />
+
 
 
                     {isModalOpen && (
@@ -1088,6 +1295,34 @@ export const AdminViewAllStudentsDataNoExport = () => {
                         </div>
 
                     )}
+
+                    {singlePromotionMessage && (
+                        <AlertSnackbars
+                            severityType="success"
+                            message={singlePromotionMessage}
+                            open={singleSnackbarOpen}
+                            onClose={() => setSingleSnackbarOpen(false)}
+                        />
+                    )}
+
+                    {bulkPromotionMessage && (
+                        <AlertSnackbars
+                            severityType="success"
+                            message={bulkPromotionMessage}
+                            open={bulkSnackbarOpen}
+                            onClose={() => setBulkSnackbarOpen(false)}
+                        />
+                    )}
+
+                    {bulkDemotionMessage && (
+                        <AlertSnackbars
+                            severityType="success"
+                            message={bulkDemotionMessage}
+                            open={bulkDemotionSnackbarOpen}
+                            onClose={() => setBulkDemotionSnackbarOpen(false)}
+                        />
+                    )}
+
 
 
                 </Container>

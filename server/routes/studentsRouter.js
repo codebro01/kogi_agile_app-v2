@@ -1,5 +1,5 @@
 import express from 'express';
-import { getAllStudents, importPaymentSheet, filterAndView, filterAndDownload, updateStudent, filterEnumeratorsByStudents, deleteStudent, createStudent, downloadAttendanceSheet, enumeratorsByyHighestRegisteredStudents, lgasByHighestRegisteredStudents, uploadAttendanceSheet, getStudentsAttendance, getStudentsStats, totalStudentsByEnumerators, getDuplicateRecord, deleteManyStudents, promoteSingleStudent, promotePlentyStudents } from '../controllers/index.js';
+import { getAllStudents, importPaymentSheet, filterAndView, filterAndDownload, updateStudent, filterEnumeratorsByStudents, deleteStudent, createStudent, downloadAttendanceSheet, enumeratorsByyHighestRegisteredStudents, lgasByHighestRegisteredStudents, uploadAttendanceSheet, getStudentsAttendance, getStudentsStats, totalStudentsByEnumerators, getDuplicateRecord, deleteManyStudents, promoteSingleStudent, promotePlentyStudents, demotePlentyStudents } from '../controllers/index.js';
 import { authMiddleware, authorizePermission } from '../middlewares/authenticationMiddleware.js';
 import { upload, uploadXLSX } from '../config/multer.js';
 import { cloudinaryImageUploader } from '../utils/cloudinaryImageUploader.js';
@@ -34,6 +34,7 @@ router.get('/manage-duplicate-records', authMiddleware, authorizePermission('han
 router.get('/total-students-by-enumerators', authMiddleware, authorizePermission('handle_registrars'), totalStudentsByEnumerators)
 router.patch('/promote/single/student', authMiddleware, authorizePermission('handle_admins'), promoteSingleStudent)
 router.patch('/promote/plenty/students', authMiddleware, authorizePermission('handle_admins'), promotePlentyStudents)
+router.patch('/demote/plenty/students', authMiddleware, authorizePermission('handle_admins'), demotePlentyStudents)
 export default router;
 
 

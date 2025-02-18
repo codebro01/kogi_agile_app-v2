@@ -28,36 +28,37 @@ export const fetchStudents = createAsyncThunk('students/fetchStudents', async ({
         return thunkAPI.rejectWithValue(error.response?.data || error.response.message || 'Failed to fetch students');
     }
 });
-// export const fetchAllStudents = createAsyncThunk('students/fetchAllStudents', async (_, thunkAPI) => {
-//     const API_URL = `${import.meta.env.VITE_API_URL}/api/v1/student`;
-//     const token = localStorage.getItem('token') || '';
 
-//     try {
-//         const response = await axios.get(API_URL, {
-//             headers: {
-//                 Authorization: `Bearer ${token}`,
-//                 'Content-Type': 'application/json',
-//             },
-//             params: { page, limit },
-//             withCredentials: true,
-//         });
-//         return {
-//             students: response.data,
-//             total: response.data.total,
-//             totalRows: response.data.totalRows,
-//             currentPage: page,
-//             rowsPerPage: limit,
-//         };
-//     } catch (error) {
-//         console.log(error)
+export const fetchStudentsFromComponent = createAsyncThunk(
+    'students/fetchStudentsFromComponent',
+    async ({ filteredParams, sortParam, page, limit }, thunkAPI) => {
+        const API_URL = `${import.meta.env.VITE_API_URL}/api/v1/student/admin-view-all-students`;
+        const token = localStorage.getItem('token') || '';
+        console.log('filtered params', filteredParams)
+        try {
 
-//         return thunkAPI.rejectWithValue(error.response?.data || error.response.message || 'Failed to fetch students');
-//     }
-// });
+            const response = await axios.get(API_URL, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+                params: { filteredParams, sortParam, page, limit },
+                withCredentials: true,
+            });
+            return {
+                students: response.data,
+                total: response.data.total,
+                totalRows: response.data.totalRows,
+                currentPage: page,
+                rowsPerPage: limit,
+            };  // Optionally return data if needed elsewhere
+        } catch (error) {
+            console.error('Error fetching students from component:', error);
+            thunkAPI.rejectWithValue('error occured')
+            throw error;  // Optionally return an error
+        }
+    }
+);
 
-
-
-// Async thunk for deleting a student
 export const deleteStudent = createAsyncThunk(
     'students/deleteStudent',
     async (studentId, thunkAPI) => {
@@ -79,30 +80,6 @@ export const deleteStudent = createAsyncThunk(
     }
 );
 
-export const fetchStudentsFromComponent = createAsyncThunk(
-    'students/fetchStudentsFromComponent',
-    async ({ filteredParams, sortParam }, thunkAPI) => {
-        const API_URL = `${import.meta.env.VITE_API_URL}/api/v1/student/admin-view-all-students`;
-        const token = localStorage.getItem('token') || '';
-
-        try {
-
-            const response = await axios.get(API_URL, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-                params: { ...filteredParams, ...sortParam },
-                withCredentials: true,
-            });
-            return response.data;  // Optionally return data if needed elsewhere
-        } catch (error) {
-            console.error('Error fetching students from component:', error);
-            thunkAPI.rejectWithValue('error occured')
-            throw error;  // Optionally return an error
-        }
-    }
-);
-
 
 const studentsSlice = createSlice({
     name: 'students',
@@ -113,7 +90,7 @@ const studentsSlice = createSlice({
         error: null,
         currentPage: 1,
         totalRows: 0,
-        rowsPerPage: 10,
+        rowsPerPage: 100,
         searchQuery: '', // Search query state
         filteredStudents: [],
     },
@@ -182,7 +159,9 @@ const studentsSlice = createSlice({
                 state.error = null;
             })
             .addCase(fetchStudents.fulfilled, (state, action) => {
+                
                 state.loading = false;
+                console.log(action.payload)
                 state.data = action.payload.students;
                 state.filteredStudents = state.data.students; // Initialize filtered data
 
@@ -244,7 +223,12 @@ const studentsSlice = createSlice({
             })
             .addCase(fetchStudentsFromComponent.fulfilled, (state, action) => {
                 state.loading = false;
-                state.filteredStudents = action.payload
+                console.log( action.payload.students)
+                state.filteredStudents = action.payload.students.students; // Initialize filtered data
+
+                state.total = action.payload.total; // Set total count
+                state.totalRows = action.payload.total;
+                state.currentPage = action.payload.currentPage;  // Update currentPage from API response
             })
             .addCase(fetchStudentsFromComponent.rejected, (state, action) => {
                 state.loading = false;

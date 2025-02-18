@@ -652,7 +652,7 @@ const Dashboard = () => {
               }}
             >
               <StatBox
-                title={total_primary_6}
+                title={total_primary_6 || 0}
                 subtitle="Total Primary 6"
                 progress="0.75"
                 borderRadius="5px"
@@ -676,7 +676,7 @@ const Dashboard = () => {
               }}
             >
               <StatBox
-                title={total_JSS_1}
+                title={total_JSS_1 || 0}
                 subtitle="Total JSS 1"
                 progress="0.75"
                 borderRadius="5px"
@@ -700,7 +700,7 @@ const Dashboard = () => {
               }}
             >
               <StatBox
-                title={total_JSS_3}
+                title={total_JSS_3 || 0}
                 subtitle="Total JSS 3"
                 progress="0.75"
                 borderRadius="5px"
@@ -724,7 +724,7 @@ const Dashboard = () => {
               }}
             >
               <StatBox
-                title={total_SSS_1}
+                title={total_SSS_1 || 0}
                 subtitle="Total SSS 1"
                 progress="0.75"
                 borderRadius="5px"
@@ -1129,7 +1129,7 @@ const Dashboard = () => {
             }}
           >
             <StatBox
-              title={jss1Students?.length}
+              title={jss1Students?.length || 0}
               subtitle="Total JSS 1 Enrolled"
               progress="0.75"
               borderRadius="5px"
@@ -1153,7 +1153,7 @@ const Dashboard = () => {
             }}
           >
             <StatBox
-              title={jss3Students?.length}
+              title={jss3Students?.length || 0}
               subtitle="Total JSS 3 Enrolled"
               progress="0.75"
               borderRadius="5px"
@@ -1177,7 +1177,7 @@ const Dashboard = () => {
             }}
           >
             <StatBox
-              title={ss1Students?.length}
+              title={ss1Students?.length || 0}
               subtitle="Total SSS 1 Enrolled"
               progress="0.75"
               borderRadius="5px"

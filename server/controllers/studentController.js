@@ -42,9 +42,7 @@ const fetchExistingData = async () => {
     } finally {
         await client.close();
     }
-}
-
-
+} 
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -291,15 +289,19 @@ export const filterAndDownload = async (req, res, next) => {
 
         const { userID, permissions } = req.user;
 
-        const { ward, schoolId, lga, presentClass, sortBy, sortOrder, nationality, stateOfOrigin, enumerator, dateFrom, dateTo, yearOfAdmission, yearOfEnrollment } = req.query;
+        const { ward, schoolId, lga, presentClass, sortBy, sortOrder, nationality, stateOfOrigin, enumerator, dateFrom, dateTo, yearOfAdmission, yearOfEnrollment, status } = req.query;
 
         // Create a basket object
         let basket;
+
         if (!permissions.includes('handle_registrars')) {
             basket = { createdBy: userID };
         } else {
             basket = {};
         }
+        if((status && status === 'active') || (!status)) basket.isActive = true;
+        if(status && status === 'inactive') basket.isActive = false;
+        if(status && status === 'all') basket.isActive;
         if (lga) basket.lgaOfEnrollment = lga;
         if (presentClass) basket.presentClass = presentClass;
         if (yearOfEnrollment) basket.yearOfEnrollment = yearOfEnrollment;
@@ -466,9 +468,14 @@ export const filterAndView = async (req, res, next) => {
         await Student.syncIndexes();
 
         const { userID, permissions } = req.user;
+        const { ward, schoolId, lga, presentClass, nationality, stateOfOrigin, enumerator, dateFrom, dateTo, yearOfAdmission, yearOfEnrollment } = req.query.filteredParams || {};
+        const {page, limit} = req.query;
+        const {sortBy, sortOrder} = req.query.sortParam;
+        let {status} = req.query.filteredParams;
 
-        const { ward, schoolId, lga, presentClass, sortBy, sortOrder, nationality, stateOfOrigin, enumerator, dateFrom, dateTo, yearOfAdmission, yearOfEnrollment } = req.query;
+       
 
+        
         // Create a basket object
         let basket;
         if (!permissions.includes('handle_registrars')) {
@@ -476,6 +483,9 @@ export const filterAndView = async (req, res, next) => {
         } else {
             basket = {};
         }
+        if((status && status === 'active') || (!status)) basket.isActive = true;
+        if(status && status === 'inactive') basket.isActive = false;
+        if(status && status === 'all') basket.isActive;
         if (lga) basket.lgaOfEnrollment = lga;
         if (presentClass) basket.presentClass = presentClass;
         if (yearOfEnrollment) basket.yearOfEnrollment = yearOfEnrollment;
@@ -486,7 +496,7 @@ export const filterAndView = async (req, res, next) => {
         if (enumerator) basket.createdBy = enumerator;
         if (dateFrom || dateTo) {
             basket.createdAt = {};
-
+            
             // Handle dateFrom
             if (dateFrom) {
                 const fromDate = new Date(dateFrom);
@@ -504,7 +514,7 @@ export const filterAndView = async (req, res, next) => {
                 }
                 basket.createdAt.$lte = toDate;
             }
-
+            
             // Clean up empty `createdAt` filter
             if (Object.keys(basket.createdAt).length === 0) {
                 delete basket.createdAt;
@@ -512,7 +522,7 @@ export const filterAndView = async (req, res, next) => {
         }
 
         // console.log(req.url)
-        // console.log(req.query)
+            console.log('basket', basket)
         // console.log(basket)
 
 
@@ -524,13 +534,19 @@ export const filterAndView = async (req, res, next) => {
         }
 
         // console.log(req.query, req.url);
+        
+        const skip = (page - 1) * limit;
 
 
 
-        const students = await Student.find(basket).populate('schoolId').populate('ward').populate('createdBy').limit(500).sort(sort).collation({ locale: "en", strength: 2 }).lean();
+
+        const total = await Student.countDocuments(basket);
 
 
-        res.status(200).json(students);
+        const students = await Student.find(basket).populate('schoolId').populate('ward').populate('createdBy').sort(sort).collation({ locale: "en", strength: 2 }).skip(skip).limit(parseInt(limit)).lean();
+
+
+        res.status(200).json({students, total});
 
 
 
@@ -1748,48 +1764,104 @@ export const toggleStudentActiveStatus = async (req, res, next) => {
 }
 
 export const promoteSingleStudent = async (req, res, next) => {
-    // try {
-    //     const { studentRandomId } = req.query;
-    //     const studentExist = await Student.findOne({ randomId: studentRandomId });
+    try {
+        const { studentRandomId } = req.body;
+        const studentExist = await Student.findOne({ randomId: studentRandomId });
 
-    //     if (!studentExist) {
-    //         return next(new NotFoundError('No student found with the ID: ' + studentRandomId));
-    //     }
+        if (!studentExist) {
+            return next(new NotFoundError('No student found with the ID: ' + studentRandomId));
+        }
 
-    //     switch (studentExist.presentClass) {
-    //         case 'Primary 6':
-    //             studentExist.presentClass = 'JSS 1';
-    //             break;
-    //         case 'JSS 1':
-    //             studentExist.presentClass = 'JSS 2';
-    //             studentExist.isActive = false;
-    //             break;
-    //         case 'JSS 2':
-    //             studentExist.presentClass = 'JSS 3';
-    //             break;
-    //         case 'JSS 3':
-    //             studentExist.presentClass = 'SSS 1';
-    //             break;
-    //         case 'SSS 1':
-    //             studentExist.presentClass = 'SSS 2';
-    //             studentExist.isActive = false;
-    //             break;
-    //         default:
-    //             return next(new BadRequestError('Invalid class for promotion'));
-    //     }
+        switch (studentExist.presentClass) {
+            case 'Primary 6':
+                studentExist.presentClass = 'JSS 1';
+                break;
+            case 'JSS 1':
+                studentExist.presentClass = 'JSS 2';
+                studentExist.isActive = false;
+                break;
+            case 'JSS 2':
+                studentExist.presentClass = 'JSS 3';
+                break;
+            case 'JSS 3':
+                studentExist.presentClass = 'SSS 1';
+                break;
+            case 'SSS 1':
+                studentExist.presentClass = 'SSS 2';
+                studentExist.isActive = false;
+                break;
+            default:
+                return next(new BadRequestError('Invalid class for promotion'));
+        }
 
-    //     await studentExist.save();
+        await studentExist.save();
 
-    //     const statusMessage = studentExist.isActive ? 'made eligible' : 'made ineligible';
-    //     res.status(200).json({
-    //         message: `${studentExist.surname} ${studentExist.firstname} has been promoted to ${studentExist.presentClass} and is ${statusMessage}`
-    //     });
+        const statusMessage = studentExist.isActive ? 'made eligible' : 'made ineligible';
+        res.status(200).json({
+            message: `${studentExist.surname} ${studentExist.firstname} has been promoted to ${studentExist.presentClass} and is ${statusMessage}`
+        });
 
-    // } catch (error) {
-    //     console.log(error);
-    //     next(error);
-    // }
+    } catch (error) {
+        console.log(error);
+        next(error);
+    }
 };
+export const demoteSingleStudent = async (req, res, next) => {
+    try {
+        const { studentRandomId } = req.body;
+        const studentExist = await Student.findOne({ randomId: studentRandomId });
+
+        if (!studentExist) {
+            return next(new NotFoundError('No student found with the ID: ' + studentRandomId));
+        }
+
+        switch (studentExist.presentClass) {
+            case 'Primary 6':
+                studentExist.presentClass = 'JSS 1';
+                break;
+            case 'JSS 1':
+                studentExist.presentClass = 'JSS 2';
+                studentExist.isActive = false;
+                break;
+            case 'JSS 2':
+                studentExist.presentClass = 'JSS 3';
+                break;
+            case 'JSS 3':
+                studentExist.presentClass = 'SSS 1';
+                break;
+            case 'SSS 1':
+                studentExist.presentClass = 'SSS 2';
+                studentExist.isActive = false;
+                break;
+            default:
+                return next(new BadRequestError('Invalid class for promotion'));
+        }
+
+        await studentExist.save();
+
+        const statusMessage = studentExist.isActive ? 'made eligible' : 'made ineligible';
+        res.status(200).json({
+            message: `${studentExist.surname} ${studentExist.firstname} has been promoted to ${studentExist.presentClass} and is ${statusMessage}`
+        });
+
+    } catch (error) {
+        console.log(error);
+        next(error);
+    }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 export const promotePlentyStudents = async (req, res, next) => {
@@ -1801,15 +1873,15 @@ export const promotePlentyStudents = async (req, res, next) => {
             return next(new BadRequestError('Invalid class selected for promotion'));
         }
 
+    
+
 
         let promotedClass = null;
 
-            switch (presentClass) {
-                case 'Primary 6':
-                    const confirmUpdate = window.confirm("This action will promote all Primary 6 students to JSS 1");
-                    if(!confirmUpdate) return;
-                    promotedClass = await Student.updateMany(
-                        { presentClass: presentClass},
+            switch (presentClass.toUpperCase()) {
+                case 'PRIMARY 6':
+                promotedClass = await Student.updateMany(
+                        { presentClass: 'Primary 6'},
                         { presentClass: 'JSS 1' },
                         { runValidators: true, }
                     );
@@ -1818,7 +1890,9 @@ export const promotePlentyStudents = async (req, res, next) => {
 
                 case 'JSS 1':
                     promotedClass = await Student.updateMany(
-                        { presentClass},
+                        { presentClass: {
+                            $in: ['JSS 1', 'Jss 1']
+                        }},
                         { presentClass: 'JSS 2', isActive: false },
                         { runValidators: true, }
                     );
@@ -1827,7 +1901,10 @@ export const promotePlentyStudents = async (req, res, next) => {
 
                 case 'JSS 2':
                     promotedClass = await Student.updateMany(
-                        { presentClass },
+                        { presentClass: {
+                            $in: ['JSS 2', 'Jss 2']
+
+                        } },
                         { presentClass: 'JSS 3', isActive: true },
                         { runValidators: true, }
                     );
@@ -1836,7 +1913,10 @@ export const promotePlentyStudents = async (req, res, next) => {
 
                 case 'JSS 3':
                     promotedClass = await Student.updateMany(
-                        { presentClass},
+                        { presentClass: {
+                            $in: ['JSS 3', 'Jss 3']
+
+                        }},
                         { presentClass: 'SSS 1', isActive: true },
                         { runValidators: true, }
                     );
@@ -1845,11 +1925,96 @@ export const promotePlentyStudents = async (req, res, next) => {
 
                 case 'SSS 1':
                     promotedClass = await Student.updateMany(
-                        { presentClass},
-                        { presentClass: 'SSS 2', isActive: true },
+                        { presentClass: {
+                            $in: ['SSS 1', 'Sss 1']
+
+                        }},
+                        { presentClass: 'SSS 2', isActive: false },
                         { runValidators: true, }
                     );
                     res.status(200).json({ message: `All SSS 1 students have been promoted to SSS 2` });
+                    break;
+
+                default:
+                    return next(new BadRequestError('Invalid class for promotion.'));
+            }
+        
+
+    } catch (error) {
+        console.error(error);
+        return next(error);
+    }
+};
+
+export const demotePlentyStudents = async (req, res, next) => {
+    try {
+        const { presentClass } = req.body;
+
+  
+        if (!presentClass) {
+            return next(new BadRequestError('Invalid class selected for promotion'));
+        }
+
+    
+
+
+        let promotedClass = null;
+
+            switch (presentClass.toUpperCase()) {
+                case 'JSS 1':
+                promotedClass = await Student.updateMany(
+                    { presentClass: 'JSS 1' },
+                    { presentClass: 'Primary 6'},
+                        { runValidators: true, }
+                    );
+                    res.status(200).json({ message: `All JSS 1 students have been demoted to Primary 6` });
+                    break;
+
+                case 'JSS 2':
+                    promotedClass = await Student.updateMany(
+                        { presentClass: {
+                            $in: ['JSS 2', 'Jss 2']
+                        }},
+                        { presentClass: 'JSS 1', isActive: true },
+                        { runValidators: true, }
+                    );
+                    res.status(200).json({ message: `All JSS 2 students have been demoted to JSS 1` });
+                    break;
+
+                case 'JSS 3':
+                    promotedClass = await Student.updateMany(
+                        { presentClass: {
+                            $in: ['JSS 3', 'Jss 3']
+
+                        } },
+                        { presentClass: 'JSS 2', isActive: false },
+                        { runValidators: true, }
+                    );
+                    res.status(200).json({ message: `All JSS 3 students have been demoted to JSS 2` });
+                    break;
+
+                case 'SSS 1':
+                    promotedClass = await Student.updateMany(
+                        { presentClass: {
+                            $in: ['SSS 1', 'Sss 1']
+
+                        }},
+                        { presentClass: 'JSS 3', isActive: true },
+                        { runValidators: true, }
+                    );
+                    res.status(200).json({ message: `All SSS 1 students have been demoted to JSS 3` });
+                    break;
+
+                case 'SSS 2':
+                    promotedClass = await Student.updateMany(
+                        { presentClass: {
+                            $in: ['SSS 2', 'Sss 2']
+
+                        }},
+                        { presentClass: 'SSS 1', isActive: true },
+                        { runValidators: true, }
+                    );
+                    res.status(200).json({ message: `All SSS 2 students have been demoted to SSS 1` });
                     break;
 
                 default:
