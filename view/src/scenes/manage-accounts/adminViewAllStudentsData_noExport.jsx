@@ -122,7 +122,7 @@ export const AdminViewAllStudentsDataNoExport = () => {
     const [bulkPromotionLoading, setBulkPromotionLoading] = useState(false);
     const [singlePromotionMessage, setSinglePromotionMessage] = useState('');
     const [singlePromotionLoading, setSinglePromotionLoading] = useState(false);
-    const [bulkdemotionMessage, setBulkDemotionMessage] = useState('');
+    const [bulkDemotionMessage, setBulkDemotionMessage] = useState('');
     const [bulkdemotionLoading, setBulkDemotionLoading] = useState(false);
     const [allStudentsData, setAllStudentsData] = useState([]); // State for filtered data
     const [snackbarOpen, setSnackbarOpen] = useState(true); // State to control visibility
@@ -476,10 +476,10 @@ export const AdminViewAllStudentsDataNoExport = () => {
             ),
         },
         (userPermissions.includes('handle_admins')) && {
-            name: 'Promote',
+            name: 'Demote',
             cell: (row) => (
                 <button
-                    onClick={() => handleSinglePromotion(row)}
+                    onClick={() => handleSingleDemotion(row)}
                     style={{
                         padding: '5px 10px',
                         backgroundColor: 'transparent', // Optional: color for the delete button
@@ -544,6 +544,40 @@ export const AdminViewAllStudentsDataNoExport = () => {
             const token = localStorage.getItem('token');
             const response = await axios.patch(
                 `${API_URL}/student/promote/single/student`,
+                { studentRandomId },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                    // params: {...studentRandomId},
+                    withCredentials: true,
+                }
+            );
+            console.log(response);
+            setSinglePromotionLoading(false);
+            setSinglePromotionMessage(response.data.message)
+        } catch (err) {
+            console.error(err);
+            setSinglePromotionLoading(false)
+            setSinglePromotionMessage(err?.response?.data?.message)
+        }
+    };
+    const handleSingleDemotion = async (row) => {
+        const studentRandomId = row.randomId;
+        const getPrevClass = (currentClass) => {
+            const nextClassObj = classPromotionOptions.find(option => option.class === currentClass);
+            return nextClassObj ? nextClassObj.prevClass : null;
+        };
+        const currentClass = row.presentClass; // Assuming `row.class` contains the student's current class
+        const prevClass = getPrevClass(currentClass);
+        try {
+
+            const confirmUpdate = window.confirm(`This action will demote ${row.surname} ${row.firstname} from ${currentClass} to ${prevClass}.`);
+            if (!confirmUpdate) return;
+            setSinglePromotionLoading(true)
+            const token = localStorage.getItem('token');
+            const response = await axios.patch(
+                `${API_URL}/student/demote/single/student`,
                 { studentRandomId },
                 {
                     headers: {

@@ -58,6 +58,7 @@ export const AdminViewAllStudentsData = () => {
         dateTo: "",
         yearOfEnrollment: "",
         yearOfAdmission: "",
+        status: "active",
     });
 
     // ! Redux toolkit consumption
@@ -129,6 +130,7 @@ export const AdminViewAllStudentsData = () => {
         yearOfEnrollment: filters.yearOfEnrollment,
         yearOfAdmission: filters.yearOfAdmission,
         classAtEnrollment: filters.classAtEnrollment,
+        status: filters.status
     }
     const filteredParams = Object.entries(params)
         .filter(([_, value]) => value != null && value !== '') // Filter out empty values
@@ -203,13 +205,18 @@ export const AdminViewAllStudentsData = () => {
             ward: '',
             presentClass: '',
             sortBy: '',
+            sortOrder: "",
             lga: '',
             schoolId: '',
-            enumerator: '',
-            dateFrom: '',
-            dateTo: '',
-            yearOfEnrollment: '',
-    
+            nationality: "",
+            stateOfOrigin: "",
+            enumerator: "",
+            dateFrom: "",
+            dateTo: "",
+            yearOfEnrollment: "",
+            yearOfAdmission: "",
+            status: "active",
+
         });
         // setStudentsData(studentsData);
         // dispatch(filterStudents(studentsData));
@@ -292,7 +299,7 @@ export const AdminViewAllStudentsData = () => {
     //     },
     // ];
     if (schoolsLoading) {
-       return  <Box
+        return <Box
             sx={{
                 display: "flex",
                 alignItems: "center",
@@ -302,7 +309,8 @@ export const AdminViewAllStudentsData = () => {
             }}
         >
             <SpinnerLoader />
-        </Box>    }
+        </Box>
+    }
 
     if (schoolsError) {
         return <div>Error: {schoolsError}</div>;
@@ -611,6 +619,7 @@ export const AdminViewAllStudentsData = () => {
                                 </Select>
                             </Grid>
 
+
                             {filters.sortBy && (
                                 <Grid item xs={12} sm={6} md={4}>
                                     <InputLabel id="sortOrder-label" sx={{ marginBottom: 1 }}>Sort Order</InputLabel>
@@ -631,6 +640,29 @@ export const AdminViewAllStudentsData = () => {
                                     </Select>
                                 </Grid>
                             )}
+
+                            <Grid item xs={12} sm={6} md={4}>
+                                <InputLabel id="sortBy-label" sx={{ marginBottom: 1 }}>Active Status</InputLabel>
+                                <Select
+                                    name="status"
+                                    value={filters.status}
+                                    onChange={handleInputChange}
+                                    displayEmpty
+                                    fullWidth
+                                    size="small"
+                                    labelId="active - status"
+                                >
+                                    <MenuItem value="active">
+                                        <em>Active</em>
+                                    </MenuItem>
+                                    <MenuItem value={'all'}>
+                                            All
+                                        </MenuItem>
+                                    <MenuItem value={'inactive'}>
+                                            Inactive
+                                        </MenuItem>
+                                </Select>
+                            </Grid>
 
                             {/* Date Filter */}
                             <Grid item xs={12} sm={6} md={4}>

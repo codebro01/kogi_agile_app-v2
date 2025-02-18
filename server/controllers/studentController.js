@@ -643,10 +643,10 @@ export const downloadAttendanceSheet = async (req, res, next) => {
         let filterBasket;
 
         if (permissions.includes('handle_admins')) {
-            filterBasket = {}
+            filterBasket = {isActive: true}
         }
         else {
-            filterBasket = { createdBy: userID }
+            filterBasket = { createdBy: userID, isActive: true }
         }
 
         if (schoolId) filterBasket.schoolId = schoolId;
@@ -766,6 +766,9 @@ export const uploadAttendanceSheet = async (req, res, next) => {
             // }
             try {
                 if (row.AttendanceScore === 0 || row.AttendanceScore === minScore || row.AttendanceScore === maxScore || (row.AttendanceScore >= minScore && row.AttendanceScore <= maxScore)) {
+                    const studentId = row.studentRandomId;
+                    const student = await Student.findOne({studentRandomId: studentId, isActive: true});
+                    if(!student) return next(new BadRequestError(`Student with Id ${studentRandomId} is not eligible`))
                     attendanceRecords.push({
                         studentRandomId: row.StudentId, // First column
                         class: row.Class || '', // Class
@@ -888,6 +891,7 @@ export const getStudentsAttendance = async (req, res, next) => {
             {
                 $match: {
                     'enumeratorId': userID, // Replace with the registrar's ID or identifier
+                    'lockStatus': false,
                     ...(week && { attdWeek: Number(week) }), // Corrected from 'attWeek'
                     ...(ward && { 'studentDetails.ward': ward }),
                     ...(lgaOfEnrollment && { 'studentDetails.lgaOfEnrollment': lgaOfEnrollment }),
@@ -1816,32 +1820,36 @@ export const demoteSingleStudent = async (req, res, next) => {
         }
 
         switch (studentExist.presentClass) {
-            case 'Primary 6':
-                studentExist.presentClass = 'JSS 1';
-                break;
             case 'JSS 1':
-                studentExist.presentClass = 'JSS 2';
-                studentExist.isActive = false;
+                studentExist.presentClass = 'Primary 6';
                 break;
             case 'JSS 2':
-                studentExist.presentClass = 'JSS 3';
+                studentExist.presentClass = 'JSS 1';
+                studentExist.isActive = false;
+                break;
+            case 'JSS 3':
+                studentExist.presentClass = 'JSS 2';
                 break;
             case 'JSS 3':
                 studentExist.presentClass = 'SSS 1';
                 break;
             case 'SSS 1':
-                studentExist.presentClass = 'SSS 2';
+                studentExist.presentClass = 'JSS 3';
+                studentExist.isActive = false;
+                break;
+            case 'SSS 2':
+                studentExist.presentClass = 'SSS 1';
                 studentExist.isActive = false;
                 break;
             default:
-                return next(new BadRequestError('Invalid class for promotion'));
+                return next(new BadRequestError('Invalid class for demotion'));
         }
 
         await studentExist.save();
 
         const statusMessage = studentExist.isActive ? 'made eligible' : 'made ineligible';
         res.status(200).json({
-            message: `${studentExist.surname} ${studentExist.firstname} has been promoted to ${studentExist.presentClass} and is ${statusMessage}`
+            message: `${studentExist.surname} ${studentExist.firstname} has been demoted to ${studentExist.presentClass}`
         });
 
     } catch (error) {
@@ -1849,18 +1857,6 @@ export const demoteSingleStudent = async (req, res, next) => {
         next(error);
     }
 };
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

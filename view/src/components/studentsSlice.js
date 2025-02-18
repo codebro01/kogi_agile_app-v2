@@ -100,16 +100,16 @@ const studentsSlice = createSlice({
         },
         setSearchQuery: (state, action) => {
             state.searchQuery = action.payload;
-
-            if (!state.data || state.data.length === 0) {
+            console.log(state.searchQuery)
+            if (!state.filteredStudents || state.filteredStudents.length === 0) {
                 state.filteredStudents = [];
             }
             if (!action.payload.trim() || state.searchQuery === '') {
                 // If the query is empty, show all students
-                state.filteredStudents = state.data.students || [];
+                state.filteredStudents = state.initialFilteredStudents || [];
             } else {
                 // Perform filtering
-                state.filteredStudents = state.data.students.filter((item) => {
+                state.filteredStudents = state.filteredStudents.filter((item) => {
                     const valuesToSearch = [
                         item.randomId,
                         item.surname,
@@ -225,7 +225,7 @@ const studentsSlice = createSlice({
                 state.loading = false;
                 console.log( action.payload.students)
                 state.filteredStudents = action.payload.students.students; // Initialize filtered data
-
+                state.initialFilteredStudents = action.payload.students.students;
                 state.total = action.payload.total; // Set total count
                 state.totalRows = action.payload.total;
                 state.currentPage = action.payload.currentPage;  // Update currentPage from API response
