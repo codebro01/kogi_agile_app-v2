@@ -816,6 +816,170 @@ export const uploadAttendanceSheet = async (req, res, next) => {
 };
 
 
+export const adminViewAttendance = async (req, res, next) => {
+    try {
+        const { userID, permissions } = req.user;
+        let { year, month, school, ward, lgaOfEnrollment, presentClass, week, schoolId, paymentType, percentage, dateFrom, dateTo, enumeratorId } = req.query;
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 200;
+        const skip = (page - 1) * limit;
+        // lgaOfEnrollment = lgaOfEnrollment.toLowerCase();
+        // ward = ward.toLowerCase();
+        // Filter conditions
+        let basket = {};
+        let createdBy;
+        // if (!permissions.includes('handle_registrars')) {
+        //     basket.enumeratorId = userID;
+        // }
+
+        console.log(permissions);
+
+        if (year) basket.year = parseInt(year, 10);; // Ensure year is numeric
+        if (month) basket.month = parseInt(month, 10);; // Ensure week is numeric
+        if (school) basket.schoolId = school;; // Ensure month is numeric
+        if (presentClass) basket.presentClass = presentClass;
+        if (ward) basket.ward = ward;
+        if (week) basket.attdWeek = week;
+        if (lgaOfEnrollment) basket.lgaOfEnrollment = lgaOfEnrollment;
+
+        console.log('parsed dateFrom:', new Date(dateFrom));
+        console.log('parsed dateTo:', new Date(new Date(dateTo).setHours(23, 59, 59, 999)));
+        // console.log('getting query and url');
+
+        // console.log(req.query)
+        // console.log(req.url)
+        let attendance;
+
+
+
+        attendance = await Attendance.aggregate([
+
+            {
+                $lookup: {
+                    from: 'students', // Collection name for Student schema
+                    localField: 'studentRandomId', // Field in Attendance
+                    foreignField: 'randomId', // Field in Student schema
+                    as: 'studentDetails', // Output field for joined data
+                },
+            },
+            {
+                $unwind: {
+                    path: '$studentDetails', // Flatten joined data
+                },
+            },
+            {
+                $lookup: {
+                    from: 'allschools', // Collection name for School schema
+                    localField: 'studentDetails.schoolId', // Field in Student schema
+                    foreignField: '_id', // Field in School schema
+                    as: 'schoolDetails', // Output field for joined data
+                },
+            },
+            {
+                $unwind: {
+                    path: '$schoolDetails', // Flatten joined school data
+                    preserveNullAndEmptyArrays: true, // Keep student data even if no school match
+                },
+            },
+
+            {
+                $match: {
+                    'lockStatus': false,
+                    ...(enumeratorId && {'enumeratorId': enumeratorId}),
+                    ...(week && { attdWeek: Number(week) }), // Corrected from 'attWeek'
+                    ...(ward && { 'studentDetails.ward': ward }),
+                    ...(lgaOfEnrollment && { 'studentDetails.lgaOfEnrollment': lgaOfEnrollment }),
+                    ...(presentClass && { 'studentDetails.presentClass': presentClass }),
+                    ...(school && { 'studentDetails.schoolId': new ObjectId(school) }),
+                    ...(month && { month: Number(month) }),
+                    ...(year && { year: Number(year) }),
+
+                },
+            },
+
+            {
+                $project: {
+                    _id: 1, // Exclude MongoDB's `_id`
+                    year: 1,
+                    attdWeek: 1,
+                    month: 1,
+                    class: 1,
+                    studentRandomId: 1,
+                    AttendanceScore: 1,
+                    enumeratorId: 1,
+                    'studentDetails.surname': 1,
+                    'studentDetails.firstname': 1,
+                    'studentDetails.middlename': 1,
+                    'studentDetails.ward': 1,
+                    'studentDetails.lgaOfEnrollment': 1,
+                    'studentDetails.presentClass': 1,
+                    'studentDetails.state': 1,
+                    'studentDetails.accountNumber': 1,
+                    'studentDetails.bankName': 1,
+                    'schoolDetails.schoolName': 1,
+                    'schoolDetails._id': 1,
+                    'studentDetails.presentClass': 1,
+                },
+            },
+            {
+                $sort: { createdAt: -1 }, // Sort by createdAt in descending order
+            },
+            {
+                $facet: {
+                    metadata: [{ $count: 'total' }],  // Count total documents
+                    data: [{ $skip: skip }, { $limit: limit }],  // Paginate results
+                },
+            },
+            {
+                $unwind: '$metadata',
+            },
+            {
+                $project: {
+                    total: '$metadata.total',
+                    data: 1,
+                },
+            },
+        ]);
+        if (attendance.length < 1) return next(new NotFoundError("No record found"));
+
+
+
+
+            return res.status(200).json({ attendance });
+        
+    }
+    catch(error) {
+        return next(error)
+    }
+}
+
+export const adminDeleteAttendances = async (req, res, next) => {
+    try {
+        const { ids } = req.query; // Access the query parameter
+        const selectedAttendances = ids.split(','); // Convert to array
+
+        if (!selectedAttendances || !selectedAttendances.length) {
+            return res
+                .status(StatusCodes.BAD_REQUEST)
+                .json({ message: 'No students selected for deletion.' });
+        }
+
+        const deletedAttendances = await Attendance.deleteMany({
+            _id: { $in: selectedAttendances },
+        });
+
+        if (deletedAttendances.deletedCount === 0) {
+            return next(new NotFoundError('No Attendance found for deletion.'));
+        }
+
+        res.status(StatusCodes.OK).json({
+            message: `${deletedAttendances.deletedCount} attendances deleted successfully.`,
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
 export const getStudentsAttendance = async (req, res, next) => {
     try {
         const { userID, permissions } = req.user;
@@ -836,9 +1000,12 @@ export const getStudentsAttendance = async (req, res, next) => {
         }
 
 
+        
+        
         else {
             basket = {};
         }
+        console.log(permissions);
 
         if (year) basket.year = parseInt(year, 10);; // Ensure year is numeric
         if (month) basket.month = parseInt(month, 10);; // Ensure week is numeric
@@ -1017,6 +1184,7 @@ export const getStudentsAttendance = async (req, res, next) => {
                         }, // Group by student and month-year
                         studentDetails: { $first: "$studentDetails" },
                         schoolDetails: { $first: "$schoolDetails" },
+                        lockStatus: {$first: false},
                         studentRandomId: { $first: "$studentRandomId" },
                         createdAt: { $first: "$createdAt" },
                         month: { $first: "$month" },
@@ -1045,6 +1213,7 @@ export const getStudentsAttendance = async (req, res, next) => {
                 },
                 {
                     $match: {
+                        lockStatus: false,
                         ...(month && { month: Number(month) }),
                         ...(year && { year: Number(year) }),
                         ...(ward && { 'studentDetails.ward': { $regex: new RegExp(ward, 'i') } }),
@@ -1604,48 +1773,7 @@ export const getDuplicateRecord = async (req, res, next) => {
 
 
 
-        // const duplicates = await Student.aggregate([
-        //     // Step 1: Lookup school details from the allschools collection
-        //     {
-        //         $lookup: {
-        //             from: "allschools", // Collection name of allschools
-        //             localField: "schoolId", // Field in the Student collection
-        //             foreignField: "_id", // Field in the allschools collection
-        //             as: "schoolDetails", // Name of the resulting field
-        //         },
-        //     },
-        //     // Step 2: Extract the schoolName from the schoolDetails
-        //     {
-        //         $addFields: {
-        //             schoolName: { $arrayElemAt: ["$schoolDetails.schoolName", 0] }, // Add schoolName
-        //         },
-        //     },
-        //     // Step 3: Group by student fields
-        //     {
-        //         $group: {
-        //             _id: {
-        //                 surname: "$surname",
-        //                 firstname: "$firstname",
-
-        //                 lgaofEnrollment: "$lgaofEnrollment",
-        //                 schoolId: "$schoolId",
-        //             },
-        //             similarRecords: { $push: { surname: "$surname", middlename: "$middlename", parentPhone: "$parentPhone", presentClass: "presentClass", firstname: "$firstname", schoolId: "$schoolName", lgaOfEnrollment: "$lgaOfEnrollment" } }, // Collect relevant fields only
-        //             count: { $sum: 1 },
-        //         },
-        //     },
-        //     // Step 4: Match groups with duplicates
-        //     {
-        //         $match: { count: { $gt: 1 } },
-        //     },
-        //     // Step 5: Final clean-up (optional)
-        //     {
-        //         $project: {
-        //             "similarRecords.schoolDetails": 0, // Exclude schoolDetails array if accidentally carried over
-        //         },
-        //     },
-        // ]);
-
+     
         const duplicates = await Student.aggregate([
             // Step 1: Lookup school details from the allschools collection
             {
@@ -1771,28 +1899,37 @@ export const promoteSingleStudent = async (req, res, next) => {
     try {
         const { studentRandomId } = req.body;
         const studentExist = await Student.findOne({ randomId: studentRandomId });
-
         if (!studentExist) {
             return next(new NotFoundError('No student found with the ID: ' + studentRandomId));
         }
+        // const studentInAttendance = await Attendance.findOne({studentRandomId: studentExist.randomId})
 
         switch (studentExist.presentClass) {
             case 'Primary 6':
                 studentExist.presentClass = 'JSS 1';
+                studentExist.isActive = true;
+                // studentInAttendance.lockStatus = true;
                 break;
             case 'JSS 1':
                 studentExist.presentClass = 'JSS 2';
                 studentExist.isActive = false;
+                // studentInAttendance.lockStatus = true;
+
                 break;
             case 'JSS 2':
                 studentExist.presentClass = 'JSS 3';
+                studentExist.isActive = true;
+                // studentInAttendance.lockStatus = false;
                 break;
             case 'JSS 3':
                 studentExist.presentClass = 'SSS 1';
+                studentExist.isActive = true;
+                // studentInAttendance.lockStatus = false;
                 break;
             case 'SSS 1':
                 studentExist.presentClass = 'SSS 2';
                 studentExist.isActive = false;
+                // studentInAttendance.lockStatus = true;
                 break;
             default:
                 return next(new BadRequestError('Invalid class for promotion'));
@@ -1818,28 +1955,44 @@ export const demoteSingleStudent = async (req, res, next) => {
         if (!studentExist) {
             return next(new NotFoundError('No student found with the ID: ' + studentRandomId));
         }
-
+        // const studentInAttendance = await Attendance.findOne({studentRandomId: studentExist.randomId})
+        // if(!studentInAttendance) 
+        // console.log(studentInAttendance)
         switch (studentExist.presentClass) {
             case 'JSS 1':
                 studentExist.presentClass = 'Primary 6';
+                studentExist.isActive = true;
+                // studentInAttendance.lockStatus = false;
+
                 break;
             case 'JSS 2':
                 studentExist.presentClass = 'JSS 1';
-                studentExist.isActive = false;
+                studentExist.isActive = true;
+                // studentInAttendance.lockStatus = false;
+
+
                 break;
             case 'JSS 3':
                 studentExist.presentClass = 'JSS 2';
+                studentExist.isActive = false;
+                // studentInAttendance.lockStatus = true;
+
                 break;
             case 'JSS 3':
                 studentExist.presentClass = 'SSS 1';
+                studentExist.isActive = true;
+                // studentInAttendance.lockStatus = false;
                 break;
             case 'SSS 1':
                 studentExist.presentClass = 'JSS 3';
-                studentExist.isActive = false;
+                studentExist.isActive = true;
+                // studentInAttendance.lockStatus = false;
+
                 break;
             case 'SSS 2':
                 studentExist.presentClass = 'SSS 1';
                 studentExist.isActive = false;
+                // studentInAttendance.lockStatus = true;
                 break;
             default:
                 return next(new BadRequestError('Invalid class for demotion'));
@@ -1857,8 +2010,6 @@ export const demoteSingleStudent = async (req, res, next) => {
         next(error);
     }
 };
-
-
 
 export const promotePlentyStudents = async (req, res, next) => {
     try {
@@ -1878,7 +2029,7 @@ export const promotePlentyStudents = async (req, res, next) => {
                 case 'PRIMARY 6':
                 promotedClass = await Student.updateMany(
                         { presentClass: 'Primary 6'},
-                        { presentClass: 'JSS 1' },
+                        { presentClass: 'JSS 1', isActive: true },
                         { runValidators: true, }
                     );
                     res.status(200).json({ message: `All Primary 6 students have been promoted to JSS 1` });
@@ -1960,7 +2111,7 @@ export const demotePlentyStudents = async (req, res, next) => {
                 case 'JSS 1':
                 promotedClass = await Student.updateMany(
                     { presentClass: 'JSS 1' },
-                    { presentClass: 'Primary 6'},
+                    { presentClass: 'Primary 6', isActive: true},
                         { runValidators: true, }
                     );
                     res.status(200).json({ message: `All JSS 1 students have been demoted to Primary 6` });

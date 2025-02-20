@@ -1,5 +1,5 @@
 import express from 'express';
-import { getAllStudents, importPaymentSheet, filterAndView, filterAndDownload, updateStudent, filterEnumeratorsByStudents, deleteStudent, createStudent, downloadAttendanceSheet, enumeratorsByyHighestRegisteredStudents, lgasByHighestRegisteredStudents, uploadAttendanceSheet, getStudentsAttendance, getStudentsStats, totalStudentsByEnumerators, getDuplicateRecord, deleteManyStudents, promoteSingleStudent, promotePlentyStudents, demotePlentyStudents, demoteSingleStudent } from '../controllers/index.js';
+import { getAllStudents, importPaymentSheet, filterAndView, filterAndDownload, updateStudent, filterEnumeratorsByStudents, deleteStudent, createStudent, downloadAttendanceSheet, enumeratorsByyHighestRegisteredStudents, lgasByHighestRegisteredStudents, uploadAttendanceSheet, getStudentsAttendance, getStudentsStats, totalStudentsByEnumerators, getDuplicateRecord, deleteManyStudents, promoteSingleStudent, promotePlentyStudents, demotePlentyStudents, demoteSingleStudent, adminViewAttendance, adminDeleteAttendances} from '../controllers/index.js';
 import { authMiddleware, authorizePermission } from '../middlewares/authenticationMiddleware.js';
 import { upload, uploadXLSX } from '../config/multer.js';
 import { cloudinaryImageUploader } from '../utils/cloudinaryImageUploader.js';
@@ -20,10 +20,12 @@ router.route('/:id').patch(authMiddleware, authorizePermission('handle_students'
     next();
 }, updateStudent);
 router.delete('/delete/delete-many/', authMiddleware, authorizePermission('handle_admins'), deleteManyStudents)
+router.delete('/delete/delete-many-attendances/', authMiddleware, authorizePermission('handle_admins'), adminDeleteAttendances)
 router.get('/download', authMiddleware, authorizePermission('handle_registrars'), filterAndDownload)
 router.get('/get-students-stats', authMiddleware, authorizePermission(['handle_registrars', 'handle_payments']), getStudentsStats)
 router.get('/admin-view-all-students', authMiddleware, authorizePermission(['handle_payments', 'handle_admins', 'handle_students']), filterAndView)
 router.get('/view-attendance-sheet', authMiddleware, authorizePermission(['handle_admins', 'handle_payments', 'handle_students']), getStudentsAttendance)
+router.get('/admin-view-attendance-sheet', authMiddleware, authorizePermission(['handle_admins']), adminViewAttendance)
 router.get('/attendance-sheet', authMiddleware, authorizePermission('handle_students'), downloadAttendanceSheet);
 router.post('/upload-attendance-sheet', uploadXLSX.single('file'), XLSXUploader, authorizePermission('handle_students'), uploadAttendanceSheet);
 router.post('/upload-payment-sheet', uploadXLSX.single('file'), XLSXUploader, authorizePermission('handle_payments'), importPaymentSheet);

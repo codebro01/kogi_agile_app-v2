@@ -98,6 +98,7 @@ export const ViewPaymentsRecords = () => {
         page: '',
         dateFrom: '', 
         dateTo: '',
+        lockStatus: false,
     });
 
 
@@ -121,6 +122,7 @@ export const ViewPaymentsRecords = () => {
         totalAttendanceScore: filters.totalAttendanceScore,
         dateFrom: filters.dateFrom,
         dateTo: filters.dateTo,
+        lockStatus: filters.lockStatus,
 
     }
     const filteredParams = Object.entries(params)
@@ -748,6 +750,31 @@ export const ViewPaymentsRecords = () => {
                                         {paymentType.name}
                                     </MenuItem>
                                     ))}
+
+                                </Select>
+                            </Grid>
+
+
+                            <Grid item xs={12} sm={6} md={4}>
+                                <InputLabel id="paymentType-label" sx={{ marginBottom: 1 }}>Status</InputLabel>
+                                <Select
+                                    name="lockStatus"
+                                    value={filters.lockStatus}
+                                    onChange={handleInputChange}
+                                    displayEmpty
+                                    fullWidth
+                                    size="small"
+                                    labelId="paymentType-label"
+                                >
+                                    <MenuItem value={false}>
+                                        Active
+                                    </MenuItem>
+                                    <MenuItem value= {true}>
+                                        InActive
+                                    </MenuItem>
+                                    <MenuItem value= {'all'}>
+                                        All
+                                    </MenuItem>
 
                                 </Select>
                             </Grid>

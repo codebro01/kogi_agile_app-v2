@@ -22,7 +22,7 @@ import TimelineOutlinedIcon from "@mui/icons-material/TimelineOutlined";
 import MenuOutlinedIcon from "@mui/icons-material/MenuOutlined";
 import { ChangePasswordForm } from "../../components/changePasswordPopup.jsx";
 import VisibilityIcon from '@mui/icons-material/Visibility';
-
+import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
 import { ExportSubmitButton } from "../../components/exportButton.jsx";
 import ImportContactsIcon from '@mui/icons-material/ImportContacts'; // For import
 import FileUploadIcon from '@mui/icons-material/FileUpload'; // For export
@@ -258,6 +258,14 @@ const Sidebar = ({ isSidebar }) => {
                   setSelected={setSelected}
                 />
 
+                <Item
+                  title="View Attendance Record"
+                  to={userPermissions.includes('handle_registrars') ? '/admin-dashboard/admin-view-attendance' : 'enumerator-dashboard/view-all-students-data'}
+                  icon={<LibraryBooksIcon />}
+                  selected={selected}
+                  setSelected={setSelected}
+
+                />
                 <Item
                   title="View Payments Record"
                   to={userPermissions.includes('handle_registrars') ? '/admin-dashboard/admin-view-payments' : 'enumerator-dashboard/view-all-students-data'}
