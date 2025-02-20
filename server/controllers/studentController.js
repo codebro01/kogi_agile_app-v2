@@ -832,7 +832,7 @@ export const adminViewAttendance = async (req, res, next) => {
         //     basket.enumeratorId = userID;
         // }
 
-        console.log(permissions);
+       
 
         if (year) basket.year = parseInt(year, 10);; // Ensure year is numeric
         if (month) basket.month = parseInt(month, 10);; // Ensure week is numeric
@@ -1005,7 +1005,7 @@ export const getStudentsAttendance = async (req, res, next) => {
         else {
             basket = {};
         }
-        console.log(permissions);
+       
 
         if (year) basket.year = parseInt(year, 10);; // Ensure year is numeric
         if (month) basket.month = parseInt(month, 10);; // Ensure week is numeric
