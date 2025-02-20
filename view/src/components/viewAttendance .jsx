@@ -251,7 +251,7 @@ export const ViewAttendance = () => {
 
     const getEnumeratorName = (enumeratorId) => {
         if (enumerators.length < 1) return "N/A";
-        const enumeratorName = enumerators.find(enumerator => enumerator._id = enumeratorId);
+        const enumeratorName = enumerators.find(enumerator => enumerator._id === enumeratorId);
         return enumeratorName ? enumeratorName?.fullName : "Not Found";
     }
 

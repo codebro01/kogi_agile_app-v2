@@ -42,7 +42,7 @@ const fetchExistingData = async () => {
     } finally {
         await client.close();
     }
-} 
+}
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -299,9 +299,9 @@ export const filterAndDownload = async (req, res, next) => {
         } else {
             basket = {};
         }
-        if((status && status === 'active') || (!status)) basket.isActive = true;
-        if(status && status === 'inactive') basket.isActive = false;
-        if(status && status === 'all') basket.isActive;
+        if ((status && status === 'active') || (!status)) basket.isActive = true;
+        if (status && status === 'inactive') basket.isActive = false;
+        if (status && status === 'all') basket.isActive;
         if (lga) basket.lgaOfEnrollment = lga;
         if (presentClass) basket.presentClass = presentClass;
         if (yearOfEnrollment) basket.yearOfEnrollment = yearOfEnrollment;
@@ -453,6 +453,15 @@ export const filterAndDownload = async (req, res, next) => {
         // End the response once the stream is finished
         stream.on('end', () => {
             console.log('File sent successfully');
+
+                 // Ensure the file exists before attempting deletion
+                 fs.unlink('../server/utils/uploads/students.xlsx', (err) => {
+                    if (err) {
+                        console.error('Error deleting file:', err);
+                    } else {
+                        console.log('File deleted successfully');
+                    }
+                });
         });
 
     } catch (err) {
@@ -469,13 +478,13 @@ export const filterAndView = async (req, res, next) => {
 
         const { userID, permissions } = req.user;
         const { ward, schoolId, lga, presentClass, nationality, stateOfOrigin, enumerator, dateFrom, dateTo, yearOfAdmission, yearOfEnrollment } = req.query.filteredParams || {};
-        const {page, limit} = req.query;
-        const {sortBy, sortOrder} = req.query.sortParam;
-        let {status} = req.query.filteredParams;
+        const { page, limit } = req.query;
+        const { sortBy, sortOrder } = req.query.sortParam;
+        let { status } = req.query.filteredParams;
 
-       
 
-        
+
+
         // Create a basket object
         let basket;
         if (!permissions.includes('handle_registrars')) {
@@ -483,9 +492,9 @@ export const filterAndView = async (req, res, next) => {
         } else {
             basket = {};
         }
-        if((status && status === 'active') || (!status)) basket.isActive = true;
-        if(status && status === 'inactive') basket.isActive = false;
-        if(status && status === 'all') basket.isActive;
+        if ((status && status === 'active') || (!status)) basket.isActive = true;
+        if (status && status === 'inactive') basket.isActive = false;
+        if (status && status === 'all') basket.isActive;
         if (lga) basket.lgaOfEnrollment = lga;
         if (presentClass) basket.presentClass = presentClass;
         if (yearOfEnrollment) basket.yearOfEnrollment = yearOfEnrollment;
@@ -496,7 +505,7 @@ export const filterAndView = async (req, res, next) => {
         if (enumerator) basket.createdBy = enumerator;
         if (dateFrom || dateTo) {
             basket.createdAt = {};
-            
+
             // Handle dateFrom
             if (dateFrom) {
                 const fromDate = new Date(dateFrom);
@@ -514,7 +523,7 @@ export const filterAndView = async (req, res, next) => {
                 }
                 basket.createdAt.$lte = toDate;
             }
-            
+
             // Clean up empty `createdAt` filter
             if (Object.keys(basket.createdAt).length === 0) {
                 delete basket.createdAt;
@@ -522,7 +531,7 @@ export const filterAndView = async (req, res, next) => {
         }
 
         // console.log(req.url)
-            console.log('basket', basket)
+        console.log('basket', basket)
         // console.log(basket)
 
 
@@ -534,7 +543,7 @@ export const filterAndView = async (req, res, next) => {
         }
 
         // console.log(req.query, req.url);
-        
+
         const skip = (page - 1) * limit;
 
 
@@ -546,7 +555,7 @@ export const filterAndView = async (req, res, next) => {
         const students = await Student.find(basket).populate('schoolId').populate('ward').populate('createdBy').sort(sort).collation({ locale: "en", strength: 2 }).skip(skip).limit(parseInt(limit)).lean();
 
 
-        res.status(200).json({students, total});
+        res.status(200).json({ students, total });
 
 
 
@@ -643,7 +652,7 @@ export const downloadAttendanceSheet = async (req, res, next) => {
         let filterBasket;
 
         if (permissions.includes('handle_admins')) {
-            filterBasket = {isActive: true}
+            filterBasket = { isActive: true }
         }
         else {
             filterBasket = { createdBy: userID, isActive: true }
@@ -719,6 +728,16 @@ export const downloadAttendanceSheet = async (req, res, next) => {
         // End the response once the stream is finished
         stream.on('end', () => {
             console.log('File sent successfully');
+
+            // Ensure the file exists before attempting deletion
+            fs.unlink('../server/utils/uploads/students.xlsx', (err) => {
+                if (err) {
+                    console.error('Error deleting file:', err);
+                    
+                } else {
+                    console.log('File deleted successfully');
+                }
+            });
         });
 
     } catch (error) {
@@ -767,8 +786,8 @@ export const uploadAttendanceSheet = async (req, res, next) => {
             try {
                 if (row.AttendanceScore === 0 || row.AttendanceScore === minScore || row.AttendanceScore === maxScore || (row.AttendanceScore >= minScore && row.AttendanceScore <= maxScore)) {
                     const studentId = row.studentRandomId;
-                    const student = await Student.findOne({studentRandomId: studentId, isActive: true});
-                    if(!student) return next(new BadRequestError(`Student with Id ${studentRandomId} is not eligible`))
+                    const student = await Student.findOne({ studentRandomId: studentId, isActive: true });
+                    if (!student) return next(new BadRequestError(`Student with Id ${studentRandomId} is not eligible`))
                     attendanceRecords.push({
                         studentRandomId: row.StudentId, // First column
                         class: row.Class || '', // Class
@@ -819,35 +838,31 @@ export const uploadAttendanceSheet = async (req, res, next) => {
 export const adminViewAttendance = async (req, res, next) => {
     try {
         const { userID, permissions } = req.user;
-        let { year, month, school, ward, lgaOfEnrollment, presentClass, week, schoolId, paymentType, percentage, dateFrom, dateTo, enumeratorId } = req.query;
+        let { year, month, school, ward, lgaOfEnrollment, presentClass, week, schoolId, paymentType, percentage, dateFrom, dateTo, enumerator } = req.query;
+
+        const enumeratorId = enumerator;
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 200;
         const skip = (page - 1) * limit;
-        // lgaOfEnrollment = lgaOfEnrollment.toLowerCase();
-        // ward = ward.toLowerCase();
-        // Filter conditions
         let basket = {};
         let createdBy;
-        // if (!permissions.includes('handle_registrars')) {
-        //     basket.enumeratorId = userID;
-        // }
 
-       
+
 
         if (year) basket.year = parseInt(year, 10);; // Ensure year is numeric
-        if (month) basket.month = parseInt(month, 10);; // Ensure week is numeric
+        if (month) basket.month = parseInt(month, 10); // Ensure week is numeric
         if (school) basket.schoolId = school;; // Ensure month is numeric
         if (presentClass) basket.presentClass = presentClass;
         if (ward) basket.ward = ward;
         if (week) basket.attdWeek = week;
         if (lgaOfEnrollment) basket.lgaOfEnrollment = lgaOfEnrollment;
+        if (enumeratorId) basket.enumeratorId = enumeratorId;
 
+        console.log('req.query', req.query, 'basket', basket)
         console.log('parsed dateFrom:', new Date(dateFrom));
         console.log('parsed dateTo:', new Date(new Date(dateTo).setHours(23, 59, 59, 999)));
-        // console.log('getting query and url');
 
-        // console.log(req.query)
-        // console.log(req.url)
+
         let attendance;
 
 
@@ -885,7 +900,7 @@ export const adminViewAttendance = async (req, res, next) => {
             {
                 $match: {
                     'lockStatus': false,
-                    ...(enumeratorId && {'enumeratorId': enumeratorId}),
+                    ...(enumeratorId && { enumeratorId: enumeratorId }),
                     ...(week && { attdWeek: Number(week) }), // Corrected from 'attWeek'
                     ...(ward && { 'studentDetails.ward': ward }),
                     ...(lgaOfEnrollment && { 'studentDetails.lgaOfEnrollment': lgaOfEnrollment }),
@@ -945,10 +960,10 @@ export const adminViewAttendance = async (req, res, next) => {
 
 
 
-            return res.status(200).json({ attendance });
-        
+        return res.status(200).json({ attendance });
+
     }
-    catch(error) {
+    catch (error) {
         return next(error)
     }
 }
@@ -1000,12 +1015,12 @@ export const getStudentsAttendance = async (req, res, next) => {
         }
 
 
-        
-        
+
+
         else {
             basket = {};
         }
-       
+
 
         if (year) basket.year = parseInt(year, 10);; // Ensure year is numeric
         if (month) basket.month = parseInt(month, 10);; // Ensure week is numeric
@@ -1184,7 +1199,7 @@ export const getStudentsAttendance = async (req, res, next) => {
                         }, // Group by student and month-year
                         studentDetails: { $first: "$studentDetails" },
                         schoolDetails: { $first: "$schoolDetails" },
-                        lockStatus: {$first: false},
+                        lockStatus: { $first: false },
                         studentRandomId: { $first: "$studentRandomId" },
                         createdAt: { $first: "$createdAt" },
                         month: { $first: "$month" },
@@ -1422,6 +1437,14 @@ export const getStudentsAttendance = async (req, res, next) => {
             // End the response once the stream is finished
             stream.on('end', () => {
                 console.log('File sent successfully');
+                // Ensure the file exists before attempting deletion
+                fs.unlink('../server/utils/uploads/students.xlsx', (err) => {
+                    if (err) {
+                        console.error('Error deleting file:', err);
+                    } else {
+                        console.log('File deleted successfully');
+                    }
+                });
             });
         }
     } catch (err) {
@@ -1773,7 +1796,7 @@ export const getDuplicateRecord = async (req, res, next) => {
 
 
 
-     
+
         const duplicates = await Student.aggregate([
             // Step 1: Lookup school details from the allschools collection
             {
@@ -2015,77 +2038,85 @@ export const promotePlentyStudents = async (req, res, next) => {
     try {
         const { presentClass } = req.body;
 
-  
+
         if (!presentClass) {
             return next(new BadRequestError('Invalid class selected for promotion'));
         }
 
-    
+
 
 
         let promotedClass = null;
 
-            switch (presentClass.toUpperCase()) {
-                case 'PRIMARY 6':
+        switch (presentClass.toUpperCase()) {
+            case 'PRIMARY 6':
                 promotedClass = await Student.updateMany(
-                        { presentClass: 'Primary 6'},
-                        { presentClass: 'JSS 1', isActive: true },
-                        { runValidators: true, }
-                    );
-                    res.status(200).json({ message: `All Primary 6 students have been promoted to JSS 1` });
-                    break;
+                    { presentClass: 'Primary 6' },
+                    { presentClass: 'JSS 1', isActive: true },
+                    { runValidators: true, }
+                );
+                res.status(200).json({ message: `All Primary 6 students have been promoted to JSS 1` });
+                break;
 
-                case 'JSS 1':
-                    promotedClass = await Student.updateMany(
-                        { presentClass: {
+            case 'JSS 1':
+                promotedClass = await Student.updateMany(
+                    {
+                        presentClass: {
                             $in: ['JSS 1', 'Jss 1']
-                        }},
-                        { presentClass: 'JSS 2', isActive: false },
-                        { runValidators: true, }
-                    );
-                    res.status(200).json({ message: `All JSS 1 students have been promoted to JSS 2` });
-                    break;
+                        }
+                    },
+                    { presentClass: 'JSS 2', isActive: false },
+                    { runValidators: true, }
+                );
+                res.status(200).json({ message: `All JSS 1 students have been promoted to JSS 2` });
+                break;
 
-                case 'JSS 2':
-                    promotedClass = await Student.updateMany(
-                        { presentClass: {
+            case 'JSS 2':
+                promotedClass = await Student.updateMany(
+                    {
+                        presentClass: {
                             $in: ['JSS 2', 'Jss 2']
 
-                        } },
-                        { presentClass: 'JSS 3', isActive: true },
-                        { runValidators: true, }
-                    );
-                    res.status(200).json({ message: `All JSS 2 students have been promoted to JSS 3` });
-                    break;
+                        }
+                    },
+                    { presentClass: 'JSS 3', isActive: true },
+                    { runValidators: true, }
+                );
+                res.status(200).json({ message: `All JSS 2 students have been promoted to JSS 3` });
+                break;
 
-                case 'JSS 3':
-                    promotedClass = await Student.updateMany(
-                        { presentClass: {
+            case 'JSS 3':
+                promotedClass = await Student.updateMany(
+                    {
+                        presentClass: {
                             $in: ['JSS 3', 'Jss 3']
 
-                        }},
-                        { presentClass: 'SSS 1', isActive: true },
-                        { runValidators: true, }
-                    );
-                    res.status(200).json({ message: `All JSS 3 students have been promoted to SSS 1` });
-                    break;
+                        }
+                    },
+                    { presentClass: 'SSS 1', isActive: true },
+                    { runValidators: true, }
+                );
+                res.status(200).json({ message: `All JSS 3 students have been promoted to SSS 1` });
+                break;
 
-                case 'SSS 1':
-                    promotedClass = await Student.updateMany(
-                        { presentClass: {
+            case 'SSS 1':
+                promotedClass = await Student.updateMany(
+                    {
+                        presentClass: {
                             $in: ['SSS 1', 'Sss 1']
 
-                        }},
-                        { presentClass: 'SSS 2', isActive: false },
-                        { runValidators: true, }
-                    );
-                    res.status(200).json({ message: `All SSS 1 students have been promoted to SSS 2` });
-                    break;
+                        }
+                    },
+                    { presentClass: 'SSS 2', isActive: false },
+                    { runValidators: true, }
+                );
+                res.status(200).json({ message: `All SSS 1 students have been promoted to SSS 2` });
+                break;
 
-                default:
-                    return next(new BadRequestError('Invalid class for promotion.'));
-            }
-        
+            default:
+                return next(new BadRequestError('Invalid class for promotion.'));
+        }
+
 
     } catch (error) {
         console.error(error);
@@ -2097,77 +2128,85 @@ export const demotePlentyStudents = async (req, res, next) => {
     try {
         const { presentClass } = req.body;
 
-  
+
         if (!presentClass) {
             return next(new BadRequestError('Invalid class selected for promotion'));
         }
 
-    
+
 
 
         let promotedClass = null;
 
-            switch (presentClass.toUpperCase()) {
-                case 'JSS 1':
+        switch (presentClass.toUpperCase()) {
+            case 'JSS 1':
                 promotedClass = await Student.updateMany(
                     { presentClass: 'JSS 1' },
-                    { presentClass: 'Primary 6', isActive: true},
-                        { runValidators: true, }
-                    );
-                    res.status(200).json({ message: `All JSS 1 students have been demoted to Primary 6` });
-                    break;
+                    { presentClass: 'Primary 6', isActive: true },
+                    { runValidators: true, }
+                );
+                res.status(200).json({ message: `All JSS 1 students have been demoted to Primary 6` });
+                break;
 
-                case 'JSS 2':
-                    promotedClass = await Student.updateMany(
-                        { presentClass: {
+            case 'JSS 2':
+                promotedClass = await Student.updateMany(
+                    {
+                        presentClass: {
                             $in: ['JSS 2', 'Jss 2']
-                        }},
-                        { presentClass: 'JSS 1', isActive: true },
-                        { runValidators: true, }
-                    );
-                    res.status(200).json({ message: `All JSS 2 students have been demoted to JSS 1` });
-                    break;
+                        }
+                    },
+                    { presentClass: 'JSS 1', isActive: true },
+                    { runValidators: true, }
+                );
+                res.status(200).json({ message: `All JSS 2 students have been demoted to JSS 1` });
+                break;
 
-                case 'JSS 3':
-                    promotedClass = await Student.updateMany(
-                        { presentClass: {
+            case 'JSS 3':
+                promotedClass = await Student.updateMany(
+                    {
+                        presentClass: {
                             $in: ['JSS 3', 'Jss 3']
 
-                        } },
-                        { presentClass: 'JSS 2', isActive: false },
-                        { runValidators: true, }
-                    );
-                    res.status(200).json({ message: `All JSS 3 students have been demoted to JSS 2` });
-                    break;
+                        }
+                    },
+                    { presentClass: 'JSS 2', isActive: false },
+                    { runValidators: true, }
+                );
+                res.status(200).json({ message: `All JSS 3 students have been demoted to JSS 2` });
+                break;
 
-                case 'SSS 1':
-                    promotedClass = await Student.updateMany(
-                        { presentClass: {
+            case 'SSS 1':
+                promotedClass = await Student.updateMany(
+                    {
+                        presentClass: {
                             $in: ['SSS 1', 'Sss 1']
 
-                        }},
-                        { presentClass: 'JSS 3', isActive: true },
-                        { runValidators: true, }
-                    );
-                    res.status(200).json({ message: `All SSS 1 students have been demoted to JSS 3` });
-                    break;
+                        }
+                    },
+                    { presentClass: 'JSS 3', isActive: true },
+                    { runValidators: true, }
+                );
+                res.status(200).json({ message: `All SSS 1 students have been demoted to JSS 3` });
+                break;
 
-                case 'SSS 2':
-                    promotedClass = await Student.updateMany(
-                        { presentClass: {
+            case 'SSS 2':
+                promotedClass = await Student.updateMany(
+                    {
+                        presentClass: {
                             $in: ['SSS 2', 'Sss 2']
 
-                        }},
-                        { presentClass: 'SSS 1', isActive: true },
-                        { runValidators: true, }
-                    );
-                    res.status(200).json({ message: `All SSS 2 students have been demoted to SSS 1` });
-                    break;
+                        }
+                    },
+                    { presentClass: 'SSS 1', isActive: true },
+                    { runValidators: true, }
+                );
+                res.status(200).json({ message: `All SSS 2 students have been demoted to SSS 1` });
+                break;
 
-                default:
-                    return next(new BadRequestError('Invalid class for promotion.'));
-            }
-        
+            default:
+                return next(new BadRequestError('Invalid class for promotion.'));
+        }
+
 
     } catch (error) {
         console.error(error);
