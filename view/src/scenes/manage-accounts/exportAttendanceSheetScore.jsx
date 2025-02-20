@@ -257,7 +257,6 @@ export const ExportAttendanceSheetPayroll = () => {
     }
 
     const uniqueSchools = dashboardData?.results?.[0]?.distinctSchoolsDetails || []
-console.log(filters)
 
     return (
         <Box

@@ -553,7 +553,6 @@ export const AdminViewAllStudentsDataNoExport = () => {
                     withCredentials: true,
                 }
             );
-            console.log(response);
             setSinglePromotionLoading(false);
             setSinglePromotionMessage(response.data.message)
         } catch (err) {
@@ -587,7 +586,6 @@ export const AdminViewAllStudentsDataNoExport = () => {
                     withCredentials: true,
                 }
             );
-            console.log(response);
             setSinglePromotionLoading(false);
             setSinglePromotionMessage(response.data.message)
         } catch (err) {
@@ -621,7 +619,6 @@ export const AdminViewAllStudentsDataNoExport = () => {
                     withCredentials: true,
                 }
             );
-            console.log(response);
             setBulkDemotionLoading(false)
             setBulkDemotionMessage(response.data.message)
 
@@ -650,7 +647,6 @@ export const AdminViewAllStudentsDataNoExport = () => {
                     withCredentials: true,
                 }
             );
-            console.log(response);
             setBulkPromotionLoading(false)
             setBulkPromotionMessage(response.data.message)
 

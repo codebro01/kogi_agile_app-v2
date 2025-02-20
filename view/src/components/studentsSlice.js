@@ -34,7 +34,6 @@ export const fetchStudentsFromComponent = createAsyncThunk(
     async ({ filteredParams, sortParam, page, limit }, thunkAPI) => {
         const API_URL = `${import.meta.env.VITE_API_URL}/api/v1/student/admin-view-all-students`;
         const token = localStorage.getItem('token') || '';
-        console.log('filtered params', filteredParams)
         try {
 
             const response = await axios.get(API_URL, {
@@ -100,7 +99,6 @@ const studentsSlice = createSlice({
         },
         setSearchQuery: (state, action) => {
             state.searchQuery = action.payload;
-            console.log(state.searchQuery)
             if (!state.filteredStudents || state.filteredStudents.length === 0) {
                 state.filteredStudents = [];
             }
@@ -161,7 +159,6 @@ const studentsSlice = createSlice({
             .addCase(fetchStudents.fulfilled, (state, action) => {
                 
                 state.loading = false;
-                console.log(action.payload)
                 state.data = action.payload.students;
                 state.filteredStudents = state.data.students; // Initialize filtered data
 
@@ -223,7 +220,6 @@ const studentsSlice = createSlice({
             })
             .addCase(fetchStudentsFromComponent.fulfilled, (state, action) => {
                 state.loading = false;
-                console.log( action.payload.students)
                 state.filteredStudents = action.payload.students.students; // Initialize filtered data
                 state.initialFilteredStudents = action.payload.students.students;
                 state.total = action.payload.total; // Set total count

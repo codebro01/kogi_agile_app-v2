@@ -647,7 +647,6 @@ export const downloadAttendanceSheet = async (req, res, next) => {
         const { userID, permissions } = req.user;
         const currentUser = await Registrar.findOne({ _id: userID });
         const { schoolId, createdBy } = req.query;
-        console.log(req.user)
 
         let filterBasket;
 
@@ -733,7 +732,7 @@ export const downloadAttendanceSheet = async (req, res, next) => {
             fs.unlink('../server/utils/uploads/students.xlsx', (err) => {
                 if (err) {
                     console.error('Error deleting file:', err);
-                    
+
                 } else {
                     console.log('File deleted successfully');
                 }
@@ -858,9 +857,7 @@ export const adminViewAttendance = async (req, res, next) => {
         if (lgaOfEnrollment) basket.lgaOfEnrollment = lgaOfEnrollment;
         if (enumeratorId) basket.enumeratorId = enumeratorId;
 
-        console.log('req.query', req.query, 'basket', basket)
-        console.log('parsed dateFrom:', new Date(dateFrom));
-        console.log('parsed dateTo:', new Date(new Date(dateTo).setHours(23, 59, 59, 999)));
+  
 
 
         let attendance;
@@ -1030,8 +1027,7 @@ export const getStudentsAttendance = async (req, res, next) => {
         if (week) basket.attdWeek = week;
         if (lgaOfEnrollment) basket.lgaOfEnrollment = lgaOfEnrollment;
 
-        console.log('parsed dateFrom:', new Date(dateFrom));
-        console.log('parsed dateTo:', new Date(new Date(dateTo).setHours(23, 59, 59, 999)));
+     
         // console.log('getting query and url');
 
         // console.log(req.query)
@@ -1550,7 +1546,6 @@ export const importPaymentSheet = async (req, res, next) => {
         const paymentRecords = [];
         const bulkOperations = [];
 
-        console.log(req.body)
         for (const row of req.parsedData) {
 
             const monthOptions = [
@@ -1571,7 +1566,6 @@ export const importPaymentSheet = async (req, res, next) => {
 
             const getMonthValue = (inputedMonth) => {
                 const monthName = monthOptions.find(month => month.name.toUpperCase() === inputedMonth);
-                console.log(monthName)
                 return monthName.value;
             }
 
