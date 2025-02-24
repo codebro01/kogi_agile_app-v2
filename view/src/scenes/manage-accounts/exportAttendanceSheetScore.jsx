@@ -221,6 +221,8 @@ export const ExportAttendanceSheetPayroll = () => {
         }))
     }
 
+    console.log(filteredParams)
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
@@ -235,6 +237,7 @@ export const ExportAttendanceSheetPayroll = () => {
                 responseType: "blob",
                 withCredentials: true,
             });
+            console.log('response', response)
             setIsSubmitting(false);
             setApiResp('File Download is Successful')
             setAttendanceData(response.data);
