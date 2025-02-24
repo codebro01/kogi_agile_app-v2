@@ -155,7 +155,7 @@ export const ViewAttendance = () => {
 
 
 
-            if (userPermissions.includes('handle_admins')) {
+            if (userPermissions.includes('handle_registrars')) {
                 response = await axios.get(`${API_URL}/student/admin-view-attendance-sheet`, {
                     headers: {
                         Authorization: `Bearer ${token}`,

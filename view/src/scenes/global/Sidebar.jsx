@@ -81,7 +81,7 @@ const Sidebar = ({ isSidebar }) => {
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
-  
+
   return (
     <Box className={`sidebark ${isSidebar ? "" : "collapsed"}`}
       sx={{
@@ -202,7 +202,7 @@ const Sidebar = ({ isSidebar }) => {
             >
               
             </Typography>} */}
-{/* 
+            {/* 
             {(!userPermissions.includes('handle_payments') || (userPermissions.includes('handle_students') && userPermissions.includes('handle_students'))  && (<Item
               title={
                 (userPermissions.includes('handle_admins') && userPermissions.length > 3)
@@ -296,7 +296,7 @@ const Sidebar = ({ isSidebar }) => {
                   setSelected={setSelected}
                 />
 
-         
+
                 <Item
                   title="Manage Admins"
                   to={userPermissions.includes('handle_registrars') ? 'admin-dashboard/manage-accounts/admins' : 'enumerator-dashboard/view-all-students-data'}
@@ -346,13 +346,13 @@ const Sidebar = ({ isSidebar }) => {
 
 
 
-                <Item
+                {/* <Item
                   title="View Payments Record"
                   to={userPermissions.includes('handle_registrars') ? '/admin-dashboard/admin-view-payments' : 'enumerator-dashboard/view-all-students-data'}
                   icon={<AttachMoneyIcon />}
                   selected={selected}
                   setSelected={setSelected}
-                />
+                /> */}
                 {/* <Item
                   title="View Attendance"
                   to={userPermissions.includes('handle_registrars') ? '/admin-dashboard/admin-view-attendance' : 'enumerator-dashboard/view-all-students-data'}
@@ -360,10 +360,44 @@ const Sidebar = ({ isSidebar }) => {
                   selected={selected}
                   setSelected={setSelected}
                 /> */}
-                <Item
+                {/* <Item
                   title="Export Attendance"
                   to={userPermissions.includes('handle_registrars') ? '/admin-dashboard/admin-export-attendance' : 'enumerator-dashboard/view-all-students-data'}
                   icon={<EventNoteIcon />}
+                  selected={selected}
+                  setSelected={setSelected}
+                /> */}
+
+                {/* new routes start here */}
+
+                <Item
+                  title="View Attendance Record"
+                  to={userPermissions.includes('handle_registrars') ? '/admin-dashboard/admin-view-attendance' : 'enumerator-dashboard/view-all-students-data'}
+                  icon={<LibraryBooksIcon />}
+                  selected={selected}
+                  setSelected={setSelected}
+
+                />
+                <Item
+                  title="View Payments Record"
+                  to={userPermissions.includes('handle_registrars') ? '/admin-dashboard/admin-view-payments' : 'enumerator-dashboard/view-all-students-data'}
+                  icon={<AttachMoneyIcon />}
+                  selected={selected}
+                  setSelected={setSelected}
+                />
+
+<Item
+                  title="Exp. Attendance Sheet"
+                  to={userPermissions.includes('handle_registrars') ? '/admin-dashboard/admin-export-attendance-sheet' : 'enumerator-dashboard/view-all-students-data'}
+                  icon={<EventNoteIcon />}
+                  selected={selected}
+                  setSelected={setSelected}
+                />
+
+                <Item
+                  title="Exp. Attendance record"
+                  to={userPermissions.includes('handle_registrars') ? '/admin-dashboard/admin-export-attendance' : 'enumerator-dashboard/view-all-students-data'}
+                  icon={<NoteAddIcon />}
                   selected={selected}
                   setSelected={setSelected}
                 />

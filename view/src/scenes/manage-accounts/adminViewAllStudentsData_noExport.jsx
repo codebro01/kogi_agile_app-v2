@@ -9,7 +9,6 @@ import { resolvePath, useNavigate } from 'react-router-dom';
 import EditIcon from "@mui/icons-material/Edit";
 import { tokens } from "../../theme";
 import { PersonLoader } from '../../components/personLoader';
-import { useAuth } from '../auth/authContext';
 import { getNigeriaStates } from 'geo-ng';
 import lgasAndWards from '../../Lga&wards.json';
 import { SchoolsContext } from "../../components/dataContext.jsx";
@@ -25,6 +24,7 @@ import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import ArrowBackwardIcon from '@mui/icons-material/ArrowBack';
 import { AlertSnackbars } from '../../components/alertSnackbar.jsx';
+import { useAuth } from '../auth/authContext';
 
 
 
@@ -596,10 +596,7 @@ export const AdminViewAllStudentsDataNoExport = () => {
     };
 
 
-    const confirmFunc = (presentClass, newClass) => {
-        const confirmUpdate = window.confirm(`This action will demote all students in ${presentClass} to the previous class.`);
-        if (!confirmUpdate) return;
-    }
+
 
     const handleBulkdemotion = async (presentClass) => {
 
@@ -607,7 +604,8 @@ export const AdminViewAllStudentsDataNoExport = () => {
         try {
             const token = localStorage.getItem('token');
 
-            confirmFunc(presentClass)
+            const confirmUpdate = window.confirm(`This action will demote all students in ${presentClass} to the previous class.`);
+            if (!confirmUpdate) return;
             setBulkDemotionLoading(true)
             const response = await axios.patch(
                 `${API_URL}/student/demote/plenty/students`,
@@ -635,7 +633,9 @@ export const AdminViewAllStudentsDataNoExport = () => {
         try {
             const token = localStorage.getItem('token');
 
-            confirmFunc(presentClass)
+            const confirmUpdate = window.confirm(`This action will Promote all students in ${presentClass} to the next class.`);
+            if (!confirmUpdate) return;
+
             setBulkPromotionLoading(true)
             const response = await axios.patch(
                 `${API_URL}/student/promote/plenty/students`,
@@ -680,119 +680,123 @@ export const AdminViewAllStudentsDataNoExport = () => {
 
                     {/* Promotion section */}
 
-                    <Paper elevation={3} sx={{
-                        padding: {
-                            xs: "8px",
-                            sm: "20px",
-                            md: "30px",
-                        }, background: "#f7f5f5", marginBottom: "30px"
-                    }}>
-                        <Box sx={{ padding: "20px", display: "flex", flexDirection: "column", gap: "1.2rem" }}>
-                            <Typography variant='h4'
-                                sx={{
-                                    fontWeight: "600"
-                                }}
-                            > Students Promotion</Typography>
-                            <Button
-                                variant="contained"
-                                sx={{
-                                    backgroundColor: '#196b57',
-                                    color: 'white',
-                                    display: "flex",
-                                    '&:hover': {
-                                        backgroundColor: '#155e4b', // Darker shade for hover effect
-                                    },
-                                    justifyContent: 'center',
-                                    alignItems: 'center',
-                                }}
-                                endIcon={checked ? <ArrowDropUpIcon /> : <ArrowDropDownIcon />}
-                                onClick={handleChecked}
-                            >
-                                Promote Students
-                            </Button>
-                            {checked && (
 
-                                <Fade in={checked}>
-                                    <Grid container spacing={2}>
+                    {userPermissions.includes('handle_admins') && (
+                        <Paper elevation={3} sx={{
+                            padding: {
+                                xs: "8px",
+                                sm: "20px",
+                                md: "30px",
+                            }, background: "#f7f5f5", marginBottom: "30px"
+                        }}>
+                            <Box sx={{ padding: "20px", display: "flex", flexDirection: "column", gap: "1.2rem" }}>
+                                <Typography variant='h4'
+                                    sx={{
+                                        fontWeight: "600"
+                                    }}
+                                > Students Promotion</Typography>
+                                <Button
+                                    variant="contained"
+                                    sx={{
+                                        backgroundColor: '#196b57',
+                                        color: 'white',
+                                        display: "flex",
+                                        '&:hover': {
+                                            backgroundColor: '#155e4b', // Darker shade for hover effect
+                                        },
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                    }}
+                                    endIcon={checked ? <ArrowDropUpIcon /> : <ArrowDropDownIcon />}
+                                    onClick={handleChecked}
+                                >
+                                    Promote Students
+                                </Button>
+                                {checked && (
 
-                                        {classPromotionOptions.map((presentClass, index) => (
-                                            <Grid
-                                                key={presentClass.id}
-                                                item
-                                                xs={12} // Full width on extra-small screens
-                                                sm={4}  // 3 buttons per row on small screens
-                                                md={2.4} // 5 buttons per row on medium and large screens
-                                            >
-                                                <Button key={presentClass.id}
-                                                    variant="contained"
-                                                    fullWidth
-                                                    sx={{
-                                                        background: "#196b57",
-                                                        "&:hover": {
-                                                            background: "#145944", // Slightly darker for hover effect (optional)
-                                                        },
-                                                    }}
-                                                    onClick={() => handleBulkPromotion(presentClass.prevClass)}
+                                    <Fade in={checked}>
+                                        <Grid container spacing={2}>
+
+                                            {classPromotionOptions.map((presentClass, index) => (
+                                                <Grid
+                                                    key={presentClass.id}
+                                                    item
+                                                    xs={12} // Full width on extra-small screens
+                                                    sm={4}  // 3 buttons per row on small screens
+                                                    md={2.4} // 5 buttons per row on medium and large screens
                                                 >
+                                                    <Button key={presentClass.id}
+                                                        variant="contained"
+                                                        fullWidth
+                                                        sx={{
+                                                            background: "#196b57",
+                                                            "&:hover": {
+                                                                background: "#145944", // Slightly darker for hover effect (optional)
+                                                            },
+                                                        }}
+                                                        onClick={() => handleBulkPromotion(presentClass.prevClass)}
+                                                    >
 
-                                                    {presentClass.prevClass} <ArrowForwardIcon></ArrowForwardIcon> {presentClass.class}
-                                                </Button>
-                                            </Grid>
-                                        ))}
-                                    </Grid>
-                                </Fade>
-                            )}
-                            <Button
-                                variant="contained"
-                                sx={{
-                                    backgroundColor: '#196b57',
-                                    color: 'white',
-                                    display: "flex",
-                                    '&:hover': {
-                                        backgroundColor: '#155e4b', // Darker shade for hover effect
-                                    },
-                                    justifyContent: 'center',
-                                    alignItems: 'center',
-                                }}
-                                endIcon={demotionChecked ? <ArrowDropUpIcon /> : <ArrowDropDownIcon />}
-                                onClick={handleDemotionChecked}
-                            >
-                                Demote Students
-                            </Button>
-                            {demotionChecked && (
+                                                        {presentClass.prevClass} <ArrowForwardIcon></ArrowForwardIcon> {presentClass.class}
+                                                    </Button>
+                                                </Grid>
+                                            ))}
+                                        </Grid>
+                                    </Fade>
+                                )}
+                                <Button
+                                    variant="contained"
+                                    sx={{
+                                        backgroundColor: '#196b57',
+                                        color: 'white',
+                                        display: "flex",
+                                        '&:hover': {
+                                            backgroundColor: '#155e4b', // Darker shade for hover effect
+                                        },
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                    }}
+                                    endIcon={demotionChecked ? <ArrowDropUpIcon /> : <ArrowDropDownIcon />}
+                                    onClick={handleDemotionChecked}
+                                >
+                                    Demote Students
+                                </Button>
+                                {demotionChecked && (
 
-                                <Fade in={demotionChecked}>
-                                    <Grid container spacing={2}>
+                                    <Fade in={demotionChecked}>
+                                        <Grid container spacing={2}>
 
-                                        {classPromotionOptions.map((presentClass, index) => (
-                                            <Grid
-                                                key={presentClass.id}
-                                                item
-                                                xs={12} // Full width on extra-small screens
-                                                sm={4}  // 3 buttons per row on small screens
-                                                md={2.4} // 5 buttons per row on medium and large screens
-                                            >
-                                                <Button key={presentClass.id}
-                                                    variant="contained"
-                                                    fullWidth
-                                                    sx={{
-                                                        background: "#196b57",
-                                                        "&:hover": {
-                                                            background: "#145944", // Slightly darker for hover effect (optional)
-                                                        },
-                                                    }}
-                                                    onClick={() => handleBulkdemotion(presentClass.class)}
+                                            {classPromotionOptions.map((presentClass, index) => (
+                                                <Grid
+                                                    key={presentClass.id}
+                                                    item
+                                                    xs={12} // Full width on extra-small screens
+                                                    sm={4}  // 3 buttons per row on small screens
+                                                    md={2.4} // 5 buttons per row on medium and large screens
                                                 >
+                                                    <Button key={presentClass.id}
+                                                        variant="contained"
+                                                        fullWidth
+                                                        sx={{
+                                                            background: "#196b57",
+                                                            "&:hover": {
+                                                                background: "#145944", // Slightly darker for hover effect (optional)
+                                                            },
+                                                        }}
+                                                        onClick={() => handleBulkdemotion(presentClass.class)}
+                                                    >
 
-                                                    {presentClass.prevClass}  <ArrowBackwardIcon /> {presentClass.class}
-                                                </Button>
-                                            </Grid>
-                                        ))}
-                                    </Grid>
-                                </Fade>
-                            )}
-                        </Box>
-                    </Paper>
+                                                        {presentClass.prevClass}  <ArrowBackwardIcon /> {presentClass.class}
+                                                    </Button>
+                                                </Grid>
+                                            ))}
+                                        </Grid>
+                                    </Fade>
+                                )}
+                            </Box>
+                        </Paper>
+                    )}
+
 
 
                     {/* Filter Form */}
