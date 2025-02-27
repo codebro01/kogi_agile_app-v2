@@ -110,7 +110,6 @@ export const PrintIdCard = () => {
       {/* Print Area */}
       {studentsLoading ? <Typography>Loading.....</Typography> : (
         <Box id="idCardContainer" ref={contentRef} sx={{ width: "1123px", height: "auto", component: "paper", backgroundColor: "white", padding: "10mm", display: "flex", flexDirection: "column", gap: "60px", justifyConten: "center", alignItems: "center" }}>
-          <Typography>Hello</Typography>
           {studentsData.map((student, index) => (
             <>
 

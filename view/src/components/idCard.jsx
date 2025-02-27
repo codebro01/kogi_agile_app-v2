@@ -146,12 +146,12 @@ export const StudentIDFront = ({ student }) => {
                 }}>
                     <Box className="rows-info">
                         <Typography variant="body1"><strong>Student's ID: {student.randomId}</strong></Typography>
-                        <Typography variant="body1"><strong>Class: {student.presentClass}</strong></Typography>
+                        <Typography variant="body1"><strong>Class: {student.presentClass === "Primary 6" ? "Pry 6" : student.presentClass}</strong></Typography>
                     </Box>
-                    <Typography variant="body1"><strong>Name: {student.firstname} {student.lastname}</strong></Typography>
+                    <Typography variant="body1"><strong>Name:{student.surname} {student.firstname}</strong></Typography>
                     <Box className="rows-info">
                         <Typography variant="body1"><strong>Date of Birth: {student.dob.split('T')[0]}</strong></Typography>
-                        <Typography variant="body1"><strong>Cohort: {student.cohort}</strong></Typography>
+                        <Typography variant="body1"><strong>Cohort: First</strong></Typography>
                     </Box>
                     <Typography variant="body1" sx = {{textAlign: "left"}}>School: {student.schoolId.schoolName}</Typography>
 
