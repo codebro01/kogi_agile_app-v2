@@ -484,7 +484,7 @@ export const filterAndView = async (req, res, next) => {
 
 
 
-
+        console.log(req.query)
         // Create a basket object
         let basket;
         if (!permissions.includes('handle_registrars')) {

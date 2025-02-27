@@ -4,6 +4,7 @@ import { QRCodeCanvas } from "qrcode.react";
 
 
 export const StudentIDFront = ({ student }) => {
+    console.log(student)
     return (
         <Card
             className="id-front"
@@ -144,28 +145,28 @@ export const StudentIDFront = ({ student }) => {
                     },
                 }}>
                     <Box className="rows-info">
-                        <Typography variant="body1"><strong>Student's ID: {student.id}</strong></Typography>
-                        <Typography variant="body1"><strong>Class: {student.class}</strong></Typography>
+                        <Typography variant="body1"><strong>Student's ID: {student.randomId}</strong></Typography>
+                        <Typography variant="body1"><strong>Class: {student.presentClass}</strong></Typography>
                     </Box>
-                    <Typography variant="body1"><strong>Name: {student.name}</strong></Typography>
+                    <Typography variant="body1"><strong>Name: {student.firstname} {student.lastname}</strong></Typography>
                     <Box className="rows-info">
-                        <Typography variant="body1"><strong>Date of Birth: {student.dob}</strong></Typography>
+                        <Typography variant="body1"><strong>Date of Birth: {student.dob.split('T')[0]}</strong></Typography>
                         <Typography variant="body1"><strong>Cohort: {student.cohort}</strong></Typography>
                     </Box>
-                    <Typography variant="body1">School: {student.id}</Typography>
+                    <Typography variant="body1" sx = {{textAlign: "left"}}>School: {student.schoolId.schoolName}</Typography>
 
-                    <Typography variant="body1">Caregiver's Name: {student.class}</Typography>
-                    <Typography variant="body1">Caregiver's Phone: {student.department}</Typography>
+                    <Typography variant="body1">Caregiver's Name: {student.parentName}</Typography>
+                    <Typography variant="body1">Caregiver's Phone: 0{student.parentPhone}</Typography>
                     <Typography variant="body1" sx={{
                         color: "white", background: "red", width: "100%", fontSize: "11px", fontWeight: 800, position: "absolute", bottom: 0, left: 0,
                     }}>Conditional Cash Transfer</Typography>
                 </Box>
-                <Avatar
-                    src={student.photo}
+                <img
+                    src={student.passport}
                     alt="Student"
-                    sx={{
-                        flexBasis: "20%", width: 50, height: 50, margin: "0 auto", alignSelf: "center", position: "absolute", top: "50%",
-                        bottom: "50%", right: "25px"
+                    style={{
+                        flexBasis: "20%", width: "80px", height: "100px", margin: "0 auto", alignSelf: "center", position: "absolute", top: "50%",
+                        bottom: "33%", right: "15px"
 
                     }}
                 />
