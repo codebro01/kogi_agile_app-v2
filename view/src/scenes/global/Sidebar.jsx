@@ -35,6 +35,7 @@ import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import EventNoteIcon from '@mui/icons-material/EventNote';
 import EditIcon from '@mui/icons-material/Edit';
 import NoteAddIcon from '@mui/icons-material/NoteAdd';
+import PrintIcon from "@mui/icons-material/Print";
 
 
 
@@ -83,7 +84,7 @@ const Sidebar = ({ isSidebar }) => {
   const handleClose = () => setOpen(false);
 
   return (
-    <Box className={`sidebark ${isSidebar ? "" : "collapsed"}`}
+    <Box className={`no-print sidebark ${isSidebar ? "" : "collapsed"}`}
       sx={{
         "& .pro-sidebar-inner": {
           background: `${colors.primary[400]} !important`,
@@ -325,6 +326,14 @@ const Sidebar = ({ isSidebar }) => {
                     title="Manage School"
                     to={userPermissions.includes('handle_registrars') ? 'admin-dashboard/manage-accounts/schools' : 'enumerator-dashboard/view-all-students-data'}
                     icon={<SchoolIcon />}
+                    selected={selected}
+                    setSelected={setSelected}
+                  />
+
+                  <Item
+                    title="Print Id Cards"
+                    to={userPermissions.includes('handle_registrars') ? 'admin-dashboard/idcards/print' : 'enumerator-dashboard/view-all-students-data'}
+                    icon={<PrintIcon />}
                     selected={selected}
                     setSelected={setSelected}
                   />

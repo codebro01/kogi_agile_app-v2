@@ -28,7 +28,7 @@ const Topbar = ({ setIsSidebar }) => {
   };
 
   return (
-    <Box display="flex" justifyContent="space-between" p={2}>
+    <Box className = "no-print" display="flex" justifyContent="space-between" p={2}>
 
       {/* SEARCH BAR */}
       <Box

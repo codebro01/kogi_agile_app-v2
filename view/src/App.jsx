@@ -38,8 +38,7 @@ import { CreateSchool } from "./scenes/manage-accounts/createSchool.jsx";
 import { ManageSchools } from "./scenes/manage-accounts/manageSchools.jsx";
 import { ViewPaymentsRecords } from "./components/viewPaymentsRecords.jsx";
 import { ManageDuplicateRecords } from "./scenes/manage-accounts/manageDuplicateRecords.jsx";
-
-
+import { PrintIdCard } from "./scenes/manage-accounts/printIDCards.jsx";
 
 
 
@@ -120,6 +119,7 @@ function App() {
                         <Route path="/admin-dashboard/manage-accounts/payroll-specialists/edit-payroll-specialists/:id" element={<EditPayrollSpecialists />} />
                         <Route path="/admin-dashboard/manage-accounts/schools" element={<ManageSchools />} />
                         <Route path="/admin-dashboard/manage-accounts/manage-duplicate-records" element={<ManageDuplicateRecords />} />
+                        <Route path="/admin-dashboard/idcards/print" element={<PrintIdCard />} />
 
                         <Route path="/index.html" element={<Navigate to="/" />} />
                         <Route path="*" element={<Navigate to="/admin-dashboard" />} />

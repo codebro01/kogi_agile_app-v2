@@ -9,6 +9,7 @@ body,
   height: 100%;
   width: 100%;
   font-family: "Source Sans Pro", sans-serif;
+  position: relative;
 }
 
 .chart-header {
@@ -76,4 +77,14 @@ body,
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
   background: #555;
+}
+
+@media Print {
+  .no-print {
+    display: none !important;
+  }
+
+  /* .id-front {
+    display: f !important;
+  } */
 }
