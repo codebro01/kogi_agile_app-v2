@@ -114,7 +114,7 @@ export const PrintIdCard = () => {
             )}
           />
         </Grid>
-        <Button disabled={selectedSchoolId.length === 0} type="submit"
+        <Button disabled={selectedSchoolId?.length === 0} type="submit"
           sx={{
             marginTop: 3,
             background: "#196b57",
@@ -147,7 +147,14 @@ export const PrintIdCard = () => {
 
       {/* Print Area */}
       {studentsLoading ? <Typography><Box><SpinnerLoader /></Box></Typography> : (
-        <Box id="idCardContainer" ref={contentRef} sx={{ width: "100%", height: "auto", component: "paper", backgroundColor: "white", padding: "10mm", display: "flex", flexDirection: "column", gap: "60px", justifyConten: "center", alignItems: "center" }}>
+        <Box id="idCardContainer" ref={contentRef} sx={{ width: "100%", height: "auto", component: "paper", backgroundColor: "white", padding: "10mm", display: "flex", flexDirection: "column", gap: "60px", justifyConten: "center", alignItems: "center", "@media Print": {
+          width: "1134px",
+  
+          "@page": {
+            marginTop: "1cm",
+            marginBottom: "2cm"
+          }
+  } }}>
           {studentsData.map((student, index) => (
             <>
 

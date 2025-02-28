@@ -1319,8 +1319,9 @@ export const AdminViewAllStudentsDataNoExport = () => {
                                     boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
                                     width: {
                                         lg: "30%",
+                                        md: "50%",
                                         sm: "50%",
-                                        xs: "70%"
+                                        xs: "80%"
                                     },
                                     height: {
                                         xs: "80vh"
