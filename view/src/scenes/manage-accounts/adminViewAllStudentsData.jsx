@@ -130,6 +130,7 @@ export const AdminViewAllStudentsData = () => {
         yearOfEnrollment: filters.yearOfEnrollment,
         yearOfAdmission: filters.yearOfAdmission,
         classAtEnrollment: filters.classAtEnrollment,
+        disabilitystatus: filters.disabilitystatus,
         status: filters.status
     }
     const filteredParams = Object.entries(params)
@@ -215,6 +216,7 @@ export const AdminViewAllStudentsData = () => {
             dateTo: "",
             yearOfEnrollment: "",
             yearOfAdmission: "",
+            disabilitystatus: "",
             status: "active",
 
         });
@@ -642,7 +644,30 @@ export const AdminViewAllStudentsData = () => {
                             )}
 
                             <Grid item xs={12} sm={6} md={4}>
-                                <InputLabel id="sortBy-label" sx={{ marginBottom: 1 }}>Active Status</InputLabel>
+                                <InputLabel id="disabilitystatus" sx={{ marginBottom: 1 }}>Disability Status</InputLabel>
+                                <Select
+                                    name="disabilitystatus"
+                                    value={FormData.disabilitystatus}
+                                    onChange={handleInputChange}
+                                    displayEmpty
+                                    fullWidth
+                                    size="small"
+                                    labelId="disabilitystatus"
+                                >
+                                    <MenuItem value="">
+                                        <em>All</em>
+                                    </MenuItem>
+                                    <MenuItem value={'Yes'}>
+                                            Yes
+                                        </MenuItem>
+                                    <MenuItem value={'No'}>
+                                            No
+                                        </MenuItem>
+                                </Select>
+                            </Grid>
+
+                            <Grid item xs={12} sm={6} md={4}>
+                                <InputLabel id="status" sx={{ marginBottom: 1 }}>Active Status</InputLabel>
                                 <Select
                                     name="status"
                                     value={filters.status}

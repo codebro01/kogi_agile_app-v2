@@ -50,7 +50,7 @@ export const UpdateStudent = () => {
 
     // Convert to timestamp (milliseconds since January 1, 1970)
 
-
+console.log(student)
 
     const [formData, setFormData] = useState({
         schoolId: student.schoolId._id,
@@ -78,6 +78,7 @@ export const UpdateStudent = () => {
         parentOccupation: student.parentOccupation,
         bankName: student.bankName,
         accountNumber: student.accountNumber,
+        disabilitystatus: student.disabilitystatus,
         image: null,
     });
     const [success, setSuccess] = useState(false);
@@ -422,6 +423,21 @@ export const UpdateStudent = () => {
 
                             <Grid item xs={12}>
                                 <TextField
+                                    label="Disablity Status"
+                                    name="disabilitystatus"
+                                    select
+                                    variant="outlined"
+                                    fullWidth
+                                    value={formData.disabilitystatus}
+                                    onChange={handleChange}
+                                >
+                                    <MenuItem value="No">No</MenuItem>
+                                    <MenuItem value="Yes">Yes</MenuItem>
+                                </TextField>
+                            </Grid>
+
+                            <Grid item xs={12}>
+                                <TextField
                                     label="Nationality"
                                     name="nationality"
                                     select
@@ -697,7 +713,7 @@ export const UpdateStudent = () => {
                                     >
 
                                         <MenuItem value="">Select Bank</MenuItem>
-                                        <MenuItem value="Fidelity Bank">FCMB</MenuItem>
+                                        <MenuItem value="FCMB">FCMB</MenuItem>
                                         <MenuItem value="Polaris Bank">Polaris Bank</MenuItem>
                                         <MenuItem value="Zenith Bank">Zenith Bank</MenuItem>
                                     </Select>

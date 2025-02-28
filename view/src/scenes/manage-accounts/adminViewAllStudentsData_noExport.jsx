@@ -24,6 +24,7 @@ import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import ArrowBackwardIcon from '@mui/icons-material/ArrowBack';
 import { AlertSnackbars } from '../../components/alertSnackbar.jsx';
+import CancelIcon from "@mui/icons-material/Cancel";
 import { useAuth } from '../auth/authContext';
 
 
@@ -61,6 +62,7 @@ export const AdminViewAllStudentsDataNoExport = () => {
         dateTo: "",
         yearOfEnrollment: "",
         yearOfAdmission: "",
+        disabilitystatus: "",
         status: "active",
     });
     const params = {
@@ -78,6 +80,7 @@ export const AdminViewAllStudentsDataNoExport = () => {
         yearOfEnrollment: filters.yearOfEnrollment,
         yearOfAdmission: filters.yearOfAdmission,
         classAtEnrollment: filters.classAtEnrollment,
+        disabilitystatus: filters.disabilitystatus,
     }
     const filteredParams = Object.entries(params)
         .filter(([_, value]) => value != null && value !== '') // Filter out empty values
@@ -1139,6 +1142,29 @@ export const AdminViewAllStudentsDataNoExport = () => {
                             </Grid>
 
                             <Grid item xs={12} sm={6} md={4}>
+                                <InputLabel id="disabilitystatus-label" sx={{ marginBottom: 1 }}>Disability status</InputLabel>
+                                <Select
+                                    name="disabilitystatus"
+                                    value={filters.disabilitystatus || ""}
+                                    onChange={handleInputChange}
+                                    displayEmpty
+                                    fullWidth
+                                    size="small"
+                                    labelId="sortBy-label"
+                                >
+                                    <MenuItem value="">
+                                        <em>All</em>
+                                    </MenuItem>
+                                    <MenuItem value="Yes">
+                                        Yes
+                                    </MenuItem>
+                                    <MenuItem value="No">
+                                        No
+                                    </MenuItem>
+                                </Select>
+                            </Grid>
+
+                            <Grid item xs={12} sm={6} md={4}>
                                 <InputLabel id="sortBy-label" sx={{ marginBottom: 1 }}>Active status</InputLabel>
                                 <Select
                                     name="status"
@@ -1282,24 +1308,44 @@ export const AdminViewAllStudentsDataNoExport = () => {
                                 justifyContent: "center",
                             }}
                         >
-                            <div
-                                style={{
+                            <Box
+                                sx={{
                                     position: 'fixed',
                                     top: '50%',
                                     left: '50%',
                                     transform: 'translate(-50%, -50%)',
                                     backgroundColor: '#fff',
                                     padding: '20px',
-                                    borderRadius: '10px',
                                     boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
-                                    width: "80%",
+                                    width: {
+                                        lg: "30%",
+                                        sm: "50%",
+                                        xs: "70%"
+                                    },
+                                    height: {
+                                        xs: "80vh"
+                                    },
+                                    overflowY: "scroll",
                                     display: "flex",
                                     flexDirection: "column",
                                     alignItems: "flex-start",
                                     justifyContent: "flex-start",
+
                                 }}
                             >
-                                <h3>Student Details</h3>
+                                <Box sx = {{
+                                    display: "flex",
+                                    justifyContent: "space-between",
+                                    width: "100%",
+                                }}>
+                                    <Typography sx = {{fontWeight: 700, fontSize: "17px"}}>Student Details</Typography>
+                                    <Box onClick={() => setIsModalOpen(false)}
+                                    sx = {{
+                                        cursor: "pointer"
+                                    }}
+                                    
+                                    ><CancelIcon sx = {{color: "red"}} /></Box>
+                                </Box>
 
                                 <div style={{ alignSelf: "center" }}><img src={`${selectedItem.passport}`} alt="" /></div>
                                 <p><strong>Student ID:</strong> {selectedItem.randomId}</p>
@@ -1325,7 +1371,7 @@ export const AdminViewAllStudentsDataNoExport = () => {
                                 >
                                     Close
                                 </button>
-                            </div>
+                            </Box>
                         </div>
 
                     )}

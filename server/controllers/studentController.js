@@ -99,7 +99,7 @@ export const getAllStudents = async (req, res, next) => {
 
 
 
-        let students = await Student.find(basket).populate('schoolId').sort('-updatedAt').collation({ locale: "en", strength: 2 }).select('randomId schoolId surname firstname middlename dob stateOfOrigin lga lgaOfEnrollment presentClass ward bankName yearOfEnrollment passport studentNin gender nationality communityName parentName parentPhone parentNin parentBvn bankName accountNumber parentOccupation residentialAddress').skip(skip).limit(Number(limit)).lean();
+        let students = await Student.find(basket).populate('schoolId').sort('-updatedAt').collation({ locale: "en", strength: 2 }).select('randomId schoolId surname firstname middlename dob stateOfOrigin lga lgaOfEnrollment presentClass ward bankName yearOfEnrollment passport studentNin gender nationality communityName parentName parentPhone parentNin parentBvn bankName accountNumber parentOccupation residentialAddress disabilitystatus').skip(skip).limit(Number(limit)).lean();
 
         if (permissions.includes('handle_admins')) {
             students = await Student.find(basket).populate('schoolId').sort('-updatedAt').collation({ locale: "en", strength: 2 }).select('randomId schoolId surname firstname middlename dob stateOfOrigin lga lgaOfEnrollment presentClass ward bankName yearOfEnrollment passport src').skip(skip).limit(Number(limit)).lean();
@@ -289,7 +289,7 @@ export const filterAndDownload = async (req, res, next) => {
 
         const { userID, permissions } = req.user;
 
-        const { ward, schoolId, lga, presentClass, sortBy, sortOrder, nationality, stateOfOrigin, enumerator, dateFrom, dateTo, yearOfAdmission, yearOfEnrollment, status } = req.query;
+        const { ward, schoolId, lga, presentClass, sortBy, sortOrder, nationality, stateOfOrigin, enumerator, dateFrom, dateTo, yearOfAdmission, yearOfEnrollment, status, disabilitystatus } = req.query;
 
         // Create a basket object
         let basket;
@@ -309,6 +309,7 @@ export const filterAndDownload = async (req, res, next) => {
         if (schoolId) basket.schoolId = schoolId;
         if (nationality) basket.nationality = nationality;
         if (stateOfOrigin) basket.stateOfOrigin = stateOfOrigin;
+        if (disabilitystatus) basket.disabilitystatus = disabilitystatus;
         if (enumerator) basket.createdBy = enumerator;
         if (dateFrom || dateTo) {
             basket.createdAt = {};
@@ -364,12 +365,11 @@ export const filterAndDownload = async (req, res, next) => {
         // });
         const orderedHeaders = [
             'S/N',
-            'randomId',
-            'schoolId',
             'schoolName',
             'surname',
             'firstname',
             'middlename',
+            'randomId',
             'gender',
             'dob',
             'presentClass',
@@ -394,7 +394,7 @@ export const filterAndDownload = async (req, res, next) => {
             'createdBy'
         ];
 
-        const headers = ['S/N', 'studentId', 'schoolId', 'schoolName', ...orderedHeaders.filter(header => header !== 'S/N' && header !== 'schoolName' && students.some(student => student.hasOwnProperty(header)))];
+        const headers = ['S/N', 'schoolId', 'schoolName', ...orderedHeaders.filter(header => header !== 'S/N' && header !== 'schoolName' && students.some(student => student.hasOwnProperty(header)))];
 
 
         const uppercaseHeaders = headers.map(header => header.toUpperCase());
@@ -404,6 +404,7 @@ export const filterAndDownload = async (req, res, next) => {
         const formattedData = students.map(student => {
             const row = {};
             headers.forEach((header, index) => {
+                console.log(header)
                 const uppercaseHeader = uppercaseHeaders[index];
                 // Populate fields like _id, schoolId, ward, createdBy with actual readable data
                 if (header === 'S/N') {
@@ -413,7 +414,8 @@ export const filterAndDownload = async (req, res, next) => {
                 } else if (student[header] && header === 'schoolId') {
                     row[uppercaseHeader] = student[header].schoolCode?.toUpperCase() || '';
                 } else if (student[header] && header === 'randomId') {
-                    row['STUDENTID'] = student[header].toUpperCase() || '';
+
+                    row[uppercaseHeader] = student.randomId || '';
                 } else if (header === 'schoolName') {
                     row[uppercaseHeader] = student.schoolId?.schoolName?.toUpperCase() || '';
                 } else {

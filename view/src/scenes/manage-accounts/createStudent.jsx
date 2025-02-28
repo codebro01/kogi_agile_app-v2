@@ -55,6 +55,7 @@ export const CreateStudent = () => {
     bankName: "",
     accountNumber: "",
     parentBvn: "",
+    disabilitystatus: "",
     image: null,
 
   });
@@ -348,6 +349,23 @@ export const CreateStudent = () => {
                   required
                 >
                   <MenuItem value="Female">Female</MenuItem>
+                </TextField>
+              </Grid>
+
+              <Grid item xs={12}>
+                <TextField
+                  label="Disability Status"
+                  name="disabilitystatus"
+                  select
+                  variant="outlined"
+                  fullWidth
+                  value={formData.disabilitystatus}
+                  onChange={handleChange}
+                  // error={errors.disablitystatus}
+                  required
+                >
+                  <MenuItem value="No">No</MenuItem>
+                  <MenuItem value="Yes">Yes</MenuItem>
                 </TextField>
               </Grid>
 

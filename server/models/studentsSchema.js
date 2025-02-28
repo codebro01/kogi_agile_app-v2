@@ -139,7 +139,13 @@ const StudentSchema = new mongoose.Schema({
     src: {
         type: String,
         required: true,
+    },
+    disabilitystatus: {
+        type: String, 
+        enum: ["Yes", "No"],
+        default: "No"
     }
+
 
 
 }, { timestamps: true });
