@@ -684,7 +684,7 @@ export const ViewAttendance = () => {
                                             <TableCell>{`${row?.studentDetails.surname} ${row?.studentDetails.firstname}`}</TableCell>
                                             <TableCell>{row?.schoolDetails.schoolName}</TableCell>
                                             <TableCell>{row.class}</TableCell>
-                                            <TableCell>
+                                            <TableCell sx = {{minWidth: "165px"}}>
                                                 {/* Display attendance spread */}
                                                 {attendanceSpread.map((val, idx) => (
                                                     <span key={idx} style={{ padding: "4px", margin: "2px", display: "inline-block", width: "20px", textAlign: "center", background: val === "✅" ? "#4caf50" : "#f0f0f0", borderRadius: "4px" }}>
