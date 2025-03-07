@@ -149,6 +149,9 @@ const studentsSlice = createSlice({
         setCurrentPage: (state, action) => {
             state.currentPage = action.payload;
         },
+        setFilteredData: (state, action) => {
+            
+        }
     },
     extraReducers: (builder) => {
         builder

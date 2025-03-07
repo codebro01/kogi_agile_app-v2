@@ -20,7 +20,7 @@ import {
     Pagination,
     Stack,
     Checkbox,
-    Autocomplete, 
+    Autocomplete,
     TextField
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
@@ -622,52 +622,88 @@ export const ViewAttendance = () => {
                                 {<TableCell>School</TableCell>} {/* Hide on mobile */}
                                 {<TableCell>Class</TableCell>}  {/* Hide on mobile */}
                                 {<TableCell>Score</TableCell>}  {/* Hide on mobile */}
+                                {<TableCell>Total</TableCell>}  {/* Hide on mobile */}
                                 <TableCell>Week</TableCell>
                                 <TableCell>Month</TableCell>
                                 <TableCell>Year</TableCell>
-                                <TableCell>Enumerator's Name</TableCell>
+                                <TableCell>Verified By</TableCell>
                             </TableRow>
                         </TableHead>
+
                         <TableBody
                             sx={{
                                 maxHeight: "100vh",
-                                overflowY: "scroll"
+                                overflowY: "scroll",
                             }}
-
                         >
-                            {(filteredData && enumerators) && filteredData.map((row, index) => {
-                                const displayIndex = (currentPage - 1) * limit + index + 1; // Adjust index based on page and limit
-                                return (<TableRow key={index}>
-                                    {userPermissions.includes('handle_admins') && (
-                                        <TableCell>{<Checkbox checked={selectedAttendances.includes(row._id)} onChange={() => handleCheckboxChange(row._id)}
-                                            sx={{
-                                                // '& .MuiSvgIcon-root': {
-                                                //     backgroundColor: '#196b57', // Default background
-                                                //     borderRadius: '4px',       // Optional rounded corners
-                                                // },
-                                                '&.Mui-checked .MuiSvgIcon-root': {
-                                                    // backgroundColor: '#0e4d38', // Background when checked
-                                                    color: '#d32f2f',             // Checkmark color
-                                                },
-                                                '&:hover .MuiSvgIcon-root': {
-                                                    color: '#d32f2f', // Background on hover
-                                                },
-                                                color: "#196b57"
-                                            }}
-                                        />}</TableCell>
-                                    )}
-                                    <TableCell>{displayIndex}</TableCell>
-                                    <TableCell>{`${row?.studentDetails.surname} ${row?.studentDetails.firstname}`}</TableCell>
-                                    {<TableCell>{row?.schoolDetails.schoolName}</TableCell>} {/* Hide on mobile */}
-                                    {<TableCell>{row.class}</TableCell>}  {/* Hide on mobile */}
-                                    {<TableCell>{row.AttendanceScore}</TableCell>}  {/* Hide on mobile */}
-                                    <TableCell>{row.attdWeek}</TableCell>
-                                    <TableCell>{getMonthName(row.month)}</TableCell>
-                                    <TableCell>{row.year}</TableCell>
-                                    <TableCell>{getEnumeratorName(row.enumeratorId)}</TableCell>
-                                </TableRow>)
-                            })}
+                            {(filteredData && enumerators) &&
+                                filteredData.map((row, index) => {
+                                    const displayIndex = (currentPage - 1) * limit + index + 1; // Adjust index based on page and limit
+                                    const totalScore = row.AttendanceScore; // Total score
+                                    const marksPerDay = 5; // Each day counts for 5 marks
+                                    const maxDays = 4 * 5; // 4 weeks * 5 days = 20 days
+                                    const attendedDaysCount = Math.min(totalScore / marksPerDay, maxDays); // How many days should be marked
+
+                                    // Create a blank attendance array
+                                    let attendanceSpread = Array(maxDays).fill("-");
+
+                                    // Get random unique positions to mark attendance
+                                    let randomIndexes = [];
+                                    while (randomIndexes.length < attendedDaysCount) {
+                                        let randomIndex = Math.floor(Math.random() * maxDays);
+                                        if (!randomIndexes.includes(randomIndex)) {
+                                            randomIndexes.push(randomIndex);
+                                        }
+                                    }
+
+                                    // Fill those random positions with "✅"
+                                    randomIndexes.forEach((idx) => {
+                                        attendanceSpread[idx] = "✅";
+                                    });
+
+                                    return (
+                                        <TableRow key={index}>
+                                            {userPermissions.includes("handle_admins") && (
+                                                <TableCell>
+                                                    <Checkbox
+                                                        checked={selectedAttendances.includes(row._id)}
+                                                        onChange={() => handleCheckboxChange(row._id)}
+                                                        sx={{
+                                                            "&.Mui-checked .MuiSvgIcon-root": {
+                                                                color: "#d32f2f",
+                                                            },
+                                                            "&:hover .MuiSvgIcon-root": {
+                                                                color: "#d32f2f",
+                                                            },
+                                                            color: "#196b57",
+                                                        }}
+                                                    />
+                                                </TableCell>
+                                            )}
+                                            <TableCell>{displayIndex}</TableCell>
+                                            <TableCell>{`${row?.studentDetails.surname} ${row?.studentDetails.firstname}`}</TableCell>
+                                            <TableCell>{row?.schoolDetails.schoolName}</TableCell>
+                                            <TableCell>{row.class}</TableCell>
+                                            <TableCell>
+                                                {/* Display attendance spread */}
+                                                {attendanceSpread.map((val, idx) => (
+                                                    <span key={idx} style={{ padding: "4px", margin: "2px", display: "inline-block", width: "20px", textAlign: "center", background: val === "✅" ? "#4caf50" : "#f0f0f0", borderRadius: "4px" }}>
+                                                        {val}
+                                                    </span>
+                                                ))}
+                                            </TableCell>
+                                            <TableCell style={{ fontWeight: "bold", color: "#196b57" }}>{totalScore}</TableCell> {/* Total Score Column */}
+                                            <TableCell>{row.attdWeek}</TableCell>
+                                            <TableCell>{getMonthName(row.month)}</TableCell>
+                                            <TableCell>{row.year}</TableCell>
+                                            <TableCell>{getEnumeratorName(row.enumeratorId)}</TableCell>
+                                        </TableRow>
+                                    );
+                                })}
                         </TableBody>
+
+
+
                     </Table>
                 </TableContainer>
 

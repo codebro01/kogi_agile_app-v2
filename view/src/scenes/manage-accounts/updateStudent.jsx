@@ -9,12 +9,13 @@ import { SpinnerLoader } from '../../components/spinnerLoader.jsx';
 import lgasAndWards from '../../Lga&wards.json';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchSchools } from '../../components/schoolsSlice.js';
+import { useAuth } from '../auth/authContext.jsx';
 
 
 axios.defaults.withCredentials = true;
 
 export const UpdateStudent = () => {
-
+    const { userPermissions } = useAuth();
     // const { loading, schoolsData } = useContext(SchoolsContext);
     const location = useLocation()
     const student = location.state;
@@ -23,7 +24,7 @@ export const UpdateStudent = () => {
     const { data: schoolsData, loading, error: fetchSchoolError } = schoolsState
 
     const [occupations, setOccupation] = useState([
-        'Farmer', 'Teacher', "Trader", 'Mechanic', 'Tailor', 'Bricklayer', 'Carpenter', 'Doctor', 'Lawyer', 'Butcher', 'Electrician', 'Clergyman', 'Barber', 'Hair Dresser', 'Others'
+        'Business Person', 'Farmer', 'Teacher', "Trader", 'Mechanic', 'Tailor', 'Bricklayer', 'Carpenter', 'Doctor', 'Lawyer', 'Butcher', 'Electrician', 'Clergyman', 'Barber', 'Hair Dresser', 'Others'
     ])
 
     const dispatch = useDispatch();
@@ -50,19 +51,18 @@ export const UpdateStudent = () => {
 
     // Convert to timestamp (milliseconds since January 1, 1970)
 
-console.log(student)
 
     const [formData, setFormData] = useState({
         schoolId: student.schoolId._id,
-        ward: student.ward,
+        ward: student.ward.toUpperCase() ?? '',
         surname: student.surname,
         firstname: student.firstname,
         middlename: student.middlename,
         studentNin: student.studentNin,
         dob: `${formattedDate}`,
         nationality: student.nationality,
-        stateOfOrigin: student.stateOfOrigin,
-        lga: student.lga,
+        stateOfOrigin: student.stateOfOrigin.toUpperCase(),
+        lga: student.lga.toUpperCase(),
         gender: student.gender,
         communityName: student.communityName,
         residentialAddress: student.residentialAddress,
@@ -198,7 +198,7 @@ console.log(student)
                 setIsLoading(false)
                 setSuccess(true);
                 setTimeout(() => {
-                    navigate('/enumerator-dashboard/view-all-students-data')
+                    userPermissions.includes('handle_registrars') ? navigate('/admin-dashboard/admin-view-all-students-no-export') : navigate('/enumerator-dashboard/view-all-students-data')
                 }, 5000)
             } catch (err) {
                 setIsLoading(false)

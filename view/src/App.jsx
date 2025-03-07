@@ -120,6 +120,8 @@ function App() {
                         <Route path="/admin-dashboard/manage-accounts/schools" element={<ManageSchools />} />
                         <Route path="/admin-dashboard/manage-accounts/manage-duplicate-records" element={<ManageDuplicateRecords />} />
                         <Route path="/admin-dashboard/idcards/print" element={<PrintIdCard />} />
+                        <Route path="/enumerator-dashboard/update-student/:id" element={<UpdateStudent />} />
+
 
                         <Route path="/index.html" element={<Navigate to="/" />} />
                         <Route path="*" element={<Navigate to="/admin-dashboard" />} />

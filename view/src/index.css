@@ -83,6 +83,9 @@ body,
   .no-print {
     display: none !important;
   }
+  .passportOnId {
+    border-radius: 5px;
+  }
 
   /* .id-front {
     display: f !important;

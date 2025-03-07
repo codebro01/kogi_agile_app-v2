@@ -29,9 +29,7 @@ export const PrintIdCard = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('entered here')
     dispatch(fetchStudentsFromComponent({ filteredParams: { schoolId: selectedSchoolId, isActive: true }, sortParam: { sortBy: "" } }));
-    console.log('outta here')
   }
 
   useEffect(() => {
@@ -61,7 +59,6 @@ export const PrintIdCard = () => {
   </Box>
 
 
-  console.log(studentsData)
 
   return (
     <Container sx={{
@@ -97,6 +94,8 @@ export const PrintIdCard = () => {
             isOptionEqualToValue={(option, value) => option.schoolId === value.schoolId} // Ensure correct matching
             renderInput={(params) => (
               <TextField
+
+              
                 {...params}
                 label="Select School"
                 placeholder="Search Schools"
@@ -151,13 +150,13 @@ export const PrintIdCard = () => {
           width: "1134px",
   
           "@page": {
-            marginTop: "1cm",
-            marginBottom: "2cm"
+            marginTop: "0.8cm",
+            marginBottom: "1cm"
           }
   } }}>
           {studentsData.map((student, index) => (
             <>
-
++ 
               <Box key={index} sx={{
                 display: "flex", justifyContent: "center", mb: 3, alignItem: "center", flexDirection: {
                   lg: "row",
@@ -178,7 +177,9 @@ export const PrintIdCard = () => {
 
               }}>
                 <StudentIDFront student={student} />
-                <Box sx={{ width: "20mm" }} /> {/* Spacer */}
+                <Box sx={{ width: "20mm", "@media Print": {
+                  width: "10mm"
+                } }} /> {/* Spacer */}
                 <StudentIDBack student={student} />
                 
               </Box>

@@ -221,7 +221,6 @@ export const ExportAttendanceSheetPayroll = () => {
         }))
     }
 
-    console.log(filteredParams)
 
     const handleSubmit = async (e) => {
         e.preventDefault();

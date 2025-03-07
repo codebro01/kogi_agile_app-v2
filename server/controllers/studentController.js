@@ -322,7 +322,7 @@ export const filterAndDownload = async (req, res, next) => {
                 }
                 basket.createdAt.$gte = fromDate;
             }
-
+            
             // Handle dateTo
             if (dateTo) {
                 const toDate = new Date(new Date(dateTo).setHours(23, 59, 59, 999));
@@ -337,13 +337,13 @@ export const filterAndDownload = async (req, res, next) => {
                 delete basket.createdAt;
             }
         }
-
+        
         // console.log(req.url)
         // console.log(req.query)
         // console.log(basket)
-
-
-
+        
+        
+        
         // if (yearOfAdmission) basket.yearAdmitted = yearOfAdmission;
 
         let sort = { createdAt: -1 }; // Default sort
@@ -351,6 +351,7 @@ export const filterAndDownload = async (req, res, next) => {
             sort[sortBy] = sortOrder === 'asc' ? 1 : -1;
         }
 
+        console.log(basket)
 
         const students = await Student.find(basket).populate('schoolId').populate('ward').populate('createdBy').sort(sort).collation({ locale: "en", strength: 2 }).lean();
 
@@ -404,7 +405,6 @@ export const filterAndDownload = async (req, res, next) => {
         const formattedData = students.map(student => {
             const row = {};
             headers.forEach((header, index) => {
-                console.log(header)
                 const uppercaseHeader = uppercaseHeaders[index];
                 // Populate fields like _id, schoolId, ward, createdBy with actual readable data
                 if (header === 'S/N') {
@@ -479,14 +479,13 @@ export const filterAndView = async (req, res, next) => {
         await Student.syncIndexes();
 
         const { userID, permissions } = req.user;
-        const { ward, schoolId, lga, presentClass, nationality, stateOfOrigin, enumerator, dateFrom, dateTo, yearOfAdmission, yearOfEnrollment } = req.query.filteredParams || {};
+        const { ward, schoolId, lga, presentClass, nationality, stateOfOrigin, enumerator, dateFrom, dateTo, yearOfAdmission, yearOfEnrollment, disabilitystatus } = req.query.filteredParams || {};
         const { page, limit } = req.query;
         const { sortBy, sortOrder } = req.query.sortParam;
         let { status } = req.query.filteredParams;
 
 
 
-        console.log(req.query)
         // Create a basket object
         let basket;
         if (!permissions.includes('handle_registrars')) {
@@ -499,6 +498,7 @@ export const filterAndView = async (req, res, next) => {
         if (status && status === 'all') basket.isActive;
         if (lga) basket.lgaOfEnrollment = lga;
         if (presentClass) basket.presentClass = presentClass;
+        if (disabilitystatus) basket.disabilitystatus = disabilitystatus;
         if (yearOfEnrollment) basket.yearOfEnrollment = yearOfEnrollment;
         if (ward) basket.ward = ward;
         if (schoolId) basket.schoolId = schoolId;
@@ -533,13 +533,12 @@ export const filterAndView = async (req, res, next) => {
         }
 
         // console.log(req.url)
-        console.log('basket', basket)
         // console.log(basket)
 
 
         // if (yearOfAdmission) basket.yearAdmitted = yearOfAdmission;
 
-        let sort = { createdAt: -1 }; // Default sort
+        let sort = { lgaOfEnrollment: 1 }; // Default sort
         if (sortBy && sortOrder) {
             sort[sortBy] = sortOrder === 'asc' ? 1 : -1;
         }
@@ -860,7 +859,7 @@ export const adminViewAttendance = async (req, res, next) => {
         if (enumeratorId) basket.enumeratorId = enumeratorId;
 
   
-
+        
 
         let attendance;
 
@@ -1711,6 +1710,8 @@ export const deleteStudent = async (req, res, next) => {
     }
 };
 
+
+
 export const deleteManyStudents = async (req, res, next) => {
     try {
         const { ids } = req.query; // Access the query parameter
@@ -2209,6 +2210,87 @@ export const demotePlentyStudents = async (req, res, next) => {
         return next(error);
     }
 };
+
+// export const deletedStudents = async (req, res, next) => {
+
+
+//     try {
+
+
+
+
+//         const duplicates = await Student.aggregate([
+//             // Step 1: Lookup school details from the allschools collection
+//             {
+//                 $addFields: {
+//                     schoolId: { $toObjectId: "$schoolId" } // Convert string to ObjectId
+//                 }
+//             },
+//             {
+//                 $lookup: {
+//                     from: "allschools", // Collection name of allschools
+//                     localField: "schoolId", // Field in the Student collection
+//                     foreignField: "_id", // Field in the allschools collection
+//                     as: "schoolDetails", // Name of the resulting field
+//                 },
+//             },
+//             // Step 2: Extract the schoolName from the schoolDetails
+//             {
+//                 $addFields: {
+//                     schoolName: { $arrayElemAt: ["$schoolDetails.schoolName", 0] }, // Add schoolName
+//                 },
+//             },
+//             // Step 3: Group by student fields
+//             {
+//                 $group: {
+//                     _id: {
+//                         surname: "$surname",
+//                         firstname: "$firstname",
+//                         lgaofEnrollment: "$lgaofEnrollment",
+//                         schoolId: "$schoolId",
+//                     },
+//                     similarRecords: {
+//                         $push: {
+//                             randomId: "$randomId",
+//                             surname: "$surname",
+//                             middlename: "$middlename",
+//                             parentPhone: "$parentPhone",
+//                             presentClass: "$presentClass",
+//                             firstname: "$firstname",
+//                             schoolId: "$schoolId", // Preserve schoolId here
+//                             schoolName: "$schoolName", // Add schoolName to the group
+//                             lgaOfEnrollment: "$lgaOfEnrollment",
+//                             passport: "$passport"
+//                         },
+//                     }, // Collect relevant fields only
+//                     count: { $sum: 1 }, // Count duplicates
+//                 },
+//             },
+//             // Step 4: Match groups with duplicates
+//             {
+//                 $match: { count: { $gt: 1 } },
+//             },
+//             // Step 5: Final clean-up (optional)
+//             {
+//                 $project: {
+//                     "similarRecords.schoolDetails": 0, // Exclude schoolDetails array if accidentally carried over
+//                 },
+//             },
+//         ]);
+
+
+//         const students = duplicates;
+
+//         return res.status(200).json({ students });
+//     }
+//     catch (err) {
+//         console.log(err)
+//         return next(err)
+//     }
+
+
+
+// }
 
 
 

@@ -42,9 +42,8 @@ const AttendanceSchema = new Schema({
     lockStatus: {
         type: Boolean,
         default: false
-    }
-
-
+    }, 
+    attendanceSpread: [String]
 }, { timestamps: true });
 
 export const Attendance = model('Attendance', AttendanceSchema);

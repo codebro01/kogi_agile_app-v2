@@ -26,7 +26,7 @@ import ArrowBackwardIcon from '@mui/icons-material/ArrowBack';
 import { AlertSnackbars } from '../../components/alertSnackbar.jsx';
 import CancelIcon from "@mui/icons-material/Cancel";
 import { useAuth } from '../auth/authContext';
-
+import { DeleteButton } from '../../components/deleteButton.jsx';
 
 
 
@@ -47,7 +47,7 @@ export const AdminViewAllStudentsDataNoExport = () => {
     const schoolsState = useSelector((state) => state.schools);
     const studentsState = useSelector((state) => state.students);
     const { data: schoolsData, loading: schoolsLoading, error: schoolsError } = schoolsState;
-    const { currentPage, totalRows, rowsPerPage, data, filteredStudents: studentsData, loading: studentsLoading, error: studentsError, searchQuery } = studentsState;
+    const { currentPage, totalRows, rowsPerPage, data, filteredStudents, loading: studentsLoading, error: studentsError, searchQuery } = studentsState;
     const [filters, setFilters] = useState({
         ward: '',
         presentClass: '',
@@ -132,8 +132,8 @@ export const AdminViewAllStudentsDataNoExport = () => {
     const [singleSnackbarOpen, setSingleSnackbarOpen] = useState(false);
     const [bulkSnackbarOpen, setBulkSnackbarOpen] = useState(false);
     const [bulkDemotionSnackbarOpen, setBulkDemotionSnackbarOpen] = useState(false);
-
-
+    const [selectedStudents, setSelectedStudents] = useState([]);
+    const [studentsData, setStudentsData] = useState(filteredStudents);
     const API_URL = `${import.meta.env.VITE_API_URL}/api/v1`
     const token = localStorage.getItem('token') || '';
 
@@ -144,6 +144,8 @@ export const AdminViewAllStudentsDataNoExport = () => {
         if (bulkDemotionMessage) setBulkDemotionSnackbarOpen(true);
     }, [singlePromotionMessage, bulkPromotionMessage, bulkDemotionMessage]);
 
+
+   
 
     useEffect(() => {
         if (schools && schools.length > 0) {
@@ -167,6 +169,11 @@ export const AdminViewAllStudentsDataNoExport = () => {
 
         setLoadingSchools(false);
     };
+
+
+    useEffect(() => {
+        setStudentsData(filteredStudents);
+      }, [filteredStudents])
 
     const fetchMoreSchools = async (page) => {
         // Simulate network request to fetch schools for the current page
@@ -291,11 +298,11 @@ export const AdminViewAllStudentsDataNoExport = () => {
         setDemotionChecked((prev) => !prev);
     }
 
-    // const handleEdit = (student) => {
-    //     navigate(`/admin-dashboard/update-student/${student._id}`, { state: student })
-    // };
+    const handleEdit = (student) => {
+        console.log(student)
+        navigate(`/enumerator-dashboard/update-student/${student._id}`, { state: student })
+    };
 
-    // console.log(filters);
     function DowngradeIcon() {
         return (
             <Box sx={{ transform: 'rotate(180deg)' }}>
@@ -377,6 +384,27 @@ export const AdminViewAllStudentsDataNoExport = () => {
             name: 'S/N',
             selector: (row, index) => index + 1, // Calculate serial number (starting from 1)
             sortable: true,
+        },
+
+        (userPermissions.includes('handle_registrars')) && {
+            name: 'Edit',
+            cell: (row) => (
+                <button
+                    onClick={() => handleEdit(row)}
+                    style={{
+                        padding: '5px 10px',
+                        backgroundColor: 'transparent', // Optional: color for the delete button
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '5px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                    }}
+                >
+                    <EditIcon style={{ marginRight: '8px', color: "#196b57" }} />
+                </button>
+            ),
         },
 
         {
@@ -597,10 +625,6 @@ export const AdminViewAllStudentsDataNoExport = () => {
             setSinglePromotionMessage(err?.response?.data?.message)
         }
     };
-
-
-
-
     const handleBulkdemotion = async (presentClass) => {
 
 
@@ -662,15 +686,55 @@ export const AdminViewAllStudentsDataNoExport = () => {
     };
 
 
+    const handleSelectedStudentsChange = ({ selectedRows }) => {
+        setSelectedStudents(selectedRows);
+        console.log("Selected Rows:", selectedStudents);
+    };
 
 
+
+
+    const handleDeleteManyStudents = async () => {
+
+        try {
+            // const confirmDelete = window.confirm(`Are you sure you want to delete ${selectedStudents.length} students `)
+            // if (!confirmDelete) return;
+            // setDeleteLoading(true)
+
+            const ids = selectedStudents.map(selectedStudents => selectedStudents.randomId);
+            // const ids = selectedStudents.join(',');
+            const joinedIds = ids.join(',');
+
+            const response = await axios.delete(`${API_URL}/student/delete/delete-many/?ids=${joinedIds}`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                withCredentials: true,
+
+            });
+            setStudentsData((prevStudents) =>
+                prevStudents.filter((student) => !ids.includes(student.randomId))
+              );
+            
+            setSelectedStudents([]);
+            
+        } catch (err) {
+            console.log(err);
+            if (err.response.statusText === '"Unauthorized"' || err.status === 401) return navigate('/');
+            alert(err.response?.message || err.response?.data?.message || err?.message || 'an error occured, please try again')
+        }
+
+    };
 
 
 
     return (
         <>
             {userPermissions.includes('handle_registrars') || userPermissions.includes('handle_payments') ? (
-                <Container maxWidth="lg" sx={{ marginTop: 4, marginBottom: "50px" }}>
+                <Container maxWidth="lg" sx={{ marginTop: 4, marginBottom: "50px", position: "relative" }}>
+                    <DeleteButton onConfirm={handleDeleteManyStudents} itemName="Students Record" selectedRows={selectedStudents} />
+
                     <Typography
                         variant="h3"
                         component="h1"
@@ -680,7 +744,6 @@ export const AdminViewAllStudentsDataNoExport = () => {
                     >
                         Manage All Students
                     </Typography>
-
                     {/* Promotion section */}
 
 
@@ -1264,6 +1327,8 @@ export const AdminViewAllStudentsDataNoExport = () => {
                         title="View Registered Students Information"
                         columns={columns}
                         data={studentsData}
+                        selectableRows // Enable checkboxes
+                        onSelectedRowsChange={handleSelectedStudentsChange} // Handle selected rows
                         progressPending={studentsLoading} // Show loading spinner
                         pagination
                         paginationServer
@@ -1334,18 +1399,18 @@ export const AdminViewAllStudentsDataNoExport = () => {
 
                                 }}
                             >
-                                <Box sx = {{
+                                <Box sx={{
                                     display: "flex",
                                     justifyContent: "space-between",
                                     width: "100%",
                                 }}>
-                                    <Typography sx = {{fontWeight: 700, fontSize: "17px"}}>Student Details</Typography>
+                                    <Typography sx={{ fontWeight: 700, fontSize: "17px" }}>Student Details</Typography>
                                     <Box onClick={() => setIsModalOpen(false)}
-                                    sx = {{
-                                        cursor: "pointer"
-                                    }}
-                                    
-                                    ><CancelIcon sx = {{color: "red"}} /></Box>
+                                        sx={{
+                                            cursor: "pointer"
+                                        }}
+
+                                    ><CancelIcon sx={{ color: "red" }} /></Box>
                                 </Box>
 
                                 <div style={{ alignSelf: "center" }}><img src={`${selectedItem.passport}`} alt="" /></div>

@@ -4,7 +4,6 @@ import { QRCodeCanvas } from "qrcode.react";
 
 
 export const StudentIDFront = ({ student }) => {
-    console.log(student)
     return (
         <Card
             className="id-front"
@@ -38,7 +37,10 @@ export const StudentIDFront = ({ student }) => {
                 "@media Print": {
                     width: "420px",
                     height: "280px",
+                    breakInside: "avoid",
+                    pageBreakInside: "avoid",
                 }
+
             }}
         >
 
@@ -138,8 +140,10 @@ export const StudentIDFront = ({ student }) => {
                     "& > .MuiTypography-body1 ": {
                         fontSize: "12px",
                         fontWeight: 800,
+                        textAlign: "left",
                         "@media Print": {
                             fontSize: "14px",
+                            textAlign: "left"
 
                         }
                     },
@@ -153,20 +157,21 @@ export const StudentIDFront = ({ student }) => {
                         <Typography variant="body1"><strong>Date of Birth: {student.dob.split('T')[0]}</strong></Typography>
                         <Typography variant="body1"><strong>Cohort: First</strong></Typography>
                     </Box>
-                    <Typography variant="body1" sx = {{textAlign: "left"}}>School: {student.schoolId.schoolName}</Typography>
+                    <Typography variant="body1" sx={{ textAlign: "left" }}>School: {student.schoolId.schoolName}</Typography>
 
                     <Typography variant="body1">Caregiver's Name: {student.parentName}</Typography>
                     <Typography variant="body1">Caregiver's Phone: 0{student.parentPhone}</Typography>
                     <Typography variant="body1" sx={{
-                        color: "white", background: "red", width: "100%", fontSize: "11px", fontWeight: 800, position: "absolute", bottom: 0, left: 0,
+                        color: "white", background: "red", width: "100%", fontSize: "11px", fontWeight: 800, position: "absolute", bottom: 0, left: 0, textAlign: "center !important"
                     }}>Conditional Cash Transfer</Typography>
                 </Box>
                 <img
+                    className="passportOnId"
                     src={student.passport}
                     alt="Student"
                     style={{
                         flexBasis: "20%", width: "80px", height: "100px", margin: "0 auto", alignSelf: "center", position: "absolute", top: "50%",
-                        bottom: "33%", right: "15px"
+                        bottom: "33%", right: "5px", borderRadius: "5px",
 
                     }}
                 />
@@ -215,7 +220,7 @@ export const StudentIDBack = ({ student }) => {
                         width: "130px",
                     }} />
                     <Box sx={{ mt: 1 }}>
-                        <QRCodeCanvas value={`${student.name} - ${student.id}`} size={40} />
+                        <QRCodeCanvas value={`${student.surname} - ${student.firstname} - ${student.randomId}`} size={40} />
                     </Box>
                 </Box>
 
