@@ -395,7 +395,15 @@ const Sidebar = ({ isSidebar }) => {
                   setSelected={setSelected}
                 />
 
-<Item
+                <Item
+                  title="Manage Duplicate Students Record"
+                  to={userPermissions.includes('handle_registrars') ? '/admin-dashboard/manage-accounts/manage-duplicate-records' : 'enumerator-dashboard/view-all-students-data'}
+                  icon={<ContentCopyIcon />}
+                  selected={selected}
+                  setSelected={setSelected}
+                />
+
+                <Item
                   title="Exp. Attendance Sheet"
                   to={userPermissions.includes('handle_registrars') ? '/admin-dashboard/admin-export-attendance-sheet' : 'enumerator-dashboard/view-all-students-data'}
                   icon={<EventNoteIcon />}
@@ -410,7 +418,21 @@ const Sidebar = ({ isSidebar }) => {
                   selected={selected}
                   setSelected={setSelected}
                 />
+                <Item
+                  title="Manage Enumerators"
+                  to={userPermissions.includes('handle_registrars') ? 'admin-dashboard/manage-accounts/enumerators' : 'enumerator-dashboard/view-all-students-data'}
+                  icon={<FormatListNumberedIcon />}
+                  selected={selected}
+                  setSelected={setSelected}
+                />
 
+                <Item
+                  title="Print Id Cards"
+                  to={userPermissions.includes('handle_registrars') ? 'admin-dashboard/idcards/print' : 'enumerator-dashboard/view-all-students-data'}
+                  icon={<PrintIcon />}
+                  selected={selected}
+                  setSelected={setSelected}
+                />
 
                 <>
 

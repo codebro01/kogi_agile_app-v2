@@ -19,7 +19,7 @@ router.route('/:id').patch(authMiddleware, authorizePermission('handle_students'
     }
     next();
 }, updateStudent);
-router.delete('/delete/delete-many/', authMiddleware, authorizePermission('handle_admins'), deleteManyStudents)
+router.delete('/delete/delete-many/', authMiddleware, authorizePermission('handle_registrars'), deleteManyStudents)
 router.delete('/delete/delete-many-attendances/', authMiddleware, authorizePermission('handle_admins'), adminDeleteAttendances)
 router.get('/download', authMiddleware, authorizePermission('handle_registrars'), filterAndDownload)
 router.get('/get-students-stats', authMiddleware, authorizePermission(['handle_registrars', 'handle_payments']), getStudentsStats)
@@ -32,7 +32,7 @@ router.post('/upload-payment-sheet', uploadXLSX.single('file'), XLSXUploader, au
 router.get('/from-to', authorizePermission('handle_students'), filterEnumeratorsByStudents);
 router.get('/enumerators-student-count', authMiddleware, authorizePermission('handle_registrars'), enumeratorsByyHighestRegisteredStudents)
 router.get('/top-lga-count', authMiddleware, authorizePermission('handle_registrars'), lgasByHighestRegisteredStudents)
-router.get('/manage-duplicate-records', authMiddleware, authorizePermission('handle_admins'), getDuplicateRecord)
+router.get('/manage-duplicate-records', authMiddleware, authorizePermission('handle_registrars'), getDuplicateRecord)
 router.get('/total-students-by-enumerators', authMiddleware, authorizePermission('handle_registrars'), totalStudentsByEnumerators)
 router.patch('/promote/single/student', authMiddleware, authorizePermission('handle_admins'), promoteSingleStudent)
 router.patch('/demote/single/student', authMiddleware, authorizePermission('handle_admins'), demoteSingleStudent)
