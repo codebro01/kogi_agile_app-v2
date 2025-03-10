@@ -70,7 +70,7 @@ export const UpdateStudent = () => {
         yearAdmitted: student.yearAdmitted,
         classAtEnrollment: student.classAtEnrollment,
         yearOfEnrollment: student.yearOfEnrollment,
-        lgaOfEnrollment: student.lgaOfEnrollment,
+        lgaOfEnrollment: student.lgaOfEnrollment.toUpperCase(),
         parentName: student.parentName,
         parentPhone: student.parentPhone,
         parentNin: student.parentNin,

@@ -553,7 +553,10 @@ export const filterAndView = async (req, res, next) => {
         const total = await Student.countDocuments(basket);
 
 
-        const students = await Student.find(basket).populate('schoolId').populate('ward').populate('createdBy').sort(sort).collation({ locale: "en", strength: 2 }).skip(skip).limit(parseInt(limit)).lean();
+        const students = await Student.find(basket).populate('schoolId').populate('ward').populate({
+            path: 'createdBy',
+            select: '-password' // Exclude the password field
+          }).sort(sort).collation({ locale: "en", strength: 2 }).skip(skip).limit(parseInt(limit)).lean();
 
 
         res.status(200).json({ students, total });

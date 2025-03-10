@@ -727,7 +727,7 @@ export const AdminViewAllStudentsDataNoExport = () => {
 
     };
 
-
+    console.log(studentsData)
 
     return (
         <>
@@ -1423,6 +1423,9 @@ export const AdminViewAllStudentsDataNoExport = () => {
                                 <p><strong>Ward:</strong> {selectedItem.ward}</p>
                                 <p><strong>Present Class:</strong> {selectedItem.presentClass}</p>
                                 <p><strong>Year of Enrollment:</strong> {selectedItem.yearOfEnrollment}</p>
+                                <p><strong>Parent Name:</strong> {selectedItem?.parentName}</p>
+                                <p><strong>Parent Contact:</strong> 0{selectedItem?.parentPhone}</p>
+                                <p><strong>Registered By: </strong> {selectedItem?.createdBy?.fullName}</p>
                                 <button
                                     onClick={() => setIsModalOpen(false)}
                                     style={{

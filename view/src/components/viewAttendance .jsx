@@ -105,7 +105,7 @@ export const ViewAttendance = () => {
     const parsedUserData = JSON.parse(userData);
 
     useEffect(() => {
-        if (userPermissions.includes('handle_admins')) {
+        if (userPermissions.includes('handle_registrars')) {
             (async () => {
                 try {
                     const response = await axios.get(`${API_URL}/admin-enumerator`, {
@@ -296,7 +296,7 @@ export const ViewAttendance = () => {
         }
     };
 
-
+console.log(filteredData)
     return (
         <Container maxWidth="lg">
             <Box
