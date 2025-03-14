@@ -27,11 +27,13 @@ const RegistrationSelector = () => {
     const [hasMore, setHasMore] = useState(true); // To check if more data is available
     const [loadingSchools, setLoadingSchools] = useState(false); // Loading state for schools
     const [page, setPage] = useState(1); // Keep track of the current page
+    const preselectFilter = JSON.parse(localStorage.getItem("preselectFilter"));
+    const {schoolType, lgaOfEnrollment } = preselectFilter;
 
     // Fetch schools once the component mounts or the schools array changes
 
     useEffect(() => {
-        dispatch(fetchSchools());
+        dispatch(fetchSchools({schoolType, lgaOfEnrollment}));
     }, [dispatch])
 
     useEffect(() => {

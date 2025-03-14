@@ -68,7 +68,7 @@ export const AdminViewAllStudentsData = () => {
     const { data: schoolsData, loading: schoolsLoading, error: schoolsError } = schoolsState;
     useEffect(() => {
         dispatch(fetchStudents());
-        dispatch(fetchSchools());
+        dispatch(fetchSchools({schoolType: "", lgaOfEnrollment: ""}));
     }, [dispatch]);
 
     const schools = schoolsData;

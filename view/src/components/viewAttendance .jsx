@@ -296,7 +296,6 @@ export const ViewAttendance = () => {
         }
     };
 
-console.log(filteredData)
     return (
         <Container maxWidth="lg">
             <Box

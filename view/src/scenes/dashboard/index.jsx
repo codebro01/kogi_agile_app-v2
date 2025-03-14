@@ -494,7 +494,7 @@ const Dashboard = () => {
                 height: '100%'
               }}>
 
-                <ResponsiveBarChartForPayment />
+                {/* <ResponsiveBarChartForPayment /> */}
               </Box>
 
             </Box>

@@ -23,6 +23,7 @@ import sanitizeHtml from 'sanitize-html';
 import { wards } from './routes/index.js';
 const app = express();
 import { KogiLga } from './models/LgaSchema.js';
+import { Student } from './models/studentsSchema.js';
 
 // Rate Limiting
 const limiter = rateLimit({
@@ -123,6 +124,12 @@ app.use(session({
 //     res.json({ kogilgas })
 // })
 
+
+
+
+
+
+
 app.use('/api/v1/admin-admin', adminAuthRouter)
 app.use('/api/v1/admin-enumerator', registrarAuthRouter)
 app.use('/api/v1/payroll-specialists', payrollSpecialistRouter)
@@ -158,6 +165,23 @@ const startDB = async () => {
             console.log('app connected to port:' + PORT)
         })
 
+        // const updateLGAs = async () => {
+        //     try {
+        //      await Student.updateMany({lgaOfEnrollment: "YAGBAWEST"}, {
+        //          $set: {
+        //              lgaOfEnrollment: "YAGBA-WEST"
+        //          }
+        //      })
+
+        //      const check = await Student.find({lgaOfEnrollment: "YAGBAWEST"})
+         
+        //      console.log(check,'successful')
+        //     }
+        //     catch(error) {
+        //      console.error(error)
+        //     }
+        //  }
+         
     }
     catch (err) {
         console.error('An error occured connecting to the DB')

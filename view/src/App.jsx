@@ -39,7 +39,7 @@ import { ManageSchools } from "./scenes/manage-accounts/manageSchools.jsx";
 import { ViewPaymentsRecords } from "./components/viewPaymentsRecords.jsx";
 import { ManageDuplicateRecords } from "./scenes/manage-accounts/manageDuplicateRecords.jsx";
 import { PrintIdCard } from "./scenes/manage-accounts/printIDCards.jsx";
-
+import { PreselectForm } from "./components/preSelectform.jsx";
 
 
 
@@ -165,6 +165,7 @@ function App() {
                         <Route path="/enumerator-dashboard/view-all-students-data" element={<ViewAllStudentsData />} />
                         <Route path="/export-attendance-sheet" element={<ExportAttendanceSheet />} />
                         <Route path="/import-attendance-sheet" element={<ImportAttendanceSheet />} />
+                        <Route path="/enumerator-dashboard/create-student-preselect" element={<PreselectForm />} />
                         <Route path="/enumerator-dashboard/create-student-school-selector" element={<RegistrationSelector />} />
                         <Route path="/enumerator-dashboard/create-accounts/register-student" element={<CreateStudent />} />
                         <Route path="/enumerator-dashboard/update-student/:id" element={<UpdateStudent />} />

@@ -223,7 +223,7 @@ const Sidebar = ({ isSidebar }) => {
                   to={
                     userPermissions.includes('handle_registrars')
                       ? '/admin-dashboard/role-selector'
-                      : '/enumerator-dashboard/create-student-school-selector'
+                      : '/enumerator-dashboard/create-student-preselect'
                   }
                   icon={<PeopleOutlinedIcon />}
                   selected={selected}

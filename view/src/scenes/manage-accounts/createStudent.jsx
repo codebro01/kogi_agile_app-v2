@@ -13,6 +13,8 @@ axios.defaults.withCredentials = true;
 export const CreateStudent = () => {
   // const theme = useTheme();
 
+ 
+
   const [bankList, setBankList] = useState([
     'FCMB', 'Polaris Bank', 'Zenith Bank'
   ]);
@@ -28,6 +30,10 @@ export const CreateStudent = () => {
     { value: 'Nigeria', label: 'Nigeria' },
     { value: 'Others', label: 'Others' }
   ];
+
+  const preselectFilter = JSON.parse(localStorage.getItem('preselectFilter'));
+
+  const {selectType, lgaOfEnrollment}  = preselectFilter;
 
   const [formData, setFormData] = useState({
     ward: "",
@@ -685,6 +691,8 @@ export const CreateStudent = () => {
                     <MenuItem value="FCMB">FCMB</MenuItem>
                     <MenuItem value="Polaris Bank">Polaris Bank</MenuItem>
                     <MenuItem value="Zenith Bank">Zenith Bank</MenuItem>
+                    <MenuItem value="UBA Bank">UBA Bank</MenuItem>
+                    <MenuItem value="Union Bank">Union Bank</MenuItem>
                   </Select>
                 </FormControl>
               </Grid>

@@ -156,7 +156,7 @@ export const PrintIdCard = () => {
   } }}>
           {studentsData.map((student, index) => (
             <>
-+ 
+
               <Box key={index} sx={{
                 display: "flex", justifyContent: "center", mb: 3, alignItem: "center", flexDirection: {
                   lg: "row",

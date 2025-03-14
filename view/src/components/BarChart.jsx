@@ -38,7 +38,7 @@ export const ResponsiveBarChart = () => {
 
 
     const data = {
-        labels: apiData.map(oneApiData => oneApiData.enumeratorName.split(' ')[0]), // Label each slice by the enumerator's name
+        labels: apiData.map(oneApiData => oneApiData.enumeratorName?.split(' ')[0]) || "N/A", // Label each slice by the enumerator's name
         datasets: [
             {
                 label: 'Top 5 Enumerators', // Title for the dataset

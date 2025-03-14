@@ -97,7 +97,7 @@ export const AdminViewAllStudentsDataNoExport = () => {
 
     useEffect(() => {
 
-        dispatch(fetchSchools());
+        dispatch(fetchSchools({schoolType: "", lgaOfEnrollment: ""}));
     }, [dispatch]);
 
     useEffect(() => {
@@ -299,7 +299,6 @@ export const AdminViewAllStudentsDataNoExport = () => {
     }
 
     const handleEdit = (student) => {
-        console.log(student)
         navigate(`/enumerator-dashboard/update-student/${student._id}`, { state: student })
     };
 
@@ -430,7 +429,7 @@ export const AdminViewAllStudentsDataNoExport = () => {
             name: 'Image',
             cell: (row) => (
                 <img
-                    src={row.passport} // Placeholder for missing images
+                    src={row?.passport} // Placeholder for missing images
                     alt="Student"
                     style={{ width: '50px', height: '50px' }}
                 />
@@ -440,47 +439,47 @@ export const AdminViewAllStudentsDataNoExport = () => {
 
         {
             name: 'Surname',
-            selector: row => row.surname,
+            selector: row => row?.surname,
             sortable: true,
         },
         {
             name: 'Firstname',
-            selector: row => row.firstname,
+            selector: row => row?.firstname,
             sortable: true,
         },
         {
             name: 'Middlename',
-            selector: row => row.middlename,
+            selector: row => row?.middlename,
             sortable: true,
         },
         {
             name: 'School',
-            selector: row => row.schoolId.schoolName,
+            selector: row => row?.schoolId?.schoolName,
             sortable: true,
         },
         {
             name: 'dob',
-            selector: row => row.dob,
+            selector: row => row?.dob,
             sortable: true,
         },
         {
             name: 'LGA of Enrollment',
-            selector: row => row.lgaOfEnrollment,
+            selector: row => row?.lgaOfEnrollment,
             sortable: true,
         },
         {
             name: 'Present Class',
-            selector: row => row.presentClass,
+            selector: row => row?.presentClass,
             sortable: true,
         },
         {
             name: 'Year of Enrollment',
-            selector: row => row.yearOfEnrollment,
+            selector: row => row?.yearOfEnrollment,
             sortable: true,
         },
         {
             name: 'Src',
-            selector: row => row.src,
+            selector: row => row?.src,
             sortable: true,
         },
 
@@ -726,8 +725,6 @@ export const AdminViewAllStudentsDataNoExport = () => {
         }
 
     };
-
-    console.log(studentsData)
 
     return (
         <>

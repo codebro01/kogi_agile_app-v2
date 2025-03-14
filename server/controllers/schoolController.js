@@ -4,6 +4,8 @@ import { StatusCodes } from "http-status-codes";
 export const getAllSchools = async (req, res, next) => {
 
     try {
+        const {schoolType, lgaOfEnrollment}= req.query;
+
         const allSchools = await AllSchools.find({})
         res.status(200).json({ allSchools });
     }
@@ -83,3 +85,4 @@ export const deleteSchool = async (req, res, next) => {
         return next(err)
     }
 }
+

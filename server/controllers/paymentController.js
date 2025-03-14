@@ -155,7 +155,6 @@ export const viewPayments = async (req, res, next) => {
         if (schoolName) matchStage.schoolName = schoolName;  // Filter by school name
         if (presentClass) matchStage.class = presentClass;  // Filter by class
         if (amount) matchStage.amount = parseInt(amount);  // Filter by amount
-        console.log(matchStage)
         // Handle date range filters
         if (dateFrom || dateTo) {
             matchStage.createdAt = {};

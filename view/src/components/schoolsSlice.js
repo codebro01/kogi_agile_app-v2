@@ -1,11 +1,14 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
-export const fetchSchools = createAsyncThunk('schools/fetchSchools', async (_, thunkAPI) => {
+export const fetchSchools = createAsyncThunk('schools/fetchSchools', async ({schoolType, lgaOfEnrollment}, thunkAPI) => {
     const API_URL = `${import.meta.env.VITE_API_URL}/api/v1/all-schools`;
 
     try {
-        const response = await axios.get(API_URL);
+        const response = await axios.get(API_URL, {
+            params: {schoolType, lgaOfEnrollment}
+        });
+        // console.log(response);
         return response.data.allSchools;
     } catch (error) {
         console.log(error)

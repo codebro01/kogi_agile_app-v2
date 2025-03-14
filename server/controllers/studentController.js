@@ -230,7 +230,7 @@ export const getStudentsStats = async (req, res, next) => {
                     totalSecondarySchools: [
                         {
                             $match: {
-                                schoolCategory: { $in: ["Public JSS", "Public JSS/SSS"] },
+                                schoolCategory: { $in: ["Public JSS", "Public JSS/SSS", "UBE/JSS"] },
                             },
                         },
                         { $count: "total" }, // Count all secondary schools
@@ -238,7 +238,7 @@ export const getStudentsStats = async (req, res, next) => {
                     totalPrimarySchools: [
                         {
                             $match: {
-                                schoolCategory: { $in: ["ECCDE", "ECCDE AND PRIMARY", "PRIMARY"] },
+                                schoolCategory: { $in: ["ECCDE", "ECCDE AND PRIMARY", "PRIMARY", "Primary"] },
                             },
                         },
                         { $count: "total" }, // Count all primary schools
@@ -246,7 +246,7 @@ export const getStudentsStats = async (req, res, next) => {
                     totalScienceAndVocational: [
                         {
                             $match: {
-                                schoolCategory: { $eq: "Science & Vocational" },
+                                schoolCategory: { $in: ["Science & Vocational", "TECHNICAL", "Technical"] },
                             },
                         },
                         { $count: "total" }, // Count all science and vocational schools
@@ -507,25 +507,27 @@ export const filterAndView = async (req, res, next) => {
         if (enumerator) basket.createdBy = enumerator;
         if (dateFrom || dateTo) {
             basket.createdAt = {};
-
+console.log(req.query)
             // Handle dateFrom
             if (dateFrom) {
                 const fromDate = new Date(dateFrom);
                 if (isNaN(fromDate)) {
                     return next(new BadRequestError('Invalid dateFrom format'));
                 }
-                basket.createdAt.$gte = fromDate;
+                basket.createdAt.$gte = fromDate.toISOString();
             }
 
             // Handle dateTo
             if (dateTo) {
-                const toDate = new Date(new Date(dateTo).setHours(23, 59, 59, 999));
+                const toDate = new Date(dateTo); // Create a Date object from dateTo
                 if (isNaN(toDate)) {
                     return next(new BadRequestError('Invalid dateTo format'));
                 }
-                basket.createdAt.$lte = toDate;
+                toDate.setHours(23, 59, 59, 999);  // Set the time to the end of the day (23:59:59.999)
+                
+                basket.createdAt = basket.createdAt || {};  // Ensure createdAt exists on basket
+                basket.createdAt.$lte = toDate.toISOString();  // Use the Date object for $lte
             }
-
             // Clean up empty `createdAt` filter
             if (Object.keys(basket.createdAt).length === 0) {
                 delete basket.createdAt;
@@ -549,15 +551,12 @@ export const filterAndView = async (req, res, next) => {
 
 
 
-
         const total = await Student.countDocuments(basket);
-
 
         const students = await Student.find(basket).populate('schoolId').populate('ward').populate({
             path: 'createdBy',
             select: '-password' // Exclude the password field
           }).sort(sort).collation({ locale: "en", strength: 2 }).skip(skip).limit(parseInt(limit)).lean();
-
 
         res.status(200).json({ students, total });
 
