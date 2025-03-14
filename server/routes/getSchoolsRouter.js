@@ -47,7 +47,7 @@ router.get("/", async (req, res) => {
       basket = {};}
 
 
-    const allSchools = await AllSchools.find(basket)
+    const allSchools = await AllSchools.find(basket).collation({ locale: "en", strength: 2 })
     // const allSchools = await AllSchools.aggregate([
     //   {
     //     $group: {

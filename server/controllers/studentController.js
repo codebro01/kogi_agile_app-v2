@@ -507,7 +507,6 @@ export const filterAndView = async (req, res, next) => {
         if (enumerator) basket.createdBy = enumerator;
         if (dateFrom || dateTo) {
             basket.createdAt = {};
-console.log(req.query)
             // Handle dateFrom
             if (dateFrom) {
                 const fromDate = new Date(dateFrom);
@@ -516,7 +515,7 @@ console.log(req.query)
                 }
                 basket.createdAt.$gte = fromDate.toISOString();
             }
-
+            
             // Handle dateTo
             if (dateTo) {
                 const toDate = new Date(dateTo); // Create a Date object from dateTo
@@ -533,7 +532,8 @@ console.log(req.query)
                 delete basket.createdAt;
             }
         }
-
+        
+        console.log(req.query)
         // console.log(req.url)
         // console.log(basket)
 
