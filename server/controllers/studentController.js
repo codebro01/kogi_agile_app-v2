@@ -412,7 +412,7 @@ export const filterAndDownload = async (req, res, next) => {
                 } else if (header === 'createdBy' && student[header]) {
                     row[uppercaseHeader] = student[header].fullName?.toUpperCase() || '';
                 } else if (student[header] && header === 'schoolId') {
-                    row[uppercaseHeader] = student[header].schoolCode?.toUpperCase() || '';
+                    row[uppercaseHeader] = student[header]?.schoolCode || '';
                 } else if (student[header] && header === 'randomId') {
 
                     row[uppercaseHeader] = student.randomId || '';
