@@ -10,8 +10,8 @@ import TrafficIcon from "@mui/icons-material/Traffic";
 import Header from "../../components/Header";
 import StatBox from "../../components/StatBox";
 import ProgressCircle from "../../components/ProgressCircle";
-import { ResponsivePieChart } from '../../components/pieChart.jsx';
-import { ResponsiveBarChart } from '../../components/barChart.jsx';
+import {ResponsivePieChart} from "../../components/PieChart.jsx"
+import { ResponsiveBarChart } from "../../components/BarChart.jsx";
 import { useAuth } from '../auth/authContext.jsx';
 import { StudentsContext, SchoolsContext } from '../../components/dataContext.jsx';
 import { useSelector, useDispatch } from 'react-redux';
