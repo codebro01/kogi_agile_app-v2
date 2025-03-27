@@ -227,10 +227,18 @@ export const getStudentsStats = async (req, res, next) => {
             {
                 $facet: {
 
-                    totalSecondarySchools: [
+                    totalUbeJss: [
                         {
                             $match: {
-                                schoolCategory: { $in: ["Public JSS", "Public JSS/SSS", "UBE/JSS"] },
+                                schoolCategory: { $in: ["Public JSS", "UBE/JSS"] },
+                            },
+                        },
+                        { $count: "total" }, // Count all secondary schools
+                    ],
+                    totalJssSss: [
+                        {
+                            $match: {
+                                schoolCategory: { $in: ["JSS/SSS", "Public JSS/SSS"] },
                             },
                         },
                         { $count: "total" }, // Count all secondary schools
@@ -238,7 +246,7 @@ export const getStudentsStats = async (req, res, next) => {
                     totalPrimarySchools: [
                         {
                             $match: {
-                                schoolCategory: { $in: ["ECCDE", "ECCDE AND PRIMARY", "PRIMARY", "Primary"] },
+                                schoolCategory: { $in: ["ECCDE", "ECCDE AND PRIMARY", "PRIMARY", "PRIMARY  ", "Primary"] },
                             },
                         },
                         { $count: "total" }, // Count all primary schools
@@ -256,11 +264,14 @@ export const getStudentsStats = async (req, res, next) => {
             // Step 5: Reshape the results
             {
                 $project: {
+                    totalJssSss: {
+                        $arrayElemAt: ["$totalJssSss.total", 0],
+                    },
+                    totalUbeJss: {
+                        $arrayElemAt: ["$totalUbeJss.total", 0],
+                    },
                     totalPrimarySchools: {
                         $arrayElemAt: ["$totalPrimarySchools.total", 0],
-                    },
-                    totalSecondarySchools: {
-                        $arrayElemAt: ["$totalSecondarySchools.total", 0],
                     },
                     totalScienceAndVocational: {
                         $arrayElemAt: ["$totalScienceAndVocational.total", 0],
@@ -533,7 +544,6 @@ export const filterAndView = async (req, res, next) => {
             }
         }
         
-        console.log(req.query)
         // console.log(req.url)
         // console.log(basket)
 
@@ -1644,7 +1654,6 @@ export const importPaymentSheet = async (req, res, next) => {
         if (bulkOperations.length > 0) {
             // Perform bulk write
             const result = await Payment.bulkWrite(bulkOperations);
-            console.log(result.upsertedCount, result.modifiedCount)
             return res.status(200).json({
                 message: `Payment records processed: new records for  ${result.upsertedCount} and modified for ${result.modifiedCount}`,
                 insertedCount: result.upsertedCount,

@@ -236,7 +236,6 @@ export const ExportAttendanceSheetPayroll = () => {
                 responseType: "blob",
                 withCredentials: true,
             });
-            console.log('response', response)
             setIsSubmitting(false);
             setApiResp('File Download is Successful')
             setAttendanceData(response.data);

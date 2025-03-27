@@ -10,7 +10,7 @@ import TrafficIcon from "@mui/icons-material/Traffic";
 import Header from "../../components/Header";
 import StatBox from "../../components/StatBox";
 import ProgressCircle from "../../components/ProgressCircle";
-import {ResponsivePieChart} from "../../components/PieChart.jsx"
+import { ResponsivePieChart } from "../../components/PieChart.jsx"
 import { ResponsiveBarChart } from "../../components/BarChart.jsx";
 import { useAuth } from '../auth/authContext.jsx';
 import { StudentsContext, SchoolsContext } from '../../components/dataContext.jsx';
@@ -154,7 +154,7 @@ const Dashboard = () => {
   // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Dashboard Stat !!!!!!!!!!!!!!!!!!!!!!!!
 
 
-  let totalStudents, distinctSchools, total_primary_6, total_JSS_1, total_JSS_3, total_SSS_1, totalPrimarySchool, totalSecondarySchool, totalScienceAndVocational;
+  let totalStudents, distinctSchools, total_primary_6, total_JSS_1, total_JSS_3, total_SSS_1, totalPrimarySchool, totalUbeJss, totalJssSss, totalScienceAndVocational;
 
   if (dashboardData) {
 
@@ -172,10 +172,10 @@ const Dashboard = () => {
     total_SSS_1 = total_SSS_1?.totalStudentsInClass
 
     totalPrimarySchool = dashboardData?.schoolCategory?.[0].totalPrimarySchools
-    totalSecondarySchool = dashboardData?.schoolCategory?.[0].totalSecondarySchools
+    totalJssSss = dashboardData?.schoolCategory?.[0]?.totalJssSss
+    totalUbeJss = dashboardData?.schoolCategory?.[0]?.totalUbeJss
     totalScienceAndVocational = dashboardData?.schoolCategory?.[0]?.totalScienceAndVocational
   }
-
 
 
 
@@ -250,12 +250,12 @@ const Dashboard = () => {
     }
 
     else {
-       mergedResults = lgasAndWards.map((lga) => {
+      mergedResults = lgasAndWards.map((lga) => {
         return {
           LGA: lga.name.toUpperCase(),
           totalAmount: 0
         }
-       })
+      })
     }
 
     // Log or return the mergedResults
@@ -796,8 +796,31 @@ const Dashboard = () => {
               }}
             >
               <StatBox
-                title={totalSecondarySchool}
-                subtitle="Total Registered Public Secondary Schools"
+                title={totalUbeJss}
+                subtitle="Total Registered UBE/JSS"
+                progress="0.75"
+                borderRadius="5px"
+                icon={<EmailIcon sx={{ color: colors.greenAccent[600], fontSize: "26px" }} />}
+              />
+            </Box>
+            <Box
+              className="statBoxContainer"
+              sx={{
+                gridColumn: {
+                  xs: 'span 12', // Full width on xs screens
+                  sm: 'span 6',  // Half width on sm screens
+                  md: 'span 4',  // Quarter width on md screens
+                },
+                backgroundColor: colors.dashboardStatBox["darkGreen"],
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: '5px',
+              }}
+            >
+              <StatBox
+                title={totalJssSss}
+                subtitle="Total Registered JSS/SSS"
                 progress="0.75"
                 borderRadius="5px"
                 icon={<EmailIcon sx={{ color: colors.greenAccent[600], fontSize: "26px" }} />}
@@ -889,14 +912,14 @@ const Dashboard = () => {
                     md: "row"
                   },
                 }}>
-                
-                 <Box sx={{
+
+                  <Box sx={{
                     flexBasis: "50%"
                   }}>
                     <ResponsiveBarChart />
 
                   </Box>
-                 
+
 
                   <Box sx={{
                     flexBasis: "50%"

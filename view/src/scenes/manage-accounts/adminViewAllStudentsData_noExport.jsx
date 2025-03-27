@@ -458,6 +458,11 @@ export const AdminViewAllStudentsDataNoExport = () => {
             sortable: true,
         },
         {
+            name: 'School Type',
+            selector: row => row?.schoolId?.schoolCategory,
+            sortable: true,
+        },
+        {
             name: 'dob',
             selector: row => row?.dob,
             sortable: true,
@@ -725,6 +730,7 @@ export const AdminViewAllStudentsDataNoExport = () => {
         }
 
     };
+
 
     return (
         <>
