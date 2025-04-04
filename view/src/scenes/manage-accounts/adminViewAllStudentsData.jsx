@@ -58,6 +58,7 @@ export const AdminViewAllStudentsData = () => {
         dateTo: "",
         yearOfEnrollment: "",
         yearOfAdmission: "",
+        schoolType: "", 
         status: "active",
     });
 
@@ -131,6 +132,7 @@ export const AdminViewAllStudentsData = () => {
         yearOfAdmission: filters.yearOfAdmission,
         classAtEnrollment: filters.classAtEnrollment,
         disabilitystatus: filters.disabilitystatus,
+        schoolType: filters.schoolType,
         status: filters.status
     }
     const filteredParams = Object.entries(params)
@@ -232,6 +234,13 @@ export const AdminViewAllStudentsData = () => {
         { class: "SSS 1", id: 4 },
     ];
 
+    const schoolTypeOptions = [
+      { type: 'PRIMARY', id: 2 },
+      { type: 'UBE/JSS', id: 1 },
+      { type: 'JSS/SSS', id: 3 },
+      { type: 'TECHNICAL', id: 4 },
+    ]
+
 
     const fetchStudentsByFilter = async () => {
 
@@ -319,264 +328,305 @@ export const AdminViewAllStudentsData = () => {
     }
 
 
+
     return (
-        <>
-            {userPermissions.includes('handle_registrars') ? (
-                <Container maxWidth="lg" sx={{ marginTop: 4, marginBottom: "50px" }}>
+      <>
+        {userPermissions.includes('handle_registrars') ? (
+          <Container maxWidth="lg" sx={{ marginTop: 4, marginBottom: '50px' }}>
+            <Typography
+              variant="h3"
+              component="h1"
+              gutterBottom
+              textAlign="center"
+              sx={{ fontWeight: 'bold' }}
+            >
+              Manage All Students
+            </Typography>
+
+            {/* Filter Form */}
+            <Box
+              component="form"
+              onSubmit={handleSubmit}
+              display="flex"
+              flexDirection="column"
+              gap={2}
+              p={3}
+              sx={{
+                backgroundColor: '#f9f9f9',
+                borderRadius: 2,
+                boxShadow: 2,
+              }}
+            >
+              <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                Filter Students
+              </Typography>
+              <Grid container spacing={2} alignItems="center">
+                {/* Existing Fields */}
+
+                <Grid item xs={12} sm={6} md={4}>
+                  <InputLabel id="lga-label" sx={{ marginBottom: 1 }}>
+                    All Schools
+                  </InputLabel>
+                  {schoolOptions.length > 0 ? (
+                    <Autocomplete
+                      sx={{
+                        width: '100%',
+                        '& .MuiAutocomplete-input': {
+                          height: '5px', // Adjust input field height
+                          borderRadius: '4px',
+                          padding: '10px',
+                        },
+                      }}
+                      id="school-select"
+                      value={
+                        schoolOptions.find(
+                          (option) => option._id === filters.schoolId
+                        ) || null
+                      }
+                      onChange={(event, newValue) => {
+                        setFilters((prevFilters) => ({
+                          ...prevFilters,
+                          schoolId: newValue?._id || null,
+                        }))
+                      }}
+                      options={schoolOptions}
+                      getOptionLabel={(option) => option?.schoolName || ''}
+                      isOptionEqualToValue={(option, value) =>
+                        option?._id === value?._id
+                      }
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          label="School"
+                          sx={{
+                            '& .MuiOutlinedInput-root': {
+                              '& fieldset': {
+                                borderColor: 'green',
+                              },
+                              '&:hover fieldset': {
+                                borderColor: 'darkgreen',
+                              },
+                              '&.Mui-focused fieldset': {
+                                borderColor: 'green',
+                                borderWidth: 2,
+                              },
+                            },
+                          }}
+                        />
+                      )}
+                      loading={loadingSchools}
+                      noOptionsText="No schools found"
+                      getOptionKey={(option, index) =>
+                        option?._id || `${option.schoolName}-${index}`
+                      } // Unique key
+                    />
+                  ) : (
                     <Typography
-                        variant="h3"
-                        component="h1"
-                        gutterBottom
-                        textAlign="center"
-                        sx={{ fontWeight: 'bold' }}
+                      variant="body1"
+                      color="textSecondary"
+                      sx={{ textAlign: 'center', marginTop: 2 }}
                     >
-                        Manage All Students
+                      No schools available
                     </Typography>
+                  )}
+                </Grid>
 
-                    {/* Filter Form */}
-                    <Box
-                        component="form"
-                        onSubmit={handleSubmit}
-                        display="flex"
-                        flexDirection="column"
-                        gap={2}
-                        p={3}
-                        sx={{
-                            backgroundColor: "#f9f9f9",
-                            borderRadius: 2,
-                            boxShadow: 2,
-                        }}
-                    >
-                        <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                            Filter Students
-                        </Typography>
-                        <Grid container spacing={2} alignItems="center">
-                            {/* Existing Fields */}
+                <Grid item xs={12} sm={6} md={4}>
+                  <InputLabel id="class-label" sx={{ marginBottom: 1 }}>
+                    School Type
+                  </InputLabel>
+                  <Select
+                    name="schoolType"
+                    value={filters.schoolType}
+                    onChange={handleInputChange}
+                    displayEmpty
+                    fullWidth
+                    size="small"
+                    labelId="class-label"
+                  >
+                    <MenuItem value="">
+                      <em>All School Type</em>
+                    </MenuItem>
+                    {schoolTypeOptions?.map((option) => (
+                      <MenuItem key={option.id} value={option.type}>
+                        {option.type}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </Grid>
 
-                            <Grid item xs={12} sm={6} md={4}>
-                                <InputLabel id="lga-label" sx={{ marginBottom: 1 }}>All Schools</InputLabel>
-                                {schoolOptions.length > 0 ? (
-                                    <Autocomplete
-                                        sx={{
-                                            width: '100%',
-                                            '& .MuiAutocomplete-input': {
-                                                height: '5px', // Adjust input field height
-                                                borderRadius: '4px',
-                                                padding: '10px',
+                <Grid item xs={12} sm={6} md={4}>
+                  <InputLabel id="lga-label" sx={{ marginBottom: 1 }}>
+                    All LGA
+                  </InputLabel>
+                  <Select
+                    name="lga"
+                    value={filters.lga}
+                    onChange={handleInputChange}
+                    displayEmpty
+                    fullWidth
+                    size="small"
+                    labelId="lga-label"
+                  >
+                    <MenuItem value="">
+                      <em>All LGA</em>
+                    </MenuItem>
+                    {lgasAndWards.map((lga) => (
+                      <MenuItem key={lga.name} value={lga.name}>
+                        {lga.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </Grid>
 
+                <Grid item xs={12} sm={6} md={4}>
+                  <InputLabel id="ward-label" sx={{ marginBottom: 1 }}>
+                    Select Ward
+                  </InputLabel>
+                  <Select
+                    name="ward"
+                    value={filters.ward}
+                    onChange={handleInputChange}
+                    displayEmpty
+                    fullWidth
+                    size="small"
+                    labelId="ward-label"
+                  >
+                    <MenuItem value="">
+                      <em>All Wards</em>
+                    </MenuItem>
+                    {lgasAndWards
+                      ?.flatMap((lga) => lga.wards) // Flatten all wards into a single array
+                      .sort((a, b) => a.localeCompare(b)) // Sort the array alphabetically
+                      .map((ward, index) => (
+                        <MenuItem key={index} value={ward}>
+                          {ward}
+                        </MenuItem>
+                      ))}
+                  </Select>
+                </Grid>
 
-                                            },
-                                        }}
-                                        id="school-select"
-                                        value={schoolOptions.find((option) => option._id === filters.schoolId) || null
-                                        }
-                                        onChange={(event, newValue) => {
-                                            setFilters((prevFilters) => ({
-                                                ...prevFilters,
-                                                schoolId: newValue?._id || null,
-                                            }));
-                                        }}
-                                        options={schoolOptions}
-                                        getOptionLabel={(option) => option?.schoolName || ''}
-                                        isOptionEqualToValue={(option, value) => option?._id === value?._id}
-                                        renderInput={(params) => (
-                                            <TextField
-                                                {...params}
-                                                label="School"
-                                                sx={{
-                                                    '& .MuiOutlinedInput-root': {
-                                                        '& fieldset': {
-                                                            borderColor: 'green',
-                                                        },
-                                                        '&:hover fieldset': {
-                                                            borderColor: 'darkgreen',
-                                                        },
-                                                        '&.Mui-focused fieldset': {
-                                                            borderColor: 'green',
-                                                            borderWidth: 2,
-                                                        },
-                                                    },
-                                                }}
-                                            />
-                                        )}
-                                        loading={loadingSchools}
-                                        noOptionsText="No schools found"
-                                        getOptionKey={(option, index) => option?._id || `${option.schoolName}-${index}`} // Unique key
-                                    />
+                <Grid item xs={12} sm={6} md={4}>
+                  <InputLabel id="class-label" sx={{ marginBottom: 1 }}>
+                    Present Class
+                  </InputLabel>
+                  <Select
+                    name="presentClass"
+                    value={filters.presentClass}
+                    onChange={handleInputChange}
+                    displayEmpty
+                    fullWidth
+                    size="small"
+                    labelId="class-label"
+                  >
+                    <MenuItem value="">
+                      <em>All Class</em>
+                    </MenuItem>
+                    {classOptions?.map((option) => (
+                      <MenuItem key={option.id} value={option.class}>
+                        {option.class}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </Grid>
 
+                {/* New Fields */}
+                <Grid item xs={12} sm={6} md={4}>
+                  <InputLabel id="nationality-label" sx={{ marginBottom: 1 }}>
+                    Nationality
+                  </InputLabel>
+                  <Select
+                    name="nationality"
+                    value={filters.nationality}
+                    onChange={handleInputChange}
+                    displayEmpty
+                    fullWidth
+                    size="small"
+                    labelId="nationality-label"
+                  >
+                    <MenuItem value="">
+                      <em>Nationality</em>
+                    </MenuItem>
+                    {nationalityOptions?.map((nationality, index) => (
+                      <MenuItem key={index} value={nationality.value}>
+                        {nationality.value}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </Grid>
 
-                                ) : (
-                                    <Typography
-                                        variant="body1"
-                                        color="textSecondary"
-                                        sx={{ textAlign: 'center', marginTop: 2 }}
-                                    >
-                                        No schools available
-                                    </Typography>
-                                )
+                <Grid item xs={12} sm={6} md={4}>
+                  <InputLabel id="lga-label" sx={{ marginBottom: 1 }}>
+                    All states
+                  </InputLabel>
+                  <Select
+                    name="stateOfOrigin"
+                    value={filters.stateOfOrigin || ''}
+                    onChange={handleInputChange}
+                    fullWidth
+                    size="small"
+                    labelId="state-label"
+                  >
+                    <MenuItem value="">
+                      <em>All States</em>
+                    </MenuItem>
+                    {statesData.map((state) => (
+                      <MenuItem key={state} value={state}>
+                        {state}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </Grid>
 
-                                }
-                            </Grid>
-                            <Grid item xs={12} sm={6} md={4}>
-                                <InputLabel id="lga-label" sx={{ marginBottom: 1 }}>All LGA</InputLabel>
-                                <Select
-                                    name="lga"
-                                    value={filters.lga}
-                                    onChange={handleInputChange}
-                                    displayEmpty
-                                    fullWidth
-                                    size="small"
-                                    labelId="lga-label"
-                                >
-                                    <MenuItem value="">
-                                        <em>All LGA</em>
-                                    </MenuItem>
-                                    {lgasAndWards.map((lga) => (
-                                        <MenuItem key={lga.name} value={lga.name}>
-                                            {lga.name}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                            </Grid>
+                <Grid item xs={12} sm={6} md={4}>
+                  <InputLabel id="enumerator-label" sx={{ marginBottom: 1 }}>
+                    All Enumerator
+                  </InputLabel>
+                  <Select
+                    name="enumerator"
+                    value={filters.enumerator}
+                    onChange={handleInputChange}
+                    displayEmpty
+                    fullWidth
+                    size="small"
+                    labelId="enumerator-label"
+                  >
+                    <MenuItem value="">
+                      <em>All Enumerators</em>
+                    </MenuItem>
+                    {enumeratorsData?.map((enumerator) => (
+                      <MenuItem key={enumerator._id} value={enumerator._id}>
+                        {enumerator.fullName}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </Grid>
 
-                            <Grid item xs={12} sm={6} md={4}>
-                                <InputLabel id="ward-label" sx={{ marginBottom: 1 }}>Select Ward</InputLabel>
-                                <Select
-                                    name="ward"
-                                    value={filters.ward}
-                                    onChange={handleInputChange}
-                                    displayEmpty
-                                    fullWidth
-                                    size="small"
-                                    labelId="ward-label"
-                                >
-                                    <MenuItem value="">
-                                        <em>All Wards</em>
-                                    </MenuItem>
-                                    {lgasAndWards
-                                        ?.flatMap((lga) => lga.wards) // Flatten all wards into a single array
-                                        .sort((a, b) => a.localeCompare(b)) // Sort the array alphabetically
-                                        .map((ward, index) => (
-                                            <MenuItem key={index} value={ward}>
-                                                {ward}
-                                            </MenuItem>
-                                        ))}
-                                </Select>
-                            </Grid>
+                <Grid item xs={12} sm={6} md={4}>
+                  <InputLabel id="year-label" sx={{ marginBottom: 1 }}>
+                    Year of Enrollment
+                  </InputLabel>
+                  <Select
+                    name="yearOfEnrollment"
+                    value={filters.yearOfEnrollment}
+                    onChange={handleInputChange}
+                    displayEmpty
+                    fullWidth
+                    size="small"
+                    labelId="yearOfEnrollment-label"
+                  >
+                    <MenuItem value="">
+                      <em>All Year</em>
+                    </MenuItem>
+                    {registrationYearOptions?.map((yearOfEnrollment, index) => (
+                      <MenuItem key={index} value={yearOfEnrollment.year}>
+                        {yearOfEnrollment.year}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </Grid>
 
-
-                            <Grid item xs={12} sm={6} md={4}>
-                                <InputLabel id="class-label" sx={{ marginBottom: 1 }}>Present Class</InputLabel>
-                                <Select
-                                    name="presentClass"
-                                    value={filters.presentClass}
-                                    onChange={handleInputChange}
-                                    displayEmpty
-                                    fullWidth
-                                    size="small"
-                                    labelId="class-label"
-                                >
-                                    <MenuItem value="">
-                                        <em>All Class</em>
-                                    </MenuItem>
-                                    {classOptions?.map((option) => (
-                                        <MenuItem key={option.id} value={option.class}>
-                                            {option.class}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                            </Grid>
-
-
-                            {/* New Fields */}
-                            <Grid item xs={12} sm={6} md={4}>
-                                <InputLabel id="nationality-label" sx={{ marginBottom: 1 }}>Nationality</InputLabel>
-                                <Select
-                                    name="nationality"
-                                    value={filters.nationality}
-                                    onChange={handleInputChange}
-                                    displayEmpty
-                                    fullWidth
-                                    size="small"
-                                    labelId="nationality-label"
-                                >
-                                    <MenuItem value="">
-                                        <em>Nationality</em>
-                                    </MenuItem>
-                                    {nationalityOptions?.map((nationality, index) => (
-                                        <MenuItem key={index} value={nationality.value}>
-                                            {nationality.value}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                            </Grid>
-
-                            <Grid item xs={12} sm={6} md={4}>
-                                <InputLabel id="lga-label" sx={{ marginBottom: 1 }}>All states</InputLabel>
-                                <Select
-                                    name="stateOfOrigin"
-                                    value={filters.stateOfOrigin || ''}
-                                    onChange={handleInputChange}
-                                    fullWidth
-                                    size="small"
-                                    labelId="state-label"
-                                >
-                                    <MenuItem value="">
-                                        <em>All States</em>
-                                    </MenuItem>
-                                    {statesData.map((state) => (
-                                        <MenuItem key={state} value={state}>
-                                            {state}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                            </Grid>
-
-                            <Grid item xs={12} sm={6} md={4}>
-                                <InputLabel id="enumerator-label" sx={{ marginBottom: 1 }}>All Enumerator</InputLabel>
-                                <Select
-                                    name="enumerator"
-                                    value={filters.enumerator}
-                                    onChange={handleInputChange}
-                                    displayEmpty
-                                    fullWidth
-                                    size="small"
-                                    labelId="enumerator-label"
-                                >
-                                    <MenuItem value="">
-                                        <em>All Enumerators</em>
-                                    </MenuItem>
-                                    {enumeratorsData?.map((enumerator) => (
-                                        <MenuItem key={enumerator._id} value={enumerator._id}>
-                                            {enumerator.fullName}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                            </Grid>
-
-                            <Grid item xs={12} sm={6} md={4}>
-                                <InputLabel id="year-label" sx={{ marginBottom: 1 }}>Year of Enrollment</InputLabel>
-                                <Select
-                                    name="yearOfEnrollment"
-                                    value={filters.yearOfEnrollment}
-                                    onChange={handleInputChange}
-                                    displayEmpty
-                                    fullWidth
-                                    size="small"
-                                    labelId="yearOfEnrollment-label"
-                                >
-                                    <MenuItem value="">
-                                        <em>All Year</em>
-                                    </MenuItem>
-                                    {registrationYearOptions?.map((yearOfEnrollment, index) => (
-                                        <MenuItem key={index} value={yearOfEnrollment.year}>
-                                            {yearOfEnrollment.year}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                            </Grid>
-
-                            {/* <Grid item xs={12} sm={6} md={4}>
+                {/* <Grid item xs={12} sm={6} md={4}>
                                 <InputLabel id="yearOfAdmission-label" sx={{ marginBottom: 1 }}>Year of Admission</InputLabel>
                                 <Select
                                     name="yearOfAdmission"
@@ -598,189 +648,184 @@ export const AdminViewAllStudentsData = () => {
                                 </Select>
                             </Grid> */}
 
-                            {/* Existing Fields */}
-                            <Grid item xs={12} sm={6} md={4}>
-                                <InputLabel id="sortBy-label" sx={{ marginBottom: 1 }}>Sort By</InputLabel>
-                                <Select
-                                    name="sortBy"
-                                    value={filters.sortBy}
-                                    onChange={handleInputChange}
-                                    displayEmpty
-                                    fullWidth
-                                    size="small"
-                                    labelId="sortBy-label"
-                                >
-                                    <MenuItem value="">
-                                        <em>Sort Criteria</em>
-                                    </MenuItem>
-                                    {['ward', 'lga', 'createdAt', 'presentClass'].map((option) => (
-                                        <MenuItem key={option} value={option}>
-                                            {option}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                            </Grid>
+                {/* Existing Fields */}
+                <Grid item xs={12} sm={6} md={4}>
+                  <InputLabel id="sortBy-label" sx={{ marginBottom: 1 }}>
+                    Sort By
+                  </InputLabel>
+                  <Select
+                    name="sortBy"
+                    value={filters.sortBy}
+                    onChange={handleInputChange}
+                    displayEmpty
+                    fullWidth
+                    size="small"
+                    labelId="sortBy-label"
+                  >
+                    <MenuItem value="">
+                      <em>Sort Criteria</em>
+                    </MenuItem>
+                    {['ward', 'lga', 'createdAt', 'presentClass'].map(
+                      (option) => (
+                        <MenuItem key={option} value={option}>
+                          {option}
+                        </MenuItem>
+                      )
+                    )}
+                  </Select>
+                </Grid>
 
+                {filters.sortBy && (
+                  <Grid item xs={12} sm={6} md={4}>
+                    <InputLabel id="sortOrder-label" sx={{ marginBottom: 1 }}>
+                      Sort Order
+                    </InputLabel>
+                    <Select
+                      name="sortOrder"
+                      value={filters.sortOrder}
+                      onChange={handleInputChange}
+                      displayEmpty
+                      fullWidth
+                      size="small"
+                      labelId="sortOrder-label"
+                    >
+                      <MenuItem value="">
+                        <em>Sort Order</em>
+                      </MenuItem>
+                      <MenuItem value="asc">asc</MenuItem>
+                    </Select>
+                  </Grid>
+                )}
 
-                            {filters.sortBy && (
-                                <Grid item xs={12} sm={6} md={4}>
-                                    <InputLabel id="sortOrder-label" sx={{ marginBottom: 1 }}>Sort Order</InputLabel>
-                                    <Select
-                                        name="sortOrder"
-                                        value={filters.sortOrder}
-                                        onChange={handleInputChange}
-                                        displayEmpty
-                                        fullWidth
-                                        size="small"
-                                        labelId="sortOrder-label"
-                                    >
-                                        <MenuItem value="">
-                                            <em>Sort Order</em>
-                                        </MenuItem>
-                                        <MenuItem value="asc">asc</MenuItem>
+                <Grid item xs={12} sm={6} md={4}>
+                  <InputLabel id="disabilitystatus" sx={{ marginBottom: 1 }}>
+                    Disability Status
+                  </InputLabel>
+                  <Select
+                    name="disabilitystatus"
+                    value={FormData.disabilitystatus}
+                    onChange={handleInputChange}
+                    displayEmpty
+                    fullWidth
+                    size="small"
+                    labelId="disabilitystatus"
+                  >
+                    <MenuItem value="">
+                      <em>All</em>
+                    </MenuItem>
+                    <MenuItem value={'Yes'}>Yes</MenuItem>
+                    <MenuItem value={'No'}>No</MenuItem>
+                  </Select>
+                </Grid>
 
-                                    </Select>
-                                </Grid>
-                            )}
+                <Grid item xs={12} sm={6} md={4}>
+                  <InputLabel id="status" sx={{ marginBottom: 1 }}>
+                    Active Status
+                  </InputLabel>
+                  <Select
+                    name="status"
+                    value={filters.status}
+                    onChange={handleInputChange}
+                    displayEmpty
+                    fullWidth
+                    size="small"
+                    labelId="active - status"
+                  >
+                    <MenuItem value="active">
+                      <em>Active</em>
+                    </MenuItem>
+                    <MenuItem value={'all'}>All</MenuItem>
+                    <MenuItem value={'inactive'}>Inactive</MenuItem>
+                  </Select>
+                </Grid>
 
-                            <Grid item xs={12} sm={6} md={4}>
-                                <InputLabel id="disabilitystatus" sx={{ marginBottom: 1 }}>Disability Status</InputLabel>
-                                <Select
-                                    name="disabilitystatus"
-                                    value={FormData.disabilitystatus}
-                                    onChange={handleInputChange}
-                                    displayEmpty
-                                    fullWidth
-                                    size="small"
-                                    labelId="disabilitystatus"
-                                >
-                                    <MenuItem value="">
-                                        <em>All</em>
-                                    </MenuItem>
-                                    <MenuItem value={'Yes'}>
-                                            Yes
-                                        </MenuItem>
-                                    <MenuItem value={'No'}>
-                                            No
-                                        </MenuItem>
-                                </Select>
-                            </Grid>
+                {/* Date Filter */}
+                <Grid item xs={12} sm={6} md={4}>
+                  <InputLabel sx={{ marginBottom: 1 }}>From</InputLabel>
+                  <TextField
+                    type="date"
+                    name="dateFrom"
+                    value={filters.dateFrom}
+                    onChange={handleInputChange}
+                    InputLabelProps={{ shrink: true }}
+                    variant="outlined"
+                    size="small"
+                    fullWidth
+                  />
+                </Grid>
 
-                            <Grid item xs={12} sm={6} md={4}>
-                                <InputLabel id="status" sx={{ marginBottom: 1 }}>Active Status</InputLabel>
-                                <Select
-                                    name="status"
-                                    value={filters.status}
-                                    onChange={handleInputChange}
-                                    displayEmpty
-                                    fullWidth
-                                    size="small"
-                                    labelId="active - status"
-                                >
-                                    <MenuItem value="active">
-                                        <em>Active</em>
-                                    </MenuItem>
-                                    <MenuItem value={'all'}>
-                                            All
-                                        </MenuItem>
-                                    <MenuItem value={'inactive'}>
-                                            Inactive
-                                        </MenuItem>
-                                </Select>
-                            </Grid>
+                <Grid item xs={12} sm={6} md={4}>
+                  <InputLabel sx={{ marginBottom: 1 }}>To</InputLabel>
+                  <TextField
+                    type="date"
+                    name="dateTo"
+                    value={filters.dateTo}
+                    onChange={handleInputChange}
+                    InputLabelProps={{ shrink: true }}
+                    variant="outlined"
+                    size="small"
+                    fullWidth
+                  />
+                </Grid>
+              </Grid>
 
-                            {/* Date Filter */}
-                            <Grid item xs={12} sm={6} md={4}>
-                                <InputLabel sx={{ marginBottom: 1 }}>From</InputLabel>
-                                <TextField
-                                    type="date"
-                                    name="dateFrom"
-                                    value={filters.dateFrom}
-                                    onChange={handleInputChange}
-                                    InputLabelProps={{ shrink: true }}
-                                    variant="outlined"
-                                    size="small"
-                                    fullWidth
-                                />
-                            </Grid>
+              <Box display="flex" justifyContent="space-between" gap={2} mt={2}>
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  size="large"
+                  sx={{ textTransform: 'none', width: '100%' }}
+                  onClick={clearFilters}
+                >
+                  Reset Filters
+                </Button>
 
-                            <Grid item xs={12} sm={6} md={4}>
-                                <InputLabel sx={{ marginBottom: 1 }}>To</InputLabel>
-                                <TextField
-                                    type="date"
-                                    name="dateTo"
-                                    value={filters.dateTo}
-                                    onChange={handleInputChange}
-                                    InputLabelProps={{ shrink: true }}
-                                    variant="outlined"
-                                    size="small"
-                                    fullWidth
-                                />
-                            </Grid>
-                        </Grid>
+                {fetchLoading ? (
+                  <Box
+                    sx={{
+                      width: '100%',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <SpinnerLoader />
+                  </Box>
+                ) : (
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    size="large"
+                    sx={{
+                      textTransform: 'none',
+                      width: '48%',
+                      color: '#fff',
+                      background: colors.main['darkGreen'],
+                      '&:hover': {
+                        backgroundColor: '#145943', // Slightly darker shade on hover
+                      },
+                    }}
+                  >
+                    Export Data
+                  </Button>
+                )}
+              </Box>
 
+              {filterError && <Typography>{filterError}</Typography>}
+            </Box>
 
-                        <Box display="flex" justifyContent="space-between" gap={2} mt={2}>
-                            <Button
-                                variant="outlined"
-                                color="secondary"
-                                size="large"
-                                sx={{ textTransform: "none", width: '100%' }}
-                                onClick={clearFilters}
-                            >
-                                Reset Filters
-                            </Button>
-
-                            {fetchLoading ? (<Box
-                                sx={{
-                                    width: "100%",
-                                    justifyContent: "center",
-                                    alignItems: "center"
-                                }}
-                            ><SpinnerLoader /></Box>) : <Button
-                                type="submit"
-                                variant="contained"
-                                size="large"
-                                sx={{
-                                    textTransform: "none",
-                                    width: '48%',
-                                    color: "#fff",
-                                    background: colors.main['darkGreen'],
-                                    '&:hover': {
-                                        backgroundColor: '#145943', // Slightly darker shade on hover
-                                    },
-                                }}
-                            >
-                                Export Data
-                            </Button>}
-
-
-                        </Box>
-
-                        {filterError && (
-                            <Typography>
-                                {filterError}
-                            </Typography>
-                        )}
-                    </Box>
-
-
-
-                    {/* <DataTable
+            {/* <DataTable
                         title="Employee List"
                         columns={columns}
                         data={data}
                         pagination
                         highlightOnHover
                     /> */}
-
-
-                </Container>
-            ) : (
-                <h1>Not authorized to access this route</h1>
-            )}
-        </>
-    );
+          </Container>
+        ) : (
+          <h1>Not authorized to access this route</h1>
+        )}
+      </>
+    )
 
 
 
