@@ -396,9 +396,6 @@ export const filterAndDownload = async (req, res, next) => {
       }
     }
 
-
-
-
     // console.log(req.url)
     // console.log(req.query)
     // console.log(basket)
@@ -412,9 +409,9 @@ export const filterAndDownload = async (req, res, next) => {
 
     console.log(basket)
 
-    let students;
+    let students
 
-     students = await Student.find(basket)
+    students = await Student.find(basket)
       .populate('schoolId')
       .populate('ward')
       .populate('createdBy')
@@ -428,7 +425,7 @@ export const filterAndDownload = async (req, res, next) => {
       )
     }
 
-      if (students.length < 1) {
+    if (students.length < 1) {
       return next(
         new NotFoundError('No students with the filtered data provided')
       )
@@ -944,12 +941,10 @@ export const uploadAttendanceSheet = async (req, res, next) => {
         { ...attendanceRecords },
         { new: true, runValidators: true }
       )
-      return res
-        .status(200)
-        .json({
-          message: `Attendance sheet updated  for ${updateCount} persons`,
-          totalInserted: attendanceRecords.length,
-        })
+      return res.status(200).json({
+        message: `Attendance sheet updated  for ${updateCount} persons`,
+        totalInserted: attendanceRecords.length,
+      })
     } else {
       return res
         .status(400)
@@ -957,12 +952,10 @@ export const uploadAttendanceSheet = async (req, res, next) => {
     }
     const count = attendanceRecords.length
 
-    res
-      .status(200)
-      .json({
-        message: `Attendance sheet uploaded  for ${count} persons`,
-        totalInserted: attendanceRecords.length,
-      })
+    res.status(200).json({
+      message: `Attendance sheet uploaded  for ${count} persons`,
+      totalInserted: attendanceRecords.length,
+    })
   } catch (error) {
     return next(error)
   }
@@ -2218,11 +2211,9 @@ export const promotePlentyStudents = async (req, res, next) => {
           { presentClass: 'JSS 1', isActive: true },
           { runValidators: true }
         )
-        res
-          .status(200)
-          .json({
-            message: `All Primary 6 students have been promoted to JSS 1`,
-          })
+        res.status(200).json({
+          message: `All Primary 6 students have been promoted to JSS 1`,
+        })
         break
 
       case 'JSS 1':
@@ -2311,11 +2302,9 @@ export const demotePlentyStudents = async (req, res, next) => {
           { presentClass: 'Primary 6', isActive: true },
           { runValidators: true }
         )
-        res
-          .status(200)
-          .json({
-            message: `All JSS 1 students have been demoted to Primary 6`,
-          })
+        res.status(200).json({
+          message: `All JSS 1 students have been demoted to Primary 6`,
+        })
         break
 
       case 'JSS 2':
@@ -2384,6 +2373,71 @@ export const demotePlentyStudents = async (req, res, next) => {
   } catch (error) {
     console.error(error)
     return next(error)
+  }
+}
+
+export const updateStudentsBankAccountDetails = async (req, res, next) => {
+  try {
+    // ! These stuff commented is to check duplicate students on the uploaded excel sheet!
+    // console.log(res.body)
+    // const dataToLog = req.parsedData.slice(0, 10)
+    // console.log(dataToLog, req.parsedData.length)
+
+    // const studentIds = req.parsedData.map((s) => s.STUDENTID)
+    // const seen = new Set()
+    // const duplicates = new Set()
+
+    // for (const id of studentIds) {
+    //   if (seen.has(id)) {
+    //     duplicates.add(id)
+    //   } else {
+    //     seen.add(id)
+    //   }
+    // }
+
+    // console.log('🚨 Duplicate IDs (after uppercasing):', [...duplicates])
+
+    const escapeRegex = (string) => {
+      return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') // escape regex special chars
+    }
+
+    const updateStudentsAccount = async () => {
+      try {
+        const updatePromises = req.parsedData.map((student) => {
+          const escapedId = escapeRegex(student.STUDENTID)
+          // console.log(
+          //   student['ACTUAL ACCOUNT OPENNED'],
+          //   student['BANKNAME'],
+          //   student['NUBAN'],
+          //   student['PARENTPHONE']
+          // )
+          return Student.updateMany(
+            { randomId: { $regex: new RegExp(`^${escapedId}$`, 'i') } },
+            {
+              $set: {
+                accountNumber:
+                  student['ACTUAL ACCOUNT OPENNED'] ||
+                  student['ACTUALACCOUNTOPENNED'],
+                bankName: student['BANK NAME'] || student['BANKNAME'],
+                NUBAN: student['NUBAN'],
+                parentPhone: student['PARENTPHONE'] || student['PARENT PHONE'],
+              },
+            }
+          )
+        })
+
+        await Promise.all(updatePromises)
+
+        res.status(200).json({ message: 'Students updated successfully' })
+      } catch (error) {
+        console.error('Error updating students:', error)
+        res.status(500).json({ message: 'Failed to update students' })
+      }
+    }
+
+    updateStudentsAccount()
+  } catch (err) {
+    return next(err)
   }
 }
 

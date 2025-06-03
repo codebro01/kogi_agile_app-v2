@@ -25,7 +25,7 @@ const xlsxFileFilter = (req, file, cb) => {
     ) {
         cb(null, true);
     } else {
-        cb(new Error('Unsupported file format'), false);
+        cb(new Error('Unsupported file format, please upload an excel file'), false);
     }
 };
 

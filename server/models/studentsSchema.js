@@ -144,6 +144,12 @@ const StudentSchema = new mongoose.Schema({
         type: String, 
         enum: ["Yes", "No"],
         default: "No"
+    }, 
+    NUBAN: {
+        type: String, 
+    }, 
+    others: {
+        type: mongoose.Schema.Types.Mixed,
     }
 
 
