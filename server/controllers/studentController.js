@@ -2403,6 +2403,7 @@ export const updateStudentsBankAccountDetails = async (req, res, next) => {
 
     const updateStudentsAccount = async () => {
       try {
+        console.log(res.parsedData)
         const updatePromises = req.parsedData.map((student) => {
           const escapedId = escapeRegex(student.STUDENTID)
           // console.log(
@@ -2428,7 +2429,9 @@ export const updateStudentsBankAccountDetails = async (req, res, next) => {
 
         await Promise.all(updatePromises)
 
-        res.status(200).json({ message: 'Students updated successfully' })
+        res
+          .status(200)
+          .json({ message: 'Students informations updated successfully!!!' })
       } catch (error) {
         console.error('Error updating students:', error)
         res.status(500).json({ message: 'Failed to update students' })

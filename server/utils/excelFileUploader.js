@@ -105,6 +105,10 @@ export const XLSXUploaderAccountDetails = (req, res, next) => {
     console.log()
     req.parsedData = data
 
+    fs.unlink(filePath, (err) =>{
+      if (err) return next(err)
+    });
+
     next()
   } catch (error) {
     console.error('Error processing file:', error.message)
