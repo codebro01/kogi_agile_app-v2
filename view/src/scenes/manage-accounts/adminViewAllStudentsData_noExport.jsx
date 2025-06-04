@@ -840,11 +840,30 @@ export const AdminViewAllStudentsDataNoExport = () => {
     } catch (err) {
       setUpdateAccountLoading(false)
       console.log(err)
-      setUpdateAccountMessage(err.response?.data) ||
-        setUpdateAccountMessage('An Error occured, please try again')
+      console.log(err.response?.data?.message)
+      if (err.response?.data?.message) {
+        setUpdateAccountMessage(err.response?.data?.message);
         setTimeout(() => {
           setUpdateAccountMessage('')
         }, 15000)
+        return;
+      }
+      else if (err.response?.data) {
+        setUpdateAccountMessage(err.response?.data)  
+        setTimeout(() => {
+          setUpdateAccountMessage('')
+        }, 15000)      
+        return;
+      }
+      else {
+
+        setUpdateAccountMessage('An error occured, please try again')
+        setTimeout(() => {
+          setUpdateAccountMessage('')
+        }, 15000)
+      }
+
+         
     }
   }
 
@@ -1471,7 +1490,7 @@ export const AdminViewAllStudentsDataNoExport = () => {
                 fontWeight: 800,
               }}
             >
-              Upload a file here to update students accounts information
+              Upload an excel file here to update students accounts information
             </Typography>
 
             <Box>
