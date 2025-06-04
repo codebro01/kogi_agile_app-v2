@@ -133,7 +133,7 @@ router.post(
 router.patch(
   '/update/bank-account-details',
   authMiddleware,
-  authorizePermission(['handle_admins', 'handle_payments']),
+  authorizePermission(['handle_registrars', 'handle_payments']),
   uploadXLSX.single('file'),
   XLSXUploaderAccountDetails,
   updateStudentsBankAccountDetails
