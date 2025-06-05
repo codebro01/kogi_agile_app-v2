@@ -867,7 +867,7 @@ export const AdminViewAllStudentsDataNoExport = () => {
     }
   }
 
-  console.log(filters, filters.file === "")
+  // console.log(filters, filters.file === "")
 
   return (
     <>
@@ -1469,7 +1469,10 @@ export const AdminViewAllStudentsDataNoExport = () => {
             {filterError && <Typography>{filterError}</Typography>}
           </Box>
 
+          {/* ! UPdate students bank account details */}
+
           <Box
+          id = "update-bank-acount"
             component={'form'}
             width={'100%'}
             display={'flex'}

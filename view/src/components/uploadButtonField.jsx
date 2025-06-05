@@ -25,15 +25,19 @@ export const UploadButtonField = ({ handleInputChange }) => {
             backgroundColor: 'primary',
             textTransform: 'uppercase',
             borderRadius: '5px',
-            width: '250px', 
+            width: '100%',
             padding: '8px 16px',
+            fontSize: {
+              xs: '10px',
+              md: '13px',
+            },
             '&:hover': {
               opacity: 0.9,
             },
           }}
         >
           Select File
-          <input type="file" name='file' hidden onChange={handleFileChange} />
+          <input type="file" name="file" hidden onChange={handleFileChange} />
         </Button>
 
         {fileName && (

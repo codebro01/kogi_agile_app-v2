@@ -40,6 +40,7 @@ import { ViewPaymentsRecords } from "./components/viewPaymentsRecords.jsx";
 import { ManageDuplicateRecords } from "./scenes/manage-accounts/manageDuplicateRecords.jsx";
 import { PrintIdCard } from "./scenes/manage-accounts/printIDCards.jsx";
 import { PreselectForm } from "./components/preSelectform.jsx";
+import { UpdateBankAccountInfo } from "./scenes/manage-accounts/updateBankAccountInfo.jsx";
 
 
 
@@ -105,6 +106,7 @@ function App() {
                         <Route path="/admin-dashboard/admin-export-attendance" element={<ExportAttendanceSheetPayroll />} />
                         <Route path="/admin-dashboard/admin-export-attendance-sheet" element={<ExportAttendanceSheet />} />
                         <Route path="/admin-dashboard/admin-view-attendance" element={<ViewAttendance/>} />
+                        <Route path="/admin-dashboard/update-bank-record" element={<UpdateBankAccountInfo/>} />
                         <Route path="/admin-dashboard/admin-view-payments" element={<ViewPaymentsRecords />} />
                         <Route path="/admin-dashboard/admin-view-all-students-no-export" element={<AdminViewAllStudentsDataNoExport />} />
                         <Route path="/view-all-schools-info" element={<ViewSchoolsInfo />} />
@@ -191,13 +193,24 @@ function App() {
         <ThemeProvider theme={theme}>
           <CssBaseline />
           <div className="app">
-            {location.pathname !== "/dashboard/sign-in" && location.pathname !== "/" && location.pathname !== "/sign-in" && <Sidebar isSidebar={isSidebar} />}
+            {location.pathname !== '/dashboard/sign-in' &&
+              location.pathname !== '/' &&
+              location.pathname !== '/sign-in' && (
+                <Sidebar isSidebar={isSidebar} />
+              )}
 
-            <main className={`content ${isSidebar ? "" : "collapsed"}`}>
-              {location.pathname !== "/sign-in" && location.pathname !== "/" && location.pathname !== "/dashboard/sign-in" && <Topbar setIsSidebar={setIsSidebar} />}
+            <main className={`content ${isSidebar ? '' : 'collapsed'}`}>
+              {location.pathname !== '/sign-in' &&
+                location.pathname !== '/' &&
+                location.pathname !== '/dashboard/sign-in' && (
+                  <Topbar setIsSidebar={setIsSidebar} />
+                )}
 
               <Routes>
-                <Route path="/sign-in" element={<PayrollSpecialistSignInForm />} />
+                <Route
+                  path="/sign-in"
+                  element={<PayrollSpecialistSignInForm />}
+                />
                 <Route path="/" element={<PayrollSpecialistSignInForm />} />
 
                 <Route
@@ -205,15 +218,41 @@ function App() {
                   element={
                     <Provider store={store}>
                       <Routes>
-                        <Route path="/payroll-specialist-dashboard" element={<Dashboard />} />
-                        <Route path="/export-attendance-sheet/" element={<ExportAttendanceSheetPayroll />} />
-                        <Route path="/payroll-specialist-dashboard/view-students" element={<AdminViewAllStudentsDataNoExport />} />
-                        <Route path="payroll-specialist-dashboard/upload-payment" element={<ImportPaymentSheet />} />
-                        <Route path="/payroll-specialist-dashboard/view-payments-records" element={<ViewPaymentsRecords />} />
-                        <Route path="/index.html" element={<Navigate to="/" />} />
+                        <Route
+                          path="/payroll-specialist-dashboard"
+                          element={<Dashboard />}
+                        />
+                        <Route
+                          path="/export-attendance-sheet/"
+                          element={<ExportAttendanceSheetPayroll />}
+                        />
+                        <Route
+                          path="/payroll-specialist-dashboard/view-students"
+                          element={<AdminViewAllStudentsDataNoExport />}
+                        />
+                        <Route
+                          path="/payroll-specialist-dashboard/update-bank-record"
+                          element={<UpdateBankAccountInfo />}
+                        />
+                        <Route
+                          path="payroll-specialist-dashboard/upload-payment"
+                          element={<ImportPaymentSheet />}
+                        />
+                        <Route
+                          path="/payroll-specialist-dashboard/view-payments-records"
+                          element={<ViewPaymentsRecords />}
+                        />
+                        <Route
+                          path="/index.html"
+                          element={<Navigate to="/" />}
+                        />
 
-                        <Route path="*" element={<Navigate to="/payroll-specialist-dashboard" />} />
-
+                        <Route
+                          path="*"
+                          element={
+                            <Navigate to="/payroll-specialist-dashboard" />
+                          }
+                        />
                       </Routes>
                     </Provider>
                   }

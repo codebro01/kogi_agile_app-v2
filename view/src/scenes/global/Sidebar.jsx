@@ -26,6 +26,8 @@ import LibraryBooksIcon from '@mui/icons-material/LibraryBooks'
 import { ExportSubmitButton } from '../../components/exportButton.jsx'
 import ImportContactsIcon from '@mui/icons-material/ImportContacts' // For import
 import FileUploadIcon from '@mui/icons-material/FileUpload' // For export
+import AutorenewIcon from '@mui/icons-material/Autorenew'
+
 import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye'
 import MenuIcon from '@mui/icons-material/Menu' // Horizontal bars icon
 import CloseIcon from '@mui/icons-material/Close' // Cancel icon
@@ -253,6 +255,8 @@ const Sidebar = ({ isSidebar }) => {
               setSelected={setSelected}
             />
 
+            {/**********************************  Super Admin Sidebar ******************************** */}
+
             {userPermissions.includes('handle_admins') && (
               <>
                 <Item
@@ -287,6 +291,13 @@ const Sidebar = ({ isSidebar }) => {
                       : 'enumerator-dashboard/view-all-students-data'
                   }
                   icon={<LibraryBooksIcon />}
+                  selected={selected}
+                  setSelected={setSelected}
+                />
+                <Item
+                  title="Update Bank Record"
+                  to={'/admin-dashboard/update-bank-record'}
+                  icon={<AutorenewIcon />}
                   selected={selected}
                   setSelected={setSelected}
                 />
@@ -395,6 +406,8 @@ const Sidebar = ({ isSidebar }) => {
               </>
             )}
 
+            {/**********************************   Admin Sidebar ******************************** */}
+
             {userPermissions.includes('handle_registrars') &&
               userPermissions.length === 2 && (
                 <>
@@ -442,6 +455,13 @@ const Sidebar = ({ isSidebar }) => {
                         : 'enumerator-dashboard/view-all-students-data'
                     }
                     icon={<LibraryBooksIcon />}
+                    selected={selected}
+                    setSelected={setSelected}
+                  />
+                  <Item
+                    title="Update Bank Record"
+                    to={'/admin-dashboard/update-bank-record'}
+                    icon={<AutorenewIcon />}
                     selected={selected}
                     setSelected={setSelected}
                   />
@@ -520,6 +540,8 @@ const Sidebar = ({ isSidebar }) => {
                 </>
               )}
 
+            {/**********************************  Enumerator sidebar ******************************** */}
+
             {userPermissions.length === 1 && (
               <>
                 <Item
@@ -547,6 +569,9 @@ const Sidebar = ({ isSidebar }) => {
                 />
               </>
             )}
+
+            {/**********************************  Payroll Speciast sidebar ******************************** */}
+
             {userPermissions.length === 2 &&
               userPermissions.includes('handle_payments') && (
                 <>
@@ -562,6 +587,13 @@ const Sidebar = ({ isSidebar }) => {
                     title="Upload Payments Records"
                     to={'/payroll-specialist-dashboard/upload-payment'}
                     icon={<FileUploadIcon />}
+                    selected={selected}
+                    setSelected={setSelected}
+                  />
+                  <Item
+                    title="Update Bank Record"
+                    to={'/payroll-specialist-dashboard/update-bank-record'}
+                    icon={<AutorenewIcon />}
                     selected={selected}
                     setSelected={setSelected}
                   />

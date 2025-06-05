@@ -1121,6 +1121,7 @@ export const adminDeleteAttendances = async (req, res, next) => {
   }
 }
 
+// ! Get and export  Students attendance record
 export const getStudentsAttendance = async (req, res, next) => {
   try {
     const { userID, permissions } = req.user
