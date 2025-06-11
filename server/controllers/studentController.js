@@ -1138,6 +1138,7 @@ export const getStudentsAttendance = async (req, res, next) => {
       percentage,
       dateFrom,
       dateTo,
+      withBankDetails,
     } = req.query
     const page = parseInt(req.query.page) || 1
     const limit = parseInt(req.query.limit) || 200
@@ -1150,6 +1151,13 @@ export const getStudentsAttendance = async (req, res, next) => {
     // if (!permissions.includes('handle_registrars')) {
     //     basket.enumeratorId = userID;
     // }
+
+    if(withBankDetails == 'true') {
+      withBankDetails = true
+    }
+    else {
+      withBankDetails = false
+    }
     if (permissions.includes('handle_students') && permissions.length === 1) {
       basket = { createdBy: userID }
     } else {
@@ -1166,7 +1174,8 @@ export const getStudentsAttendance = async (req, res, next) => {
 
     // console.log('getting query and url');
 
-    // console.log(req.query)
+    // console.log(withBankDetails)
+    // return
     // console.log(req.url)
     let attendance
 
@@ -1293,34 +1302,6 @@ export const getStudentsAttendance = async (req, res, next) => {
           },
         },
 
-        // {
-        //     $group: {
-        //         _id: "$studentRandomId", // Group by student
-        //         studentDetails: { $first: "$studentDetails" }, // Preserve student details
-        //         schoolDetails: { $first: "$schoolDetails" }, // Preserve school details
-        //         studentRandomId: { $first: "$studentRandomId" },
-        //         createdAt: { $first: "$createdAt" },
-        //         month: { $first: "$month" },
-        //         year: { $first: "$year" },
-        //         // AttendanceScore: {$first: "$AttendanceScore"},
-        //         totalAttendanceScore: { $sum: "$AttendanceScore" }, // Sum of AttendanceScore
-        //         totalWeeks: { $count: {} }, // Count the number of records (weeks)
-        //     },
-        // },
-
-        // {
-        //     $addFields: {
-        //         totalPossibleMarks: { $multiply: ["$totalWeeks", 25] }, // Assuming 25 marks per week
-        //         attendancePercentage: {
-        //             $multiply: [
-        //                 { $divide: ["$totalAttendanceScore", { $multiply: ["$totalWeeks", 25] }] },
-        //                 100,
-        //             ],
-        //         },
-        //         date: '$createdAt'
-        //     },
-        // },
-
         {
           $group: {
             _id: {
@@ -1380,6 +1361,14 @@ export const getStudentsAttendance = async (req, res, next) => {
             }),
             ...(percentage && {
               totalAttendanceScore: { $gte: parseInt(percentage) },
+            }),
+            ...(withBankDetails === true && {
+              'studentDetails.bankName': { $nin: [null, ''] },
+              'studentDetails.accountNumber': { $nin: [null, ''] },
+            }),
+            ...(withBankDetails === false && {
+              'studentDetails.bankName': { $in: [null, ''] },
+              'studentDetails.accountNumber': { $in: [null, ''] },
             }),
             ...(dateFrom || dateTo
               ? {
