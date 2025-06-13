@@ -5,7 +5,7 @@ import { authorizePermission, authMiddleware } from '../middlewares/authenticati
 const router = express.Router();
 
 router.post('/', authMiddleware, authorizePermission('handle_registrars'),  createSchool)
-router.patch('/:id', authMiddleware, authorizePermission('handle_registrars'), updateSchool)
+router.patch('/update-school', authMiddleware, authorizePermission('handle_registrars'), updateSchool)
 router.get('/', authMiddleware, authorizePermission('handle_registrars'), getAllSchools)
 router.delete('/:id', authMiddleware, authorizePermission(['handle_registrars']), deleteSchool)
 router.patch('/get-single-school', authMiddleware, authorizePermission('handle_registrars'), getSingleSchool);

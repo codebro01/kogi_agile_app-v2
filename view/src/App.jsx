@@ -41,6 +41,7 @@ import { ManageDuplicateRecords } from "./scenes/manage-accounts/manageDuplicate
 import { PrintIdCard } from "./scenes/manage-accounts/printIDCards.jsx";
 import { PreselectForm } from "./components/preSelectform.jsx";
 import { UpdateBankAccountInfo } from "./scenes/manage-accounts/updateBankAccountInfo.jsx";
+import { UpdateSchool } from "./scenes/manage-accounts/updateSchool.jsx";
 
 
 
@@ -84,10 +85,18 @@ function App() {
         <ThemeProvider theme={theme}>
           <CssBaseline />
           <div className="app">
-            {location.pathname !== "/dashboard/sign-in" && location.pathname !== "/" && location.pathname !== "/sign-in" && <Sidebar isSidebar={isSidebar} />}
+            {location.pathname !== '/dashboard/sign-in' &&
+              location.pathname !== '/' &&
+              location.pathname !== '/sign-in' && (
+                <Sidebar isSidebar={isSidebar} />
+              )}
 
-            <main className={`content ${isSidebar ? "" : "collapsed"}`}>
-              {location.pathname !== "/sign-in" && location.pathname !== "/" && location.pathname !== "/dashboard/sign-in" && <Topbar setIsSidebar={setIsSidebar} />}
+            <main className={`content ${isSidebar ? '' : 'collapsed'}`}>
+              {location.pathname !== '/sign-in' &&
+                location.pathname !== '/' &&
+                location.pathname !== '/dashboard/sign-in' && (
+                  <Topbar setIsSidebar={setIsSidebar} />
+                )}
 
               <Routes>
                 <Route path="/dashboard/sign-in" element={<SignInForm />} />
@@ -98,41 +107,123 @@ function App() {
                   element={
                     <Provider store={store}>
                       <Routes>
-                        <Route path="/admin-dashboard" element={<Dashboard />} />
-                        <Route path="/admin-dashboard/create-student-school-selector" element={<RegistrationSelector />} />
-                        <Route path="/admin-dashboard/role-selector" element={<RoleSelector />} />
-                        <Route path="/admin-dashboard/create-accounts/register-admin" element={<CreateAdmin />} />
-                        <Route path="/admin-dashboard/view-all-students-data" element={<AdminViewAllStudentsData />} />
-                        <Route path="/admin-dashboard/admin-export-attendance" element={<ExportAttendanceSheetPayroll />} />
-                        <Route path="/admin-dashboard/admin-export-attendance-sheet" element={<ExportAttendanceSheet />} />
-                        <Route path="/admin-dashboard/admin-view-attendance" element={<ViewAttendance/>} />
-                        <Route path="/admin-dashboard/update-bank-record" element={<UpdateBankAccountInfo/>} />
-                        <Route path="/admin-dashboard/admin-view-payments" element={<ViewPaymentsRecords />} />
-                        <Route path="/admin-dashboard/admin-view-all-students-no-export" element={<AdminViewAllStudentsDataNoExport />} />
-                        <Route path="/view-all-schools-info" element={<ViewSchoolsInfo />} />
-                        <Route path="/admin-dashboard/create-accounts/register-enumerator" element={<CreateEnumerator />} />
-                        <Route path="/admin-dashboard/create-accounts/register-payroll-specialists" element={<CreatePayrollSpecialist />} />
-                        <Route path="/admin-dashboard/create-accounts/register-school" element={<CreateSchool />} />
-                        <Route path="/admin-dashboard/manage-accounts/admins" element={<ManageAdmins />} />
-                        <Route path="/admin-dashboard/manage-accounts/enumerators" element={<ManageEnumerators />} />
-                        <Route path="/admin-dashboard/manage-accounts/payroll-specialists" element={<ManagePayrollSpecialists />} />
-                        <Route path="/admin-dashboard/manage-accounts/admins/edit-admin/:id" element={<EditAdmin />} />
-                        <Route path="/admin-dashboard/manage-accounts/enumerators/edit-enumerator/:id" element={<EditEnumerator />} />
-                        <Route path="/admin-dashboard/manage-accounts/payroll-specialists/edit-payroll-specialists/:id" element={<EditPayrollSpecialists />} />
-                        <Route path="/admin-dashboard/manage-accounts/schools" element={<ManageSchools />} />
-                        <Route path="/admin-dashboard/manage-accounts/manage-duplicate-records" element={<ManageDuplicateRecords />} />
-                        <Route path="/admin-dashboard/idcards/print" element={<PrintIdCard />} />
-                        <Route path="/enumerator-dashboard/update-student/:id" element={<UpdateStudent />} />
+                        <Route
+                          path="/admin-dashboard"
+                          element={<Dashboard />}
+                        />
+                        <Route
+                          path="/admin-dashboard/create-student-school-selector"
+                          element={<RegistrationSelector />}
+                        />
+                        <Route
+                          path="/admin-dashboard/role-selector"
+                          element={<RoleSelector />}
+                        />
+                        <Route
+                          path="/admin-dashboard/create-accounts/register-admin"
+                          element={<CreateAdmin />}
+                        />
+                        <Route
+                          path="/admin-dashboard/view-all-students-data"
+                          element={<AdminViewAllStudentsData />}
+                        />
+                        <Route
+                          path="/admin-dashboard/admin-export-attendance"
+                          element={<ExportAttendanceSheetPayroll />}
+                        />
+                        <Route
+                          path="/admin-dashboard/admin-export-attendance-sheet"
+                          element={<ExportAttendanceSheet />}
+                        />
+                        <Route
+                          path="/admin-dashboard/admin-view-attendance"
+                          element={<ViewAttendance />}
+                        />
+                        <Route
+                          path="/admin-dashboard/update-bank-record"
+                          element={<UpdateBankAccountInfo />}
+                        />
+                        <Route
+                          path="/admin-dashboard/admin-view-payments"
+                          element={<ViewPaymentsRecords />}
+                        />
+                        <Route
+                          path="/admin-dashboard/admin-view-all-students-no-export"
+                          element={<AdminViewAllStudentsDataNoExport />}
+                        />
+                        <Route
+                          path="/view-all-schools-info"
+                          element={<ViewSchoolsInfo />}
+                        />
+                        <Route
+                          path="/admin-dashboard/create-accounts/register-enumerator"
+                          element={<CreateEnumerator />}
+                        />
+                        <Route
+                          path="/admin-dashboard/create-accounts/register-payroll-specialists"
+                          element={<CreatePayrollSpecialist />}
+                        />
+                        <Route
+                          path="/admin-dashboard/create-accounts/register-school"
+                          element={<CreateSchool />}
+                        />
+                        <Route
+                          path="/admin-dashboard/create-accounts/update-school-information"
+                          element={<UpdateSchool />}
+                        />
+                        <Route
+                          path="/admin-dashboard/manage-accounts/admins"
+                          element={<ManageAdmins />}
+                        />
+                        <Route
+                          path="/admin-dashboard/manage-accounts/enumerators"
+                          element={<ManageEnumerators />}
+                        />
+                        <Route
+                          path="/admin-dashboard/manage-accounts/payroll-specialists"
+                          element={<ManagePayrollSpecialists />}
+                        />
+                        <Route
+                          path="/admin-dashboard/manage-accounts/admins/edit-admin/:id"
+                          element={<EditAdmin />}
+                        />
+                        <Route
+                          path="/admin-dashboard/manage-accounts/enumerators/edit-enumerator/:id"
+                          element={<EditEnumerator />}
+                        />
+                        <Route
+                          path="/admin-dashboard/manage-accounts/payroll-specialists/edit-payroll-specialists/:id"
+                          element={<EditPayrollSpecialists />}
+                        />
+                        <Route
+                          path="/admin-dashboard/manage-accounts/schools"
+                          element={<ManageSchools />}
+                        />
+                        <Route
+                          path="/admin-dashboard/manage-accounts/manage-duplicate-records"
+                          element={<ManageDuplicateRecords />}
+                        />
+                        <Route
+                          path="/admin-dashboard/idcards/print"
+                          element={<PrintIdCard />}
+                        />
+                        <Route
+                          path="/enumerator-dashboard/update-student/:id"
+                          element={<UpdateStudent />}
+                        />
 
-
-                        <Route path="/index.html" element={<Navigate to="/" />} />
-                        <Route path="*" element={<Navigate to="/admin-dashboard" />} />
-
+                        <Route
+                          path="/index.html"
+                          element={<Navigate to="/" />}
+                        />
+                        <Route
+                          path="*"
+                          element={<Navigate to="/admin-dashboard" />}
+                        />
                       </Routes>
                     </Provider>
                   }
                 />
-
               </Routes>
             </main>
           </div>

@@ -44,7 +44,9 @@ export const createSchool = async (req, res, next) => {
 
 export const updateSchool = async (req, res, next) => {
   try {
-    const { id } = req.params
+    // console.log(req.body)
+    const id  = req.body.schoolId
+    // const {schoolCode, schoolCategory, schoolName, LGA} = req.body;
     const isExistingSchool = await AllSchools.findOne({ _id: id })
     if (!isExistingSchool)
       return next(new BadRequestError(`No school with id: ${id}`))
@@ -57,7 +59,7 @@ export const updateSchool = async (req, res, next) => {
 
     if (!updateSchool)
       return next(new BadRequestError('An error occured updating School'))
-    res.status(200).json({ newSchool })
+    res.status(200).json( {message: "school has been successfully updated"} )
   } catch (err) {
     return next(err)
   }

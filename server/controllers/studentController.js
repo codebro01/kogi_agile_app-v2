@@ -584,7 +584,7 @@ export const filterAndView = async (req, res, next) => {
 
     // Create a basket object
     let basket
-    if (!permissions.includes('handle_registrars')) {
+    if (!permissions.includes(['handle_registrars', 'handle_payments'])) {
       basket = { createdBy: userID }
     } else {
       basket = {}

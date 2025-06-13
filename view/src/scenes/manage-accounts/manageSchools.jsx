@@ -4,15 +4,15 @@ import { fetchSchools, deleteSchool} from '../../components/schoolsSlice.js';
 import { SpinnerLoader } from '../../components/spinnerLoader.jsx';
 import DataTable from 'react-data-table-component';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { Box, Typography } from '@mui/material';
-
+import { Box, Typography, Button } from '@mui/material';
+import { Link } from 'react-router-dom';
 export const ManageSchools = () => {
     const dispatch = useDispatch();
     const schoolsState = useSelector((state) => state.schools);
     const { data: schoolsData, loading: schoolsLoading, error: schoolsError } = schoolsState;
 
         useEffect(() => {
-            dispatch(fetchSchools());
+            dispatch(fetchSchools({ schoolType: '', lgaOfEnrollment: '' }))
         }, [dispatch]);
 
 
@@ -52,7 +52,7 @@ if(schoolsError) {
     )
 }
 
-// console.log(schoolsData)
+console.log(schoolsState)
  const handleDelete = (row) => {
 
         const confirmDelete = window.confirm(`Are you sure you want to delete ${row.schoolName}?`);
@@ -129,32 +129,49 @@ if(schoolsError) {
 
 
 
-
     return (
-      <Box sx = {{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 2,
-        padding: 2,
-      }}> 
-            <Box sx = {{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-            }}> <Typography variant = 'h3'>All Registered School</Typography></Box>
-            <DataTable
-                columns={columns}
-                data={schoolsData || []}
-                pagination
-                highlightOnHover
-                pointerOnHover
-                paginationPerPage={200} // Set the default number of rows to 200
-                paginationRowsPerPageOptions={[100, 200, 500, 1000]} // Customize options for rows per page
-                responsive
-
-            />
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 2,
+          padding: 2,
+        }}
+      >
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          {' '}
+          <Typography variant="h3">All Registered School</Typography>
+        </Box>
+        <Box>
+          <Link
+            to={'/admin-dashboard/create-accounts/update-school-information'}
+            style={{
+              backgroundColor: '#196b57',
+              color: '#fff',
+              padding: '10px 20px',
+              borderRadius: '5px',
+              textDecoration: 'none',
+            }}
+          >
+            Update School Information
+          </Link>
+        </Box>
+        <DataTable
+          columns={columns}
+          data={schoolsData || []}
+          pagination
+          highlightOnHover
+          pointerOnHover
+          paginationPerPage={200} // Set the default number of rows to 200
+          paginationRowsPerPageOptions={[100, 200, 500, 1000]} // Customize options for rows per page
+          responsive
+        />
       </Box>
-
-            
     )
 }

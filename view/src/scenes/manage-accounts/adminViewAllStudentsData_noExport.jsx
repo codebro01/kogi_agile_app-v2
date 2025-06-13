@@ -29,15 +29,15 @@ import {
   CircularProgress,
 } from '@mui/material'
 
-import { StudentsContext } from '../../components/dataContext'
+// import { StudentsContext } from '../../components/dataContext'
 import axios from 'axios'
 import { resolvePath, useNavigate } from 'react-router-dom'
 import EditIcon from '@mui/icons-material/Edit'
 import { tokens } from '../../theme'
-import { PersonLoader } from '../../components/personLoader'
+// import { PersonLoader } from '../../components/personLoader'
 import { getNigeriaStates } from 'geo-ng'
 import lgasAndWards from '../../Lga&wards.json'
-import { SchoolsContext } from '../../components/dataContext.jsx'
+// import { SchoolsContext } from '../../components/dataContext.jsx'
 import DataTable from 'react-data-table-component'
 import DeleteIcon from '@mui/icons-material/Delete'
 import { useSelector, useDispatch } from 'react-redux'

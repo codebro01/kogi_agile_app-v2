@@ -3,7 +3,7 @@ import axios from 'axios';
 
 export const fetchSchools = createAsyncThunk('schools/fetchSchools', async ({schoolType, lgaOfEnrollment}, thunkAPI) => {
     const API_URL = `${import.meta.env.VITE_API_URL}/api/v1/all-schools`;
-
+    // console.log('checking')
     try {
         const response = await axios.get(API_URL, {
             params: {schoolType, lgaOfEnrollment}
