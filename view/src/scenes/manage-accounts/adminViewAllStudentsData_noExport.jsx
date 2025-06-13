@@ -190,7 +190,6 @@ export const AdminViewAllStudentsDataNoExport = () => {
   const [updateAccountLoading, setUpdateAccountLoading] = useState(false)
   const API_URL = `${import.meta.env.VITE_API_URL}/api/v1`
   const token = localStorage.getItem('token') || ''
-
   useEffect(() => {
     if (singlePromotionMessage) setSingleSnackbarOpen(true)
     if (bulkPromotionMessage) setBulkSnackbarOpen(true)
@@ -761,7 +760,7 @@ export const AdminViewAllStudentsDataNoExport = () => {
 
   const handleSelectedStudentsChange = ({ selectedRows }) => {
     setSelectedStudents(selectedRows)
-    console.log('Selected Rows:', selectedStudents)
+    // console.log('Selected Rows:', selectedStudents)
   }
 
   const handleDeleteManyStudents = async () => {

@@ -584,7 +584,7 @@ export const filterAndView = async (req, res, next) => {
 
     // Create a basket object
     let basket
-    if (!permissions.includes(['handle_registrars', 'handle_payments'])) {
+    if (permissions.includes(['handle_students'] && permissions.length === 1)) {
       basket = { createdBy: userID }
     } else {
       basket = {}
@@ -645,6 +645,8 @@ export const filterAndView = async (req, res, next) => {
 
     const total = await Student.countDocuments(basket)
 
+    // console.log(basket)
+
     const students = await Student.find(basket)
       .populate('schoolId')
       .populate('ward')
@@ -657,6 +659,8 @@ export const filterAndView = async (req, res, next) => {
       .skip(skip)
       .limit(parseInt(limit))
       .lean()
+
+      // console.log(students)
 
     res.status(200).json({ students, total })
   } catch (err) {

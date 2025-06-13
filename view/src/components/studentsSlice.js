@@ -5,7 +5,7 @@ import axios from 'axios';
 export const fetchStudents = createAsyncThunk('students/fetchStudents', async ({ page, limit }, thunkAPI) => {
     const API_URL = `${import.meta.env.VITE_API_URL}/api/v1/student`;
     const token = localStorage.getItem('token') || '';
-
+    console.log('entering')
     try {
         const response = await axios.get(API_URL, {
             headers: {
@@ -15,6 +15,7 @@ export const fetchStudents = createAsyncThunk('students/fetchStudents', async ({
             params: { page, limit },
             withCredentials: true,
         });
+        console.log(response.data)
         return {
             students: response.data,
             total: response.data.total,
@@ -35,7 +36,7 @@ export const fetchStudentsFromComponent = createAsyncThunk(
         const API_URL = `${import.meta.env.VITE_API_URL}/api/v1/student/admin-view-all-students`;
         const token = localStorage.getItem('token') || '';
         try {
-
+            
             const response = await axios.get(API_URL, {
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -43,6 +44,7 @@ export const fetchStudentsFromComponent = createAsyncThunk(
                 params: { filteredParams, sortParam, page, limit },
                 withCredentials: true,
             });
+            // console.log('resp',response)
             return {
                 students: response.data,
                 total: response.data.total,
