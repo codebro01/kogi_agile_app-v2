@@ -33,7 +33,7 @@ export const CreateStudent = () => {
 
   const preselectFilter = JSON.parse(localStorage.getItem('preselectFilter'));
 
-  const {selectType, lgaOfEnrollment}  = preselectFilter;
+  // const {selectType, lgaOfEnrollment}  = preselectFilter;
 
   const [formData, setFormData] = useState({
     ward: "",

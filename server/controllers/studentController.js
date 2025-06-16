@@ -660,7 +660,7 @@ export const filterAndView = async (req, res, next) => {
       .limit(parseInt(limit))
       .lean()
 
-      // console.log(students)
+    // console.log(students)
 
     res.status(200).json({ students, total })
   } catch (err) {
@@ -1156,10 +1156,9 @@ export const getStudentsAttendance = async (req, res, next) => {
     //     basket.enumeratorId = userID;
     // }
 
-    if(withBankDetails == 'true') {
+    if (withBankDetails == 'true') {
       withBankDetails = true
-    }
-    else {
+    } else {
       withBankDetails = false
     }
     if (permissions.includes('handle_students') && permissions.length === 1) {
@@ -2435,6 +2434,44 @@ export const updateStudentsBankAccountDetails = async (req, res, next) => {
     updateStudentsAccount()
   } catch (err) {
     return next(err)
+  }
+}
+
+export const EditManyStudents = async (req, res, next) => {
+  try {
+    const { ids } = req.query // Access the query parameter
+    if (!ids)
+      return next(new BadRequestError('Bad reqest, please select students'))
+    const selectedStudents = ids.split(',') // Convert to array
+    const { presentClass } = req.body.formData
+    // console.log(presentClass)
+
+    if (!selectedStudents || !selectedStudents.length) {
+      return res
+        .status(StatusCodes.BAD_REQUEST)
+        .json({ message: 'No students selected for deletion.' })
+    }
+    // console.log(selectedStudents, req.body)
+    const updateManyStudents = await Student.updateMany(
+      {
+        randomId: { $in: selectedStudents },
+      },
+      {
+        $set: { presentClass },
+      }
+    )
+
+    console.log(updateManyStudents)
+
+    if (updateManyStudents.modifiedCount === 0) {
+      return next(new NotFoundError('No student updated.'))
+    }
+
+    res.status(StatusCodes.OK).json({
+      message: `${updateManyStudents.modifiedCount} students updated successfully.`,
+    })
+  } catch (error) {
+    return next(error)
   }
 }
 

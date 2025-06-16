@@ -24,6 +24,7 @@ import {
   adminViewAttendance,
   adminDeleteAttendances,
   updateStudentsBankAccountDetails,
+  EditManyStudents,
 } from '../controllers/index.js'
 import {
   authMiddleware,
@@ -137,6 +138,12 @@ router.patch(
   uploadXLSX.single('file'),
   XLSXUploaderAccountDetails,
   updateStudentsBankAccountDetails
+)
+router.patch(
+  '/update/edit-students-details',
+  authMiddleware,
+  authorizePermission(['handle_registrars', 'handle_payments']),
+  EditManyStudents
 )
 router.get(
   '/from-to',

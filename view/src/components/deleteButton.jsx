@@ -1,6 +1,9 @@
-import React, { useState } from "react";
-import { Button,Box, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Tooltip } from "@mui/material";
+import { useState } from "react";
+import { Button,Box, Dialog, DialogActions, DialogContent, DialogTitle, IconButton } from "@mui/material";
 import { Delete as DeleteIcon } from "@mui/icons-material";
+import PropTypes from 'prop-types'
+
+
 
 export const DeleteButton = ({ onConfirm, itemName = "this item", selectedRows }) => {
   const [open, setOpen] = useState(false);
@@ -12,7 +15,7 @@ export const DeleteButton = ({ onConfirm, itemName = "this item", selectedRows }
     <>
 
      <Box  sx = {{position: "fixed", right: 50, bottom: 30, padding: "5px", background: "rgb(194, 186, 186)", zIndex: 999999}}>
-        <IconButton onClick={handleOpen} color="error" width = {"100%"} disabled = {selectedRows.length < 1}>
+        <IconButton onClick={handleOpen} color="error" width = {"100%"} disabled = {selectedRows?.length < 1}>
           <DeleteIcon />
         </IconButton>
       </Box>
@@ -42,3 +45,9 @@ export const DeleteButton = ({ onConfirm, itemName = "this item", selectedRows }
     </>
   );
 };
+
+DeleteButton.propTypes = {
+  onConfirm: PropTypes.func.isRequired,
+  itemName: PropTypes.string, // default value already set
+  selectedRows: PropTypes.array.isRequired, // or PropTypes.arrayOf(someShape)
+}

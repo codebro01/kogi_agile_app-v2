@@ -42,7 +42,8 @@ import { PrintIdCard } from "./scenes/manage-accounts/printIDCards.jsx";
 import { PreselectForm } from "./components/preSelectform.jsx";
 import { UpdateBankAccountInfo } from "./scenes/manage-accounts/updateBankAccountInfo.jsx";
 import { UpdateSchool } from "./scenes/manage-accounts/updateSchool.jsx";
-
+// import { FormComponent } from "./components/FormComponent.jsx";
+import { EditManyStudents } from "./scenes/manage-accounts/EditManyStudents.jsx";
 
 
 function App() {
@@ -126,6 +127,10 @@ function App() {
                         <Route
                           path="/admin-dashboard/view-all-students-data"
                           element={<AdminViewAllStudentsData />}
+                        />
+                        <Route
+                          path="/admin-dashboard/edit-many-students"
+                          element={<EditManyStudents />}
                         />
                         <Route
                           path="/admin-dashboard/admin-export-attendance"

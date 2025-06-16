@@ -16,12 +16,12 @@ import {
   Select,
   MenuItem,
   TableContainer,
+  IconButton,
   TableHead,
   TableRow,
   Paper,
   Box,
   TextField,
-  IconButton,
   Grid,
   InputLabel,
   Autocomplete,
@@ -811,11 +811,11 @@ export const AdminViewAllStudentsDataNoExport = () => {
     try {
       const formData = new FormData()
       formData.append('file', filters['file'])
-      if(filters.file === '') {
-        setUpdateAccountMessage('Please select a file');
+      if (filters.file === '') {
+        setUpdateAccountMessage('Please select a file')
         setTimeout(() => setUpdateAccountMessage(''), 2000)
-        return;
-    } 
+        return
+      }
       const token = localStorage.getItem('token')
       setUpdateAccountLoading(true)
       setUpdateAccountMessage('...Please wait while the update completes.')
@@ -831,8 +831,10 @@ export const AdminViewAllStudentsDataNoExport = () => {
         }
       )
       setUpdateAccountLoading(false)
-      setUpdateAccountMessage('Students Accounts has been successfully updated!!!')
-      setFilters(prev => ({...prev, file:''}));
+      setUpdateAccountMessage(
+        'Students Accounts has been successfully updated!!!'
+      )
+      setFilters((prev) => ({ ...prev, file: '' }))
       setTimeout(() => {
         setUpdateAccountMessage('')
       }, 15000)
@@ -841,29 +843,35 @@ export const AdminViewAllStudentsDataNoExport = () => {
       console.log(err)
       console.log(err.response?.data?.message)
       if (err.response?.data?.message) {
-        setUpdateAccountMessage(err.response?.data?.message);
+        setUpdateAccountMessage(err.response?.data?.message)
         setTimeout(() => {
           setUpdateAccountMessage('')
         }, 15000)
-        return;
-      }
-      else if (err.response?.data) {
-        setUpdateAccountMessage(err.response?.data)  
+        return
+      } else if (err.response?.data) {
+        setUpdateAccountMessage(err.response?.data)
         setTimeout(() => {
           setUpdateAccountMessage('')
-        }, 15000)      
-        return;
-      }
-      else {
-
+        }, 15000)
+        return
+      } else {
         setUpdateAccountMessage('An error occured, please try again')
         setTimeout(() => {
           setUpdateAccountMessage('')
         }, 15000)
       }
-
-         
     }
+  }
+
+  console.log(selectedStudents.length)
+
+  const handleEditManyStudents = () => {
+    if (selectedStudents.length < 1) return
+
+    // just pass the selected students as state
+    navigate('/admin-dashboard/edit-many-students', {
+      state: { selectedStudents },
+    })
   }
 
   // console.log(filters, filters.file === "")
@@ -876,11 +884,42 @@ export const AdminViewAllStudentsDataNoExport = () => {
           maxWidth="lg"
           sx={{ marginTop: 4, marginBottom: '50px', position: 'relative' }}
         >
-          <DeleteButton
-            onConfirm={handleDeleteManyStudents}
-            itemName="Students Record"
-            selectedRows={selectedStudents}
-          />
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItem: 'center',
+              width: '100px',
+              position: 'fixed',
+              background: 'transparent',
+              zIndex: 999999,
+              right: 50,
+              bottom: 30,
+              gap: "10px"
+            }}
+          >
+            <Box
+              sx={{
+                display:"flex", 
+                justifyContent:"center", 
+                alignItems:"center", 
+                padding: '12px',
+                background: 'rgb(194, 186, 186)',
+                cursor: "pointer"
+
+              }}
+            
+              onClick={handleEditManyStudents}
+            >
+              <EditIcon />
+            </Box>
+
+            <DeleteButton
+              onConfirm={handleDeleteManyStudents}
+              itemName="Students Record"
+              selectedRows={selectedStudents}
+            />
+          </Box>
 
           <Typography
             variant="h3"
@@ -1471,7 +1510,7 @@ export const AdminViewAllStudentsDataNoExport = () => {
           {/* ! UPdate students bank account details */}
 
           <Box
-          id = "update-bank-acount"
+            id="update-bank-acount"
             component={'form'}
             width={'100%'}
             display={'flex'}

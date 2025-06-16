@@ -6,7 +6,7 @@ import lgaAndWards from '../../Lga&wards.json'
 import axios from 'axios'
 import { useSelector, useDispatch } from 'react-redux'
 import { fetchSchools } from '../../components/schoolsSlice.js'
-import { SpinnerLoader } from '../../components/spinnerLoader.jsx'
+// import { SpinnerLoader } from '../../components/spinnerLoader.jsx'
 
 export const UpdateSchool = () => {
   const dispatch = useDispatch()
@@ -14,8 +14,8 @@ export const UpdateSchool = () => {
 
   const {
     data: schoolsData,
-    loading: schoolsLoading,
-    error: schoolsError,
+    // loading: schoolsLoading,
+    // error: schoolsError,
   } = schoolsState
   const schools = schoolsData
   const [schoolOptions, setSchoolOptions] = useState([]) // Start with an empty array

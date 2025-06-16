@@ -1,7 +1,31 @@
 // import { loginSuperAdmin } from "./authController.js";
 import { getSingleAdmin, resetAdminPassword, toggleAdminStatus, createAdmin, updateAdmin, loginAdmin, getAllAdmins } from "./authController.js";
 import {loginWithUrl, toggleRegistrarStatus, createRegistrar, getSingleRegistrar, loginRegistrar, getAllRegistrars, changeRegistrarPassword, resetRegistrarPassword, updateRegistrar } from "./registrarController.js";
-import { totalStudentsByEnumerators, importPaymentSheet, getStudentsStats, filterAndView, getStudentsAttendance, uploadAttendanceSheet, filterEnumeratorsByStudents, downloadAttendanceSheet, filterAndDownload, getAllStudents, updateStudent, deleteStudent, createStudent, getDuplicateRecord, deleteManyStudents, promoteSingleStudent, promotePlentyStudents, demotePlentyStudents, demoteSingleStudent, adminViewAttendance, adminDeleteAttendances, updateStudentsBankAccountDetails } from './studentController.js'
+import {
+  totalStudentsByEnumerators,
+  importPaymentSheet,
+  getStudentsStats,
+  filterAndView,
+  getStudentsAttendance,
+  uploadAttendanceSheet,
+  filterEnumeratorsByStudents,
+  downloadAttendanceSheet,
+  filterAndDownload,
+  getAllStudents,
+  updateStudent,
+  deleteStudent,
+  createStudent,
+  getDuplicateRecord,
+  deleteManyStudents,
+  promoteSingleStudent,
+  promotePlentyStudents,
+  demotePlentyStudents,
+  demoteSingleStudent,
+  adminViewAttendance,
+  adminDeleteAttendances,
+  updateStudentsBankAccountDetails,
+  EditManyStudents,
+} from './studentController.js'
 import { getSinglePayrollSpecialist, togglePayrollSpecialistStatus, getAllPayrollSpecialists, createPayrollSpecialist, loginPayrollSpecialist, updatePayrollSpecialist, changePayrollSpecialistPassword, resetPayrollSpecialistPassword } from "./payrollSpecialistController.js";
 import { enumeratorsByyHighestRegisteredStudents, lgasByHighestRegisteredStudents } from "./adminUniqueQueriesController.js";
 import { getTotalAmountPaid, getTotalStudentsPaidMonthly, getLGAWithTotalPayments, viewPayments, getPaymentsByLGA, getTotalStudentPaid } from "./paymentController.js";
@@ -68,4 +92,5 @@ export {
   adminViewAttendance,
   adminDeleteAttendances,
   updateStudentsBankAccountDetails,
+  EditManyStudents,
 }
