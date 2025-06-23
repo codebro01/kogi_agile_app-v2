@@ -226,19 +226,21 @@ const Sidebar = ({ isSidebar }) => {
               !(
                 userPermissions.includes('handle_students') &&
                 userPermissions.length === 2
-              ) && (
-                <Item
-                  title="Register Account"
-                  to={
-                    userPermissions.includes('handle_registrars')
-                      ? '/admin-dashboard/role-selector'
-                      : '/enumerator-dashboard/create-student-preselect'
-                  }
-                  icon={<PeopleOutlinedIcon />}
-                  selected={selected}
-                  setSelected={setSelected}
-                />
-              )}
+              ) &&
+              !userPermissions.length ===
+                1 && (
+                  <Item
+                    title="Register Account"
+                    to={
+                      userPermissions.includes('handle_registrars')
+                        ? '/admin-dashboard/role-selector'
+                        : '/enumerator-dashboard/create-student-preselect'
+                    }
+                    icon={<PeopleOutlinedIcon />}
+                    selected={selected}
+                    setSelected={setSelected}
+                  />
+                )}
 
             <Item
               title="Manage Students"

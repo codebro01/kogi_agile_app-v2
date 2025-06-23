@@ -346,6 +346,7 @@ export const filterAndDownload = async (req, res, next) => {
       status,
       disabilitystatus,
       schoolType,
+      cohort
     } = req.query
 
     // Create a basket object
@@ -366,6 +367,7 @@ export const filterAndDownload = async (req, res, next) => {
     if (schoolId) basket.schoolId = schoolId
     // if (schoolType) basket.schoolCategory = schoolType
     if (nationality) basket.nationality = nationality
+    if (cohort) basket.cohort = cohort
     if (stateOfOrigin) basket.stateOfOrigin = stateOfOrigin
     if (disabilitystatus) basket.disabilitystatus = disabilitystatus
     if (enumerator) basket.createdBy = enumerator
@@ -446,6 +448,7 @@ export const filterAndDownload = async (req, res, next) => {
       'gender',
       'dob',
       'presentClass',
+      'cohort', 
       'nationality',
       'stateOfOrigin',
       'lga',
@@ -577,10 +580,13 @@ export const filterAndView = async (req, res, next) => {
       yearOfAdmission,
       yearOfEnrollment,
       disabilitystatus,
+      cohort
+
     } = req.query.filteredParams || {}
     const { page, limit } = req.query
     const { sortBy, sortOrder } = req.query.sortParam
     let { status } = req.query.filteredParams
+   
 
     // Create a basket object
     let basket
@@ -601,6 +607,7 @@ export const filterAndView = async (req, res, next) => {
     if (nationality) basket.nationality = nationality
     if (stateOfOrigin) basket.stateOfOrigin = stateOfOrigin
     if (enumerator) basket.createdBy = enumerator
+    if (cohort) basket.cohort = parseInt(cohort)
     if (dateFrom || dateTo) {
       basket.createdAt = {}
       // Handle dateFrom
@@ -645,7 +652,6 @@ export const filterAndView = async (req, res, next) => {
 
     const total = await Student.countDocuments(basket)
 
-    // console.log(basket)
 
     const students = await Student.find(basket)
       .populate('schoolId')
@@ -661,6 +667,7 @@ export const filterAndView = async (req, res, next) => {
       .lean()
 
     // console.log(students)
+    // console.log(students.length)
 
     res.status(200).json({ students, total })
   } catch (err) {

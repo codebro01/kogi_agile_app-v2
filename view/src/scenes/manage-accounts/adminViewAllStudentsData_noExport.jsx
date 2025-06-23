@@ -110,6 +110,7 @@ export const AdminViewAllStudentsDataNoExport = () => {
     yearOfAdmission: '',
     disabilitystatus: '',
     status: 'active',
+    cohort: '' 
   })
   const params = {
     status: filters.status,
@@ -127,6 +128,7 @@ export const AdminViewAllStudentsDataNoExport = () => {
     yearOfAdmission: filters.yearOfAdmission,
     classAtEnrollment: filters.classAtEnrollment,
     disabilitystatus: filters.disabilitystatus,
+    cohort: filters.cohort,
   }
   const filteredParams = Object.entries(params)
     .filter(([_, value]) => value != null && value !== '') // Filter out empty values
@@ -874,7 +876,7 @@ export const AdminViewAllStudentsDataNoExport = () => {
     })
   }
 
-  // console.log(filters, filters.file === "")
+  console.log(filters)
 
   return (
     <>
@@ -1459,7 +1461,7 @@ export const AdminViewAllStudentsDataNoExport = () => {
               </Grid>
 
               <Grid item xs={12} sm={6} md={4}>
-                <InputLabel id="sortBy-label" sx={{ marginBottom: 1 }}>
+                <InputLabel id="active-status" sx={{ marginBottom: 1 }}>
                   Active status
                 </InputLabel>
                 <Select
@@ -1474,6 +1476,26 @@ export const AdminViewAllStudentsDataNoExport = () => {
                   <MenuItem value="active">Active</MenuItem>
                   <MenuItem value="all">All</MenuItem>
                   <MenuItem value="inactive">Inactive</MenuItem>
+                </Select>
+              </Grid>
+              <Grid item xs={12} sm={6} md={4}>
+                <InputLabel id="cohort" sx={{ marginBottom: 1 }}>
+                  Cohort
+                </InputLabel>
+                <Select
+                  name="cohort"
+                  value={filters.cohort || ''}
+                  onChange={handleInputChange}
+                  displayEmpty
+                  fullWidth
+                  size="small"
+                  labelId="cohort"
+                >
+                  <MenuItem value=""><em>all</em></MenuItem>
+                  <MenuItem value="1">1</MenuItem>
+                  <MenuItem value="2">2</MenuItem>
+                  <MenuItem value="3">3</MenuItem>
+                  <MenuItem value="4">4</MenuItem>
                 </Select>
               </Grid>
             </Grid>
