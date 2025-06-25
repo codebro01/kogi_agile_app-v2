@@ -209,38 +209,41 @@ const Sidebar = ({ isSidebar }) => {
             >
               
             </Typography>} */}
-            {/* 
-            {(!userPermissions.includes('handle_payments') || (userPermissions.includes('handle_students') && userPermissions.includes('handle_students'))  && (<Item
-              title={
-                (userPermissions.includes('handle_admins') && userPermissions.length > 3)
-                  ? 'Register Account' : 'Register Account'
-                 
-              }
-              to={userPermissions.includes('handle_registrars') ? '/admin-dashboard/role-selector' : '/enumerator-dashboard/create-student-school-selector'}
-              icon={<PeopleOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
-            />)} */}
+            {!userPermissions.includes('handle_payments') ||
+            (userPermissions.includes('handle_students') &&
+              userPermissions.includes('handle_admins')) ? (
+              <Item
+                title="Register Account"
+                to={
+                  userPermissions.includes('handle_registrars')
+                    ? '/admin-dashboard/role-selector'
+                    // : '/enumerator-dashboard/create-student-school-selector'
+                    : '/enumerator-dashboard'
+                }
+                icon={<PeopleOutlinedIcon />}
+                selected={selected}
+                setSelected={setSelected}
+              />
+            ) : null}
 
             {!userPermissions.includes('handle_payments') &&
               !(
                 userPermissions.includes('handle_students') &&
                 userPermissions.length === 2
               ) &&
-              !userPermissions.length ===
-                1 && (
-                  <Item
-                    title="Register Account"
-                    to={
-                      userPermissions.includes('handle_registrars')
-                        ? '/admin-dashboard/role-selector'
-                        : '/enumerator-dashboard/create-student-preselect'
-                    }
-                    icon={<PeopleOutlinedIcon />}
-                    selected={selected}
-                    setSelected={setSelected}
-                  />
-                )}
+              !userPermissions.length === 1 && (
+                <Item
+                  title="Register Account"
+                  to={
+                    userPermissions.includes('handle_registrars')
+                      ? '/admin-dashboard/role-selector'
+                      : '/enumerator-dashboard/create-student-preselect'
+                  }
+                  icon={<PeopleOutlinedIcon />}
+                  selected={selected}
+                  setSelected={setSelected}
+                />
+              )}
 
             <Item
               title="Manage Students"
