@@ -177,7 +177,7 @@ router.get(
 router.patch(
   '/promote/single/student',
   authMiddleware,
-  authorizePermission('handle_admins'),
+  authorizePermission(['handle_admins', 'handle_registrars']),
   promoteSingleStudent
 )
 router.patch(
@@ -189,13 +189,13 @@ router.patch(
 router.patch(
   '/promote/plenty/students',
   authMiddleware,
-  authorizePermission('handle_admins'),
+  authorizePermission(['handle_admins', 'handle_registrars']),
   promotePlentyStudents
 )
 router.patch(
   '/demote/plenty/students',
   authMiddleware,
-  authorizePermission('handle_admins'),
+  authorizePermission(['handle_admins', 'handle_registrars']),
   demotePlentyStudents
 )
 export default router

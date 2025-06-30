@@ -560,7 +560,7 @@ export const AdminViewAllStudentsDataNoExport = () => {
       sortable: true,
     },
 
-    userPermissions.includes('handle_admins') && {
+    userPermissions.includes('handle_admins', 'handle_registrars') && {
       name: 'Promote',
       cell: (row) => (
         <button
@@ -580,7 +580,7 @@ export const AdminViewAllStudentsDataNoExport = () => {
         </button>
       ),
     },
-    userPermissions.includes('handle_admins') && {
+    userPermissions.includes('handle_admins', 'handle_registrars') && {
       name: 'Demote',
       cell: (row) => (
         <button
@@ -934,7 +934,7 @@ export const AdminViewAllStudentsDataNoExport = () => {
           </Typography>
           {/* Promotion section */}
 
-          {userPermissions.includes('handle_admins') && (
+          {userPermissions.includes('handle_registrars') && (
             <Paper
               elevation={3}
               sx={{
