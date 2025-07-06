@@ -121,6 +121,20 @@ export const StudentIDFront = ({ student }) => {
               Kogi State Adolescent Girls Initiative for Learning and
               Empowerment
             </Typography>
+            <Typography
+              variant="h6"
+              sx={{
+                color: 'red !important',
+                fontWeight: '700',
+                marginLeft: '3px',
+                top: '65px',
+                '@media Print': {
+                  top: '3px',
+                },
+              }}
+            >
+              CCT ID CARD
+            </Typography>
             {/* <Typography variant="h1">KOGI AGILE</Typography> */}
           </Box>
         </Box>
@@ -176,23 +190,7 @@ export const StudentIDFront = ({ student }) => {
               },
             }}
           >
-            <Typography
-              variant="h6"
-              sx={{
-                color: 'red !important',
-                fontWeight: '700',
-                marginLeft: '53px',
-                position: 'absolute',
-                top: '65px',
-                '@media Print': {
-                  marginLeft: '74px',
-                  position: 'absolute',
-                  top: '85px',
-                },
-              }}
-            >
-              CCT ID CARD
-            </Typography>
+          
             <Box className="rows-info">
               <Typography variant="body1">
                 <strong>Student's ID: {student.randomId}</strong>
@@ -212,11 +210,14 @@ export const StudentIDFront = ({ student }) => {
               </strong>
             </Typography>
             <Box className="rows-info">
-              <Typography variant="body1" >
+              <Typography variant="body1">
                 <strong>Date of Birth: {student.dob.split('T')[0]}</strong>
               </Typography>
             </Box>
-            <Typography variant="body1" sx={{ textAlign: 'left', lineHeight: 0.9, mt: '5px'}}>
+            <Typography
+              variant="body1"
+              sx={{ textAlign: 'left', lineHeight: 0.9, mt: '5px' }}
+            >
               School: {student.schoolId.schoolName}
             </Typography>
 
@@ -247,7 +248,7 @@ export const StudentIDFront = ({ student }) => {
             </Typography> */}
           </Box>
           <Box
-            component = 'img'
+            component="img"
             className="passportOnId"
             src={student.passport}
             alt="Student"
@@ -264,7 +265,7 @@ export const StudentIDFront = ({ student }) => {
                 top: '70px',
                 width: '70px',
                 height: '80px',
-                borderRadius: 0
+                borderRadius: 0,
               },
             }}
           />
