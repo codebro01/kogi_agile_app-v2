@@ -1,0 +1,215 @@
+.attendance-container {
+    padding: 20px;
+}
+
+.attendance-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: auto;
+    font-size: 10px;
+    margin: 0 auto;
+    padding-left: 20px;
+    margin-top: 20px;
+}
+
+.title {
+    text-align: center;
+    font-weight: 800;
+    padding: 20px;
+    flex-basis: 100%;
+    width: 100%
+}
+
+.attendance-table th,
+.attendance-table td {
+    border: 1px solid #444;
+    /* padding: 6px 8px; */
+    text-align: center;
+    vertical-align: middle;
+    word-wrap: break-word;
+    width: 20px
+}
+
+.attendance-table th {
+    background-color: #f0f0f0;
+    font-weight: bold;
+}
+
+.attendance-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.name-col {
+    width: 250px;
+    min-width: 200px;
+    padding: 0;
+    text-align: left;
+    text-transform: uppercase;
+    font-weight: 700;
+    font-size: 9px;
+}
+
+.sn-name-wrapper {
+    display: flex;
+    border-left: 1px solid #444;
+    border-left: none;
+    /* table already gives that */
+    border-right: none;
+    height: 100%;
+
+}
+
+.sn-cell {
+    width: 40px;
+    text-align: left;
+    padding-left: 6px;
+    border-right: 1px solid #444;
+    font-weight: bold;
+    background-color: #f9f9f9;
+}
+
+.name-cell {
+    flex-grow: 1;
+    padding-left: 5px;
+
+    text-align: left;
+}
+
+.p-total,
+.x-total {
+    width: 40px;
+}
+
+.printable-area .attendanceSheetHeader {
+    position: running(topLeft);
+}
+
+@page {
+    @top-left {
+        content: element(topLeft);
+    }
+}
+
+
+
+
+
+
+@media print {
+    @page {
+        size: A4 landscape;
+        margin: 12mm;
+        margin-left: 10mm;
+        counter-increment: page;
+    }
+
+
+
+    body {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        font-size: 11px;
+    }
+
+
+    .page-break {
+        page-break-after: always;
+    }
+
+    .title {
+        margin-top: 0;
+    }
+
+    /* .print-header,
+    .print-footer {
+        display: block;
+        position: fixed;
+        left: 0;
+        right: 0;
+        width: 100%;
+    }
+
+    .print-header {
+        top: 0;
+    }
+
+    .print-footer {
+        bottom: 0;
+        margin-top: 5px;
+    } */
+
+    #form {
+        display: none
+    }
+
+    .p-total,
+    .x-total {
+        width: 35px !important;
+    }
+
+    button {
+        display: none;
+        /* Hide the Print button itself */
+    }
+
+    #button {
+        display: none;
+        /* Hide the Print button itself */
+    }
+
+    .attendance-table-container {
+
+            /* Applied to all pages */
+            margin-bottom: 30mm;
+    }
+
+    .attendance-table {
+        width: 270mm;
+        border-collapse: collapse;
+        table-layout: auto;
+        height: 100%;
+        font-size: 11px;
+ 
+    }
+
+    .attendance-table th,
+    .attendance-table td {
+        border: 1px solid #000;
+        padding: 0.3px;
+        text-align: center;
+    }
+
+    .name-col {
+        text-align: left;
+    }
+
+    .sn-name-wrapper {
+        display: flex;
+        height: 100%;
+    }
+
+    .sn-cell {
+        width: 30px;
+        padding-left: 4px;
+        border-right: 1px solid #000;
+    }
+
+    .name-cell {
+        padding-left: 8px;
+        flex-grow: 1;
+    }
+
+    /* Optional: break table across pages if it gets too tall */
+    .attendance-table {
+        page-break-after: always;
+    }
+
+    .attendance-table tr {
+        page-break-inside: avoid;
+        page-break-after: auto;
+    }
+}
+
+.tbody-instructions>tr>td {
+    padding: 3px;
+}

@@ -50,11 +50,9 @@ export const StudentIDFront = ({ student }) => {
             padding: 0,
             margin: 0,
             width: '250px',
-            marginBottom: '15px',
             gap: '5px',
             '@media Print': {
               width: '250px',
-              marginBottom: '9px',
             },
           }}
         >

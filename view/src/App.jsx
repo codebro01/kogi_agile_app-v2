@@ -44,6 +44,7 @@ import { UpdateBankAccountInfo } from "./scenes/manage-accounts/updateBankAccoun
 import { UpdateSchool } from "./scenes/manage-accounts/updateSchool.jsx";
 // import { FormComponent } from "./components/FormComponent.jsx";
 import { EditManyStudents } from "./scenes/manage-accounts/EditManyStudents.jsx";
+import { AttendanceSheet } from "./scenes/manage-accounts/attendanceSheet.jsx";
 
 
 function App() {
@@ -138,7 +139,7 @@ function App() {
                         />
                         <Route
                           path="/admin-dashboard/admin-export-attendance-sheet"
-                          element={<ExportAttendanceSheet />}
+                          element={<AttendanceSheet />}
                         />
                         <Route
                           path="/admin-dashboard/admin-view-attendance"
