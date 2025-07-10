@@ -7,9 +7,10 @@ import React, {
   useRef,
 } from 'react'
 import axios from 'axios'
-import {Previewer} from 'pagedjs'
+import { Previewer } from 'pagedjs'
 import { resolvePath, useNavigate } from 'react-router-dom'
 import EditIcon from '@mui/icons-material/Edit'
+import chunk from 'lodash.chunk'
 import { tokens } from '../../theme'
 // import { PersonLoader } from '../../components/personLoader'
 import { getNigeriaStates } from 'geo-ng'
@@ -369,13 +370,18 @@ export const AttendanceSheet = ({
         filteredParams,
         sortParam,
         page: currentPage,
-        limit: 500,
+        limit: 1000,
       })
     )
   }
 
   const handlePrint = () => {
-    console.log('handle print')
+    const previewer = new Previewer()
+
+    previewer.preview(contentRef.current).then(() => {
+      // trigger native print after paged.js renders it
+      window.print()
+    })
   }
 
   const handleChecked = () => {
@@ -919,6 +925,20 @@ export const AttendanceSheet = ({
 
   const days = getMonthDaysWithWeekdays(filters.year, filters.month) // July 2025 → month = 6
   console.log(filters)
+
+  const studentsSorted = [...studentsData].sort((a, b) => {
+    const fullNameA = `${a.surname ?? ''} ${a.firstname ?? ''} ${
+      a.middlename ?? ''
+    }`.toLowerCase()
+    const fullNameB = `${b.surname ?? ''} ${b.firstname ?? ''} ${
+      b.middlename ?? ''
+    }`.toLowerCase()
+    return fullNameA.localeCompare(fullNameB)
+  })
+
+  const chunkStudentsData = chunk(studentsSorted, 25)
+
+  console.log(chunkStudentsData)
   return (
     <Box
       className="attendance-container"
@@ -1090,14 +1110,26 @@ export const AttendanceSheet = ({
         {filterError && <Typography>{filterError}</Typography>}
       </Box>
       {studentsData.length !== 0 && filters.month && filters.year ? (
-        <Box
-          component={'paper'}
-          mt={5}
-          ref={contentRef}
-          className="printable-area"
-        >
+        <Box component={'paper'} mt={5} ref={contentRef}>
           <Box
-            className="attendanceSheetHeader print-header"
+            sx={{
+              display: 'flex',
+              width: '100%',
+              justifyContent: 'flex-end',
+              marginTop: '20px',
+            }}
+          >
+            <Button
+              variant="contained"
+              id="button"
+              onClick={() => reactToPrintFn()}
+            >
+              Print Attendance Sheet
+            </Button>
+          </Box>
+          <Box
+            className="attendanceSheetHeader print-header print-header-view"
+            data-running="pageHeader"
             sx={{
               display: 'flex',
               alignItems: 'center',
@@ -1244,128 +1276,390 @@ export const AttendanceSheet = ({
               </Grid>
             </Box>
           </Box>
-          <Box
-            sx={{
-              display: 'flex',
-              width: '100%',
-              justifyContent: 'flex-end',
-              marginTop: '20px',
-            }}
-          >
-            <Button
-              variant="contained"
-              id="button"
-              onClick={() => reactToPrintFn()}
-            >
-              Print Attendance Sheet
-            </Button>
-          </Box>
-          <Box
-            className="attendance-table-container"
-            sx={{
-              '@media Print': {
-                // height: '150mm',
-              },
-            }}
-          >
-            <table className="attendance-table">
-              <thead>
-                <tr>
-                  {/* <th>S/N</th> */}
-                  <th className="name-col">Student Name</th>
-                  {days.map((day, idx) => (
-                    <th key={idx}>
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                        }}
-                      >
-                        <span
+
+          {chunkStudentsData.map((studentsGroup, pageIndex) => {
+            return (
+              <Box className="printable-area" key={pageIndex + 1}>
+                <Box
+                  className="attendanceSheetHeader print-header print-header-print"
+                  data-running="pageHeader"
+                  sx={{
+                    alignItems: 'center',
+                    //   gap: '50px',
+                    justifyContent: 'space-around',
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    fontSize: '10px',
+                    flexWrap: 'wrap',
+
+                    '& .borderedItem': {
+                      border: '2px solid black',
+                      display: 'block',
+                      padding: '5px',
+                      // width: '100%',
+                    },
+                    '& > .MuiBox-root > .MuiBox-root': {
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'flex-start',
+                      gap: '10px',
+                      width: '100%',
+                    },
+                    '& > .MuiBox-root': {
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      justifyContent: 'center',
+                      flexDirection: 'column',
+                      width: '100%',
+                      gap: '3px',
+                    },
+                  }}
+                >
+                  <Typography
+                    variant="h3"
+                    className="title"
+                    sx={{
+                      flexBasis: '100%',
+                      width: '100%',
+                    }}
+                  >
+                    KOGI AGILE OFFLINE STUDENTS' ATTENDANCE REGISTER FOR MIS/CCT
+                  </Typography>
+                  <Box
+                    sx={{
+                      flexBasis: '37%',
+                    }}
+                  >
+                    <Grid
+                      container
+                      sx={{
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <Grid item xs={3}>
+                        School Name:
+                      </Grid>{' '}
+                      <Grid item xs={9} className="borderedItem">
+                        {studentsData[0]?.schoolId?.schoolName}
+                      </Grid>
+                    </Grid>
+                    <Grid
+                      container
+                      sx={{
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <Grid item xs={3}>
+                        School Code:
+                      </Grid>{' '}
+                      <Grid item xs={9} className="borderedItem">
+                        {studentsData[0]?.schoolId?.schoolCode}
+                      </Grid>
+                    </Grid>
+                  </Box>
+                  <Box
+                    sx={{
+                      flexBasis: '20%',
+                    }}
+                  >
+                    <Grid
+                      container
+                      sx={{
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <Grid item xs={2}>
+                        time:
+                      </Grid>{' '}
+                      <Grid item xs={10} className="borderedItem">
+                        {new Date(filters.time).toLocaleString()}
+                      </Grid>
+                    </Grid>
+                    <Grid
+                      container
+                      sx={{
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <Grid item xs={2}>
+                        lga:
+                      </Grid>{' '}
+                      <Grid item xs={10} className="borderedItem">
+                        {studentsData[0]?.schoolId?.LGA}
+                      </Grid>
+                    </Grid>
+                  </Box>
+                  <Box
+                    sx={{
+                      flexBasis: '20%',
+                    }}
+                  >
+                    <Grid
+                      container
+                      sx={{
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <Grid item xs={3}>
+                        month:
+                      </Grid>{' '}
+                      <Grid item xs={9} className="borderedItem">
+                        {
+                          Months.find((month) => month.id === filters.month)
+                            ?.name
+                        }
+                      </Grid>
+                    </Grid>
+                    <Grid
+                      container
+                      sx={{
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <Grid item xs={3}>
+                        year:
+                      </Grid>{' '}
+                      <Grid item xs={9} className="borderedItem">
+                        {filters.year}
+                      </Grid>
+                    </Grid>
+                  </Box>
+                </Box>
+                <Box
+                  className="attendance-table-container"
+                  sx={{
+                    '@media Print': {
+                      // height: '150mm',
+                    },
+                  }}
+                >
+                  <table className="attendance-table">
+                    <thead>
+                      <tr>
+                        {/* <th>S/N</th> */}
+                        <th className="name-col">Student Name</th>
+                        {days.map((day, idx) => (
+                          <th key={idx}>
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                              }}
+                            >
+                              <span
+                                style={{
+                                  background: '#000',
+                                  color: '#fff',
+                                }}
+                              >
+                                {day.weekday}
+                              </span>
+                              <span>{day.day}</span>
+                            </Box>
+                          </th>
+                        ))}
+                        <th>
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              flexDirection: 'column',
+                              width: '100%',
+                              justifyContent: 'center',
+                            }}
+                            className={'p-total'}
+                          >
+                            <span>P</span>
+                            <span>Total</span>
+                          </Box>
+                        </th>
+                        <th>
+                          <div
+                            style={{
+                              display: 'flex',
+                              flexDirection: 'column',
+                              width: '100%',
+                              justifyContent: 'center',
+                            }}
+                            className={'x-total'}
+                          >
+                            <span>X</span>
+                            <span>Total</span>
+                          </div>
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {studentsGroup.map((student, index) => {
+                        const sn = String(pageIndex * 25 + index + 1).padStart(
+                          3,
+                          '0'
+                        )
+
+                        return (
+                          <>
+                            <tr key={index}>
+                              <td className="name-col">
+                                <div className="sn-name-wrapper">
+                                  <span className="sn-cell">{sn}</span>
+                                  <span className="name-cell">
+                                    {student.surname} {student.firstname}{' '}
+                                    {student.middlename}
+                                  </span>
+                                </div>
+                              </td>
+                              {days.map((day, i) => (
+                                <td key={i}>
+                                  {/* <input type="checkbox" /> */}
+                                </td>
+                              ))}
+                              <td className="p-total"></td>
+                              <td className="x-total"></td>
+                            </tr>
+                          </>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </Box>
+                <Box
+                  className="print-footer print-footer-print"
+                  sx={{
+                    justifyContent: 'space-around',
+                    alignItems: 'flex-start',
+                    flexWrap: 'wrap',
+                    gap: '5px',
+                    marginTop: '10px',
+                  }}
+                >
+                  <table
+                    border={1}
+                    style={{
+                      borderCollapse: 'collapse',
+                      textAlign: 'center',
+                      flexBasis: '30%',
+                      fontSize: '9px',
+                    }}
+                  >
+                    <tbody style={{ fontWeight: 'bold' }}>
+                      <tr>
+                        <td
+                          rowSpan="2"
                           style={{
-                            background: '#000',
-                            color: '#fff',
+                            fontWeight: 'bold',
+                            padding: '8px',
+                            borderRight: '1px solid black',
+                            verticalAlign: 'middle',
+                            borderBottom: 'none', // removes bottom border from merged cell
                           }}
                         >
-                          {day.weekday}
-                        </span>
-                        <span>{day.day}</span>
-                      </Box>
-                    </th>
-                  ))}
-                  <th>
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        width: '100%',
-                        justifyContent: 'center',
-                      }}
-                      className={'p-total'}
-                    >
-                      <span>P</span>
-                      <span>Total</span>
-                    </Box>
-                  </th>
-                  <th>
-                    <div
-                      style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        width: '100%',
-                        justifyContent: 'center',
-                      }}
-                      className={'x-total'}
-                    >
-                      <span>X</span>
-                      <span>Total</span>
-                    </div>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {[...studentsData]
-                  .sort((a, b) => {
-                    const fullNameA = `${a.surname ?? ''} ${
-                      a.firstname ?? ''
-                    } ${a.middlename ?? ''}`.toLowerCase()
-                    const fullNameB = `${b.surname ?? ''} ${
-                      b.firstname ?? ''
-                    } ${b.middlename ?? ''}`.toLowerCase()
-                    return fullNameA.localeCompare(fullNameB)
-                  })
-                  .map((student, index) => (
-                    <>
-                      <tr key={index}>
-                        <td className="name-col">
-                          <div className="sn-name-wrapper">
-                            <span className="sn-cell">0{index + 1}</span>
-                            <span className="name-cell">
-                              {student.surname} {student.firstname}{' '}
-                              {student.middlename}
-                            </span>
-                          </div>
+                          LEGEND
                         </td>
-                        {days.map((day, i) => (
-                          <td key={i}>{/* <input type="checkbox" /> */}</td>
-                        ))}
-                        <td className="p-total"></td>
-                        <td className="x-total"></td>
+                        <td>P</td>
+                        <td>=</td>
+                        <td>Present</td>
+                        <td>
+                          <CheckIcon />
+                        </td>
                       </tr>
-                    </>
-                  ))}
-              </tbody>
-            </table>
-          </Box>
+                      <tr>
+                        <td>X</td>
+                        <td>=</td>
+                        <td>Absent</td>
+                        <td>
+                          <CloseIcon />
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <table
+                    border={1}
+                    style={{
+                      borderCollapse: 'collapse',
+                      textAlign: 'left',
+                      flexBasis: '58%',
+                      fontSize: '9px',
+                      padding: 0,
+                      marging: 0,
+                    }}
+                  >
+                    <tbody
+                      style={{ fontWeight: 'bold' }}
+                      className="tbody-instructions"
+                    >
+                      <tr style={{ fontWeight: 800, fontSize: '12px' }}>
+                        <td>ATTENDANCE TAKING INSTRUCTIONS</td>
+                      </tr>
+                      <tr>
+                        <td>
+                          {' '}
+                          1. Be present before the start of the school to
+                          observe the full attendance process
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          2. Cross-check names using the class attendance
+                          register provided by the teacher.
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          3. Mark ✔ for Present and mark X for Absent: Clearly
+                          indicate each student’s status against their name for
+                          the day.
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          4. Ensure that only red pen is used for marking.
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          {' '}
+                          5. Take a snapshot of the main school attendance
+                          register for onward transmission to the Compliance
+                          Specialist.
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      width: '70%',
+                      '& .MuiTypography-body1': {
+                        fontWeight: 700,
+                        fontSize: '10px',
+                      },
+                    }}
+                  >
+                    <Typography>CONSULTANT: ERICLAFIA LIMITED</Typography>
+                    {/* <Typography>ENUMERATOR NAME</Typography> */}
+                    <Typography>PHONE:</Typography>
+                    <Typography>SIGN: </Typography>
+                  </Box>
+                </Box>
+              </Box>
+            )
+          })}
           <Box
-            className="print-footer"
+            className="print-footer print-footer-view"
             sx={{
               display: 'flex',
               justifyContent: 'space-around',
               alignItems: 'flex-start',
               flexWrap: 'wrap',
-              gap: '10px',
-              marginTop: '20px',
+              gap: '5px',
+              marginTop: '10px',
             }}
           >
             <table
