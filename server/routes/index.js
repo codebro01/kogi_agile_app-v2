@@ -6,5 +6,16 @@ import allSchoolsRouter from './getSchoolsRouter.js'
 import wards from './getAllWardsRouter.js'
 import paymentRouter from './paymentRouter.js';
 import schoolsRouter from './schoolsRouter.js';
+import attendanceRouter from './attendanceRouter.js';
 
-export {schoolsRouter, adminAuthRouter, registrarAuthRouter, studentsRouter, allSchoolsRouter, wards, payrollSpecialistRouter, paymentRouter};
+export {
+  schoolsRouter,
+  adminAuthRouter,
+  registrarAuthRouter,
+  studentsRouter,
+  allSchoolsRouter,
+  wards,
+  payrollSpecialistRouter,
+  paymentRouter,
+  attendanceRouter,
+}

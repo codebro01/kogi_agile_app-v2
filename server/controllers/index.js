@@ -30,6 +30,10 @@ import { getSinglePayrollSpecialist, togglePayrollSpecialistStatus, getAllPayrol
 import { enumeratorsByyHighestRegisteredStudents, lgasByHighestRegisteredStudents } from "./adminUniqueQueriesController.js";
 import { getTotalAmountPaid, getTotalStudentsPaidMonthly, getLGAWithTotalPayments, viewPayments, getPaymentsByLGA, getTotalStudentPaid } from "./paymentController.js";
 import { updateSchool, createSchool, deleteSchool, getAllSchools, getSingleSchool } from "./schoolController.js";
+import {
+  createOrUpdateAttendance,
+  getAttendanceTable,
+} from './attendanceController.js'
 
 
 export {
@@ -93,4 +97,6 @@ export {
   adminDeleteAttendances,
   updateStudentsBankAccountDetails,
   EditManyStudents,
+  createOrUpdateAttendance,
+  getAttendanceTable,
 }

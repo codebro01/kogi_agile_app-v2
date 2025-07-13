@@ -217,8 +217,8 @@ const Sidebar = ({ isSidebar }) => {
                 to={
                   userPermissions.includes('handle_registrars')
                     ? '/admin-dashboard/role-selector'
-                    // : '/enumerator-dashboard/create-student-school-selector'
-                    : '/enumerator-dashboard'
+                    : // : '/enumerator-dashboard/create-student-school-selector'
+                      '/enumerator-dashboard'
                 }
                 icon={<PeopleOutlinedIcon />}
                 selected={selected}
@@ -340,7 +340,7 @@ const Sidebar = ({ isSidebar }) => {
                   title="Exp. Attendance record"
                   to={
                     userPermissions.includes('handle_registrars')
-                      ? '/admin-dashboard/admin-export-attendance'
+                      ? '/admin-dashboard/update-attendance-sheet'
                       : 'enumerator-dashboard/view-all-students-data'
                   }
                   icon={<NoteAddIcon />}
@@ -510,7 +510,7 @@ const Sidebar = ({ isSidebar }) => {
                     title="Exp. Attendance record"
                     to={
                       userPermissions.includes('handle_registrars')
-                        ? '/admin-dashboard/admin-export-attendance'
+                        ? '/admin-dashboard/update-attendance-sheet'
                         : 'enumerator-dashboard/view-all-students-data'
                     }
                     icon={<NoteAddIcon />}
@@ -583,6 +583,13 @@ const Sidebar = ({ isSidebar }) => {
                   <Item
                     title="Export Attendance"
                     to={'/export-attendance-sheet'}
+                    icon={<DescriptionIcon />}
+                    selected={selected}
+                    setSelected={setSelected}
+                  />
+                  <Item
+                    title="Export Attendance"
+                    to={'/payroll-specialist-dashboard/update-attendance-sheet'}
                     icon={<DescriptionIcon />}
                     selected={selected}
                     setSelected={setSelected}

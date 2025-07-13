@@ -45,6 +45,7 @@ import { UpdateSchool } from "./scenes/manage-accounts/updateSchool.jsx";
 // import { FormComponent } from "./components/FormComponent.jsx";
 import { EditManyStudents } from "./scenes/manage-accounts/EditManyStudents.jsx";
 import { AttendanceSheet } from "./scenes/manage-accounts/attendanceSheet.jsx";
+import { UpdateAttendanceSheet } from "./scenes/manage-accounts/updateAttendanceSheet.jsx";
 
 
 function App() {
@@ -140,6 +141,10 @@ function App() {
                         <Route
                           path="/admin-dashboard/admin-export-attendance-sheet"
                           element={<AttendanceSheet />}
+                        />
+                        <Route
+                          path="/admin-dashboard/update-attendance-sheet"
+                          element={<UpdateAttendanceSheet />}
                         />
                         <Route
                           path="/admin-dashboard/admin-view-attendance"
@@ -319,9 +324,17 @@ function App() {
                           path="/payroll-specialist-dashboard"
                           element={<Dashboard />}
                         />
-                        <Route
+                        {/* <Route
                           path="/export-attendance-sheet/"
                           element={<ExportAttendanceSheetPayroll />}
+                        /> */}
+                        <Route
+                          path="/export-attendance-sheet/"
+                          element={<AttendanceSheet />}
+                        />
+                        <Route
+                          path="/payroll-specialist-dashboard/update-attendance-sheet"
+                          element={<UpdateAttendanceSheet />}
                         />
                         <Route
                           path="/payroll-specialist-dashboard/view-students"

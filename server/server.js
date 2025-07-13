@@ -20,6 +20,7 @@ import {
   allSchoolsRouter,
   payrollSpecialistRouter,
   schoolsRouter,
+  attendanceRouter
 } from './routes/index.js'
 import {
   authMiddleware,
@@ -139,6 +140,7 @@ app.use('/api/v1/all-schools', allSchoolsRouter)
 app.use('/api/v1/schools', schoolsRouter)
 app.use('/api/v1/wards', wards)
 app.use('/api/v1/payments', paymentRouter)
+app.use('/api/v1/attendance', attendanceRouter)
 
 // app.get("*", (req, res) => {
 //     res.sendFile(path.join(__dirname, "client/build", "index.html"));

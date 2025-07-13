@@ -9,7 +9,21 @@ import { Attendance } from './attendanceSchema.js';
 import { Payment } from './paymentSchema.js';
 import { PayrollSpecialist } from "./payRollSpecialistSchema.js";
 import { AllSchools } from "./schoolsSchema.js";
+import { NewAttendance } from "./newAttendanceSchema.js";
 
 
 
-export {AllSchools, Attendance, Admin, Permissions, logSchema, Roles, Registrar, Student, KogiLga, Payment, PayrollSpecialist };
+export {
+  AllSchools,
+  Attendance,
+  Admin,
+  Permissions,
+  logSchema,
+  Roles,
+  Registrar,
+  Student,
+  KogiLga,
+  Payment,
+  PayrollSpecialist,
+  NewAttendance,
+}
