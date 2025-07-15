@@ -33,6 +33,7 @@ import { updateSchool, createSchool, deleteSchool, getAllSchools, getSingleSchoo
 import {
   createOrUpdateAttendance,
   getAttendanceTable,
+  downloadAttendanceRecordExcel,
 } from './attendanceController.js'
 
 
@@ -99,4 +100,5 @@ export {
   EditManyStudents,
   createOrUpdateAttendance,
   getAttendanceTable,
+  downloadAttendanceRecordExcel,
 }

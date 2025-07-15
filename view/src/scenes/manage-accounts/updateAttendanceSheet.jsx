@@ -174,6 +174,7 @@ export const UpdateAttendanceSheet = () => {
   const [page, setPage] = useState(1) // Kee
   const [presentPage, setPresentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
+  const [attendanceDownloading, setAttendanceDownloading] = useState(false) // Loading state for schools
 
   // const [fetchLoading, setFetchLoading] = useState(false)
 
@@ -403,6 +404,63 @@ export const UpdateAttendanceSheet = () => {
     }
   }
 
+  const downloadAttendanceRecordExcel = async () => {
+    try {
+      setAttendanceDownloading(true)
+      const token = localStorage.getItem('token') || ''
+      console.log(`${API_URL}/download-attendance-record`)
+      const res = await axios.get(
+        `${API_URL}/attendance/download-attendance-record`,
+        {
+          responseType: 'blob',
+          params: {
+            year: Number(filters.year),
+            month: Number(filters.month) + 1,
+            schoolId: filters.schoolId,
+            page,
+            limit: 5000,
+            presentClass: filters.presentClass,
+            middlewareOnly: true
+          },
+          withCredentials: true,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+
+      const blob = new Blob([res.data], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      })
+
+      setAttendanceDownloading(false)
+
+
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'attendance.xlsx'
+      a.click()
+      window.URL.revokeObjectURL(url)
+    } catch (err) {
+      setAttendanceDownloading(false)
+
+      console.error(err)
+      const timeout = setTimeout(
+        () =>
+          setSavingMessage(
+            err.res?.data ||
+              err.res?.data?.message ||
+              err.message ||
+              'Error saving attendance'
+          ),
+        5000
+      )
+      return () => clearTimeout(timeout) // cleanup
+    }
+  }
+  
+
   const handlePageChange = (event, value) => {
     // console.log(value)
     getAttendanceTable(null, value)
@@ -566,8 +624,8 @@ export const UpdateAttendanceSheet = () => {
           boxShadow: 2,
         }}
       >
-        <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-          Filter Students
+        <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+          Students Attendance Records
         </Typography>
         <Grid container spacing={2} alignItems="center">
           {/* Existing Fields */}
@@ -730,7 +788,7 @@ export const UpdateAttendanceSheet = () => {
             type="submit"
             variant="contained"
             size="large"
-            disabled={filters.schoolId === '' || loadingAttendance}
+            disabled={filters.schoolId === '' || loadingAttendance || attendanceDownloading}
             sx={{
               textTransform: 'none',
               width: '48%',
@@ -741,7 +799,7 @@ export const UpdateAttendanceSheet = () => {
               gap: '20px',
             }}
           >
-            Filter Students
+            Load Attendance
             {loadingAttendance && <CircularProgress size={20} />}
           </Button>
         </Box>
@@ -757,11 +815,18 @@ export const UpdateAttendanceSheet = () => {
             }}
           >
             <Button
+            sx = {{
+              display: "flex", 
+              alignItems: "center", 
+              gap: "20px"
+            }}
               variant="contained"
               id="button"
-              onClick={() => reactToPrintFn()}
+              disabled={attendanceDownloading}
+              onClick={downloadAttendanceRecordExcel}
             >
-              Print Attendance Sheet
+              Download Attendance Record
+              {attendanceDownloading && <CircularProgress size={20} />}
             </Button>
           </Box>
           <Box

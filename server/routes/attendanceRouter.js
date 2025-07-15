@@ -1,6 +1,7 @@
 import {
   createOrUpdateAttendance,
   getAttendanceTable,
+  downloadAttendanceRecordExcel,
 } from '../controllers/index.js'
 import express from 'express';
 
@@ -18,6 +19,13 @@ router.get(
   authMiddleware,
   authorizePermission(['handle_registrars', 'handle_payments']),
   getAttendanceTable
+)
+router.get(
+  '/download-attendance-record',
+  authMiddleware,
+  authorizePermission(['handle_registrars', 'handle_payments']),
+  getAttendanceTable,
+  downloadAttendanceRecordExcel
 )
 
 

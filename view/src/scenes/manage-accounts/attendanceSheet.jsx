@@ -965,8 +965,8 @@ export const AttendanceSheet = ({
           boxShadow: 2,
         }}
       >
-        <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-          Filter Students
+        <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+          Export Students Attendance Sheet
         </Typography>
         <Grid container spacing={2} alignItems="center">
           {/* Existing Fields */}
@@ -1136,7 +1136,7 @@ export const AttendanceSheet = ({
               gap: '20px',
             }}
           >
-            Filter Students
+            Load Attendance
             {studentsLoading && <CircularProgress size={20} />}
           </Button>
         </Box>
@@ -1444,13 +1444,17 @@ export const AttendanceSheet = ({
                       }}
                     >
                       <Grid item xs={3}>
-                        month:
+                        month/
+                        <br />
+                        Year:
                       </Grid>{' '}
                       <Grid item xs={9} className="borderedItem">
                         {
                           Months.find((month) => month.id === filters.month)
                             ?.name
                         }
+                        , &nbsp;
+                        {filters.year}
                       </Grid>
                     </Grid>
                     <Grid
@@ -1461,10 +1465,10 @@ export const AttendanceSheet = ({
                       }}
                     >
                       <Grid item xs={3}>
-                        year:
+                        Class:
                       </Grid>{' '}
                       <Grid item xs={9} className="borderedItem">
-                        {filters.year}
+                        {filters.presentClass || 'All classes'}
                       </Grid>
                     </Grid>
                   </Box>

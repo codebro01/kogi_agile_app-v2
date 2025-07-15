@@ -1,4 +1,8 @@
 import { Student, NewAttendance } from '../models/index.js'
+import * as XLSX from 'xlsx'
+import express from 'express'
+import fs from 'fs'
+import path from 'path'
 
 // ✅ Create NewAttendance
 // export const createAttendance = async (req, res) => {
@@ -75,7 +79,7 @@ export const createOrUpdateAttendance = async (req, res) => {
 
 // 🔍 Get NewAttendance by Month and School
 
-export const getAttendanceTable = async (req, res) => {
+export const getAttendanceTable = async (req, res, next) => {
   // console.log(req.query)
 
   let { schoolId, year, month, page = 1, limit = 25, presentClass } = req.query
@@ -85,11 +89,10 @@ export const getAttendanceTable = async (req, res) => {
     return res.status(400).json({ message: 'Missing schoolId, year, or month' })
   }
 
-  const basket = {};
+  const basket = {}
 
-  if(presentClass) basket.presentClass = presentClass
+  if (presentClass) basket.presentClass = presentClass
   if (schoolId) basket.schoolId = schoolId
-
 
   try {
     const skip = (page - 1) * limit
@@ -171,16 +174,38 @@ export const getAttendanceTable = async (req, res) => {
         })
       }
 
+      if (req.query.middlewareOnly === 'true') {
+        return {
+          randomId: student.randomId,
+          studentId: student._id,
+          firstname: student.firstname,
+          surname: student.surname,
+          middlename: student?.middlename || '',
+          attendance: dailyRecords,
+          presentClass: student.presentClass
+        }
+      }
+
       return {
         studentId: student._id,
         firstname: student.firstname,
         surname: student.surname,
-        middle: student?.middlename || '',
+        middlename: student?.middlename || '',
         attendance: dailyRecords,
       }
     })
 
-    return res.status(200).json({
+    // console.log(req.query.middlewareOnly === 'true')
+
+    if (req.query.middlewareOnly === 'true') {
+      // console.log('middleawate')
+      req.attandanceRecordTable = {
+        table,
+      }
+      return next()
+    }
+
+    res.status(200).json({
       message: 'NewAttendance table ready',
       table,
       currentPage: Number(page),
@@ -191,4 +216,108 @@ export const getAttendanceTable = async (req, res) => {
     console.error(err)
     return res.status(500).json({ message: 'Error building attendance table' })
   }
+}
+
+export const downloadAttendanceRecordExcel = async (req, res) => {
+  // Simulated attendance data from DB
+  const studentsAttendance = req.attandanceRecordTable.table
+  // Step 1: Get all unique dates
+  // const allDatesSet = new Set()
+  // studentsAttendance.forEach((student) => {
+  //   student.attendance.forEach((entry) => {
+  //     // console.log(entry)
+  //     const formattedDate = new Date(entry.date).toLocaleDateString('en-GB')
+  //     // Output: '04/07/2025'
+  //     // console.log(splitedDate)
+  //     allDatesSet.add(formattedDate)
+  //   })
+  // })
+
+  const allDatesSet = new Set()
+
+  studentsAttendance.forEach((student) => {
+    student.attendance.forEach((entry) => {
+      const dateObj = new Date(entry.date)
+      allDatesSet.add(dateObj.toISOString()) // toISOString ensures Set works properly
+    })
+  })
+
+  // Step 2: Convert to array and sort chronologically
+  const sortedDates = Array.from(allDatesSet)
+    .map((dateStr) => new Date(dateStr)) // back to Date objects
+    .sort((a, b) => a - b) // sort from earliest to latest
+
+  // Step 3: Format to dd/mm/yyyy
+  const formattedDates = sortedDates.map(
+    (date) => date.toLocaleDateString('en-GB') // '04/07/2025'
+  )
+
+  // console.log(allDatesSet)
+
+  const allDates = Array.from(formattedDates).sort()
+
+  // Step 2: Format data for worksheet
+  const worksheetData = []
+
+  // Add headers
+  const headers = [
+    'S/N',
+    'Student ID',
+    'Name',
+    'Present Class', 
+    ...allDates,
+    'P-total',
+    'X-total',
+  ]
+  worksheetData.push(headers)
+
+  // Add rows
+  studentsAttendance.forEach((student, index) => {
+    // console.log(student)
+
+    const totalPresent = student.attendance.filter(
+      (entry) => entry.present === true
+    ).length
+    const totalAbsent = student.attendance.filter(
+      (entry) => entry.present === false
+    ).length
+    const pTotal = totalPresent * 5
+    const xTotal = totalAbsent * 5
+
+    const fullName = `${student.surname} ${
+      student.firstname
+    } ${student.middlename.toUpperCase()}`
+    const row = [
+      index + 1,
+      student.randomId,
+      fullName,
+      student.presentClass, 
+      ...allDates.map((date) => {
+        const entry = student.attendance.find(
+          (t) => t.date.toLocaleDateString('en-GB') === date
+        )
+        return entry ? (entry.present ? 5 : 0) : ''
+      }),
+      pTotal,
+      xTotal,
+    ]
+    worksheetData.push(row)
+  })
+
+  // console.log(worksheetData)
+
+  // Step 3: Create worksheet and workbook
+  const worksheet = XLSX.utils.aoa_to_sheet(worksheetData)
+  const workbook = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Attendance')
+
+  // Step 4: Write to buffer and send file
+  const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' })
+
+  res.setHeader('Content-Disposition', 'attachment; filename=attendance.xlsx')
+  res.setHeader(
+    'Content-Type',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+  )
+  res.send(buffer)
 }
