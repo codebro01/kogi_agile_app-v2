@@ -1,7 +1,8 @@
 import React from "react";
+import { CircularProgress } from "@mui/material";
 
 export const SpinnerLoader = () => {
-  return <div style={{ ...styles.loader, animation: styles.animation }}></div>;
+  return <CircularProgress size = {30}/>;
 };
 
 const styles = {

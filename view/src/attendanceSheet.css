@@ -90,6 +90,14 @@
     display: none;
 }
 
+/* .printable-area {
+    display: none !important;
+} */
+
+.printable-area-update-students {
+    display: none !important;
+}
+
 
 
 
@@ -126,8 +134,17 @@
 
     .printable-area,
     .printable-area * {
-
+        /* display: block; */
         visibility: visible !important;
+    }
+        .printable-area-update-students,
+    .printable-area-update-students * {
+        display: block;
+        visibility: visible !important;
+    }
+
+    .not-printable-table {
+        display: none !important;
     }
 
     /* .printable-area {

@@ -76,18 +76,32 @@ export const createOrUpdateAttendance = async (req, res) => {
 // 🔍 Get NewAttendance by Month and School
 
 export const getAttendanceTable = async (req, res) => {
-  console.log(req.query)
+  // console.log(req.query)
 
-  let { schoolId, year, month } = req.query
+  let { schoolId, year, month, page = 1, limit = 25, presentClass } = req.query
   year = Number(year)
   month = Number(month) - 1
   if (!schoolId || !year || !month) {
     return res.status(400).json({ message: 'Missing schoolId, year, or month' })
   }
 
+  const basket = {};
+
+  if(presentClass) basket.presentClass = presentClass
+  if (schoolId) basket.schoolId = schoolId
+
+
   try {
+    const skip = (page - 1) * limit
+
     // 1. Get all students in this school
-    const students = await Student.find({ schoolId: schoolId })
+    const students = await Student.find(basket)
+      .collation({ locale: 'en', strength: 1 })
+      .sort({ surname: 1 })
+      .limit(limit)
+      .skip(skip)
+    const totalStudents = await Student.countDocuments({ schoolId })
+
     // console.log('students', students)
     // 2. Get all attendance records for those students in that month
     const startOfMonth = new Date(year, month, 1)
@@ -106,13 +120,13 @@ export const getAttendanceTable = async (req, res) => {
 
     // 3. Build response structure
     const daysInMonth = new Date(year, month + 1, 0).getDate() // e.g. 31
-    console.log(
-      startOfMonth.toLocaleString(),
-      endOfMonth.toLocaleString(),
-      daysInMonth,
-      month,
-      year
-    )
+    // console.log(
+    //   startOfMonth.toLocaleString(),
+    //   endOfMonth.toLocaleString(),
+    //   daysInMonth,
+    //   month,
+    //   year
+    // )
 
     const table = students.map((student) => {
       // Filter this student’s attendance records
@@ -121,20 +135,41 @@ export const getAttendanceTable = async (req, res) => {
         (a) => a.studentId.toString() === student._id.toString()
       )
 
-      const dailyRecords = Array.from({ length: daysInMonth }, (_, i) => {
-        const day = i + 1
-        const record = studentAttendance.find((r) => {
-          const getDay = r.date.getDate() // 1 - 31
+      // const dailyRecords = []
 
-          // console.log('getDay', getDay)
-          return getDay === day
+      // const dailyRecords = Array.from({ length: daysInMonth }, (_, i) => {
+      //   const day = i + 1
+      //   const record = studentAttendance.find((r) => {
+      //     const getDay = r.date.getDate() // 1 - 31
+
+      //     // console.log('getDay', getDay)
+      //     return getDay === day
+      //   })
+
+      //   return {
+      //     date: new Date(Date.UTC(year, month, day)),
+      //     present: record ? record.present : false, // false = not marked
+      //   }
+      // })
+
+      const dailyRecords = []
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dateObj = new Date(Date.UTC(year, month, day))
+        const dayOfWeek = dateObj.getUTCDay() // 0 = Sunday, 6 = Saturday
+
+        // Skip weekends
+        if (dayOfWeek === 0 || dayOfWeek === 6) continue
+
+        const record = studentAttendance.find((r) => {
+          return r.date.getUTCDate() === day && r.date.getUTCMonth() === month
         })
 
-        return {
-          date: new Date(Date.UTC(year, month, day)),
-          present: record ? record.present : false, // false = not marked
-        }
-      })
+        dailyRecords.push({
+          date: dateObj,
+          present: record ? record.present : false,
+        })
+      }
 
       return {
         studentId: student._id,
@@ -148,6 +183,9 @@ export const getAttendanceTable = async (req, res) => {
     return res.status(200).json({
       message: 'NewAttendance table ready',
       table,
+      currentPage: Number(page),
+      totalPages: Math.ceil(totalStudents / limit),
+      totalStudents: Number(totalStudents),
     })
   } catch (err) {
     console.error(err)

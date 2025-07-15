@@ -375,14 +375,14 @@ export const AttendanceSheet = ({
     )
   }
 
-  const handlePrint = () => {
-    const previewer = new Previewer()
+  // const handlePrint = () => {
+  //   const previewer = new Previewer()
 
-    previewer.preview(contentRef.current).then(() => {
-      // trigger native print after paged.js renders it
-      window.print()
-    })
-  }
+  //   previewer.preview(contentRef.current).then(() => {
+  //     // trigger native print after paged.js renders it
+  //     window.print()
+  //   })
+  // }
 
   const handleChecked = () => {
     setChecked((prev) => !prev)
@@ -405,22 +405,22 @@ export const AttendanceSheet = ({
     )
   }
 
-  if (schoolsLoading || studentsLoading) {
-    return (
-      <Box
-        sx={{
-          display: 'flex', // Corrected from 'dispflex'
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '50vh',
-          width: '90vw',
-        }}
-      >
-        <SpinnerLoader />
-      </Box>
-    )
-  }
+  // if (schoolsLoading || studentsLoading) {
+  //   return (
+  //     <Box
+  //       sx={{
+  //         display: 'flex', // Corrected from 'dispflex'
+  //         flexDirection: 'column',
+  //         justifyContent: 'center',
+  //         alignItems: 'center',
+  //         height: '50vh',
+  //         width: '90vw',
+  //       }}
+  //     >
+  //       <SpinnerLoader />
+  //     </Box>
+  //   )
+  // }
 
   if (schoolsError || studentsError) {
     return (
@@ -888,7 +888,7 @@ export const AttendanceSheet = ({
     }
   }
 
-  console.log(selectedStudents.length)
+  // console.log(selectedStudents.length)
 
   const handleEditManyStudents = () => {
     if (selectedStudents.length < 1) return
@@ -899,7 +899,7 @@ export const AttendanceSheet = ({
     })
   }
 
-  console.log('filters', filters)
+  // console.log('filters', filters)
 
   // ! Generated Days
 
@@ -907,24 +907,30 @@ export const AttendanceSheet = ({
     const days = []
     const date = new Date(year, month, 1) // month is 0-based (0 = Jan)
 
-    const dayNames = ['S', 'M', 'T', 'W', 'T', 'F', 'S'] // First letters
+    const dayNames = ['S', 'M', 'T', 'W', 'T', 'F', 'S'] // Just for reference
 
     while (date.getMonth() === month) {
-      const day = date.getDate()
-      const weekday = dayNames[date.getDay()]
-      days.push({
-        weekday: `${weekday}`,
-        day: `${day}`,
-        date: date.toISOString().split('T')[0],
-      })
-      date.setDate(day + 1)
+      const dayOfWeek = date.getDay() // 0 = Sunday, 6 = Saturday
+
+      // Skip weekends
+      if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+        const day = date.getDate()
+        const weekday = dayNames[dayOfWeek]
+        days.push({
+          weekday: `${weekday}`,
+          day: `${day}`,
+          date: date.toISOString().split('T')[0],
+        })
+      }
+
+      date.setDate(date.getDate() + 1) // move to next day
     }
 
     return days
   }
 
   const days = getMonthDaysWithWeekdays(filters.year, filters.month) // July 2025 → month = 6
-  console.log(filters)
+  // console.log(filters)
 
   const studentsSorted = [...studentsData].sort((a, b) => {
     const fullNameA = `${a.surname ?? ''} ${a.firstname ?? ''} ${
@@ -938,7 +944,7 @@ export const AttendanceSheet = ({
 
   const chunkStudentsData = chunk(studentsSorted, 25)
 
-  console.log(chunkStudentsData)
+  // console.log('chunkStudentsData', chunkStudentsData)
   return (
     <Box
       className="attendance-container"
@@ -1028,9 +1034,32 @@ export const AttendanceSheet = ({
                 color="textSecondary"
                 sx={{ textAlign: 'center', marginTop: 2 }}
               >
-                No schools available
+                <CircularProgress size={20} />
               </Typography>
             )}
+          </Grid>
+          <Grid item xs={12} sm={6} md={4}>
+            <InputLabel id="class-label" sx={{ marginBottom: 1 }}>
+              Present Class
+            </InputLabel>
+            <Select
+              name="presentClass"
+              value={filters.presentClass}
+              onChange={handleInputChange}
+              displayEmpty
+              fullWidth
+              size="small"
+              labelId="class-label"
+            >
+              <MenuItem value="">
+                <em>All Class</em>
+              </MenuItem>
+              {classOptions?.map((option) => (
+                <MenuItem key={option.id} value={option.class}>
+                  {option.class}
+                </MenuItem>
+              ))}
+            </Select>
           </Grid>
 
           <Grid item xs={12} sm={6} md={4}>
@@ -1096,14 +1125,19 @@ export const AttendanceSheet = ({
             type="submit"
             variant="contained"
             size="large"
-            disabled={filters.schoolId === ''}
+            disabled={filters.schoolId === '' || studentsLoading}
             sx={{
               textTransform: 'none',
               width: '48%',
               color: '#fff',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              gap: '20px',
             }}
           >
             Filter Students
+            {studentsLoading && <CircularProgress size={20} />}
           </Button>
         </Box>
 
@@ -1254,10 +1288,14 @@ export const AttendanceSheet = ({
                 }}
               >
                 <Grid item xs={3}>
-                  month:
+                  month/
+                  <br />
+                  Year:
                 </Grid>{' '}
                 <Grid item xs={9} className="borderedItem">
-                  {Months.find((month) => month.id === filters.month)?.name}
+                  {Months.find((month) => month.id === filters.month)?.name},
+                  &nbsp;
+                  {filters.year}
                 </Grid>
               </Grid>
               <Grid
@@ -1268,10 +1306,10 @@ export const AttendanceSheet = ({
                 }}
               >
                 <Grid item xs={3}>
-                  year:
+                  Class:
                 </Grid>{' '}
                 <Grid item xs={9} className="borderedItem">
-                  {filters.year}
+                  {filters.presentClass || 'All classes'}
                 </Grid>
               </Grid>
             </Box>
