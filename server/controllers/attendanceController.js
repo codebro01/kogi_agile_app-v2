@@ -85,7 +85,7 @@ export const getAttendanceTable = async (req, res, next) => {
   let { schoolId, year, month, page = 1, limit = 25, presentClass } = req.query
   year = Number(year)
   month = Number(month) - 1
-  if (!schoolId || !year || !month) {
+  if (!schoolId || !year || !month === null ) {
     return res.status(400).json({ message: 'Missing schoolId, year, or month' })
   }
 
