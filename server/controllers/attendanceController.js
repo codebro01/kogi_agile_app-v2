@@ -1,4 +1,4 @@
-import { Student, NewAttendance } from '../models/index.js'
+import { Student, NewAttendance, AllSchools } from '../models/index.js'
 import * as XLSX from 'xlsx'
 import express from 'express'
 import fs from 'fs'
@@ -81,7 +81,7 @@ export const createOrUpdateAttendance = async (req, res) => {
 
 export const getAttendanceTable = async (req, res, next) => {
   // console.log(req.query)
-
+  // console.log(req.query);
   let { schoolId, year, month, page = 1, limit = 25, presentClass } = req.query
   year = Number(year)
   month = Number(month) - 1
@@ -182,7 +182,7 @@ export const getAttendanceTable = async (req, res, next) => {
           surname: student.surname,
           middlename: student?.middlename || '',
           attendance: dailyRecords,
-          presentClass: student.presentClass
+          presentClass: student.presentClass,
         }
       }
 
@@ -196,11 +196,14 @@ export const getAttendanceTable = async (req, res, next) => {
     })
 
     // console.log(req.query.middlewareOnly === 'true')
-
+    
     if (req.query.middlewareOnly === 'true') {
+      const school = await AllSchools.findOne({ _id: schoolId });
+
       // console.log('middleawate')
       req.attandanceRecordTable = {
         table,
+        school:school.schoolName,
       }
       return next()
     }
@@ -221,6 +224,7 @@ export const getAttendanceTable = async (req, res, next) => {
 export const downloadAttendanceRecordExcel = async (req, res) => {
   // Simulated attendance data from DB
   const studentsAttendance = req.attandanceRecordTable.table
+  const schoolName = req.attandanceRecordTable.school
   // Step 1: Get all unique dates
   // const allDatesSet = new Set()
   // studentsAttendance.forEach((student) => {
@@ -264,11 +268,13 @@ export const downloadAttendanceRecordExcel = async (req, res) => {
     'S/N',
     'Student ID',
     'Name',
-    'Present Class', 
+    'Present Class',
     ...allDates,
     'P-total',
     'X-total',
   ]
+
+  worksheetData.push([schoolName])
   worksheetData.push(headers)
 
   // Add rows
@@ -291,7 +297,7 @@ export const downloadAttendanceRecordExcel = async (req, res) => {
       index + 1,
       student.randomId,
       fullName,
-      student.presentClass, 
+      student.presentClass,
       ...allDates.map((date) => {
         const entry = student.attendance.find(
           (t) => t.date.toLocaleDateString('en-GB') === date

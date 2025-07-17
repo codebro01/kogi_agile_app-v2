@@ -3,10 +3,13 @@ import {
   getAttendanceTable,
   downloadAttendanceRecordExcel,
 } from '../controllers/index.js'
-import express from 'express';
+import express from 'express'
 
-import { authorizePermission, authMiddleware } from '../middlewares/authenticationMiddleware.js';
-const router = express.Router();
+import {
+  authorizePermission,
+  authMiddleware,
+} from '../middlewares/authenticationMiddleware.js'
+const router = express.Router()
 
 router.post(
   '/',
@@ -28,6 +31,4 @@ router.get(
   downloadAttendanceRecordExcel
 )
 
-
-
-export default router;
+export default router

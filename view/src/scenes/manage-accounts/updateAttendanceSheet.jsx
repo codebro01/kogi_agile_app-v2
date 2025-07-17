@@ -20,6 +20,7 @@ import CloseIcon from '@mui/icons-material/Close'
 import CheckIcon from '@mui/icons-material/Check'
 import { useSelector, useDispatch } from 'react-redux'
 import { useReactToPrint } from 'react-to-print'
+import { fetchDashboardStat } from '../../components/dashboardStatsSlice'
 
 import {
   //   deleteStudent,
@@ -76,6 +77,8 @@ export const UpdateAttendanceSheet = () => {
   //   const [perPage, setPerPage] = useState(100) // Number of students per page
   const navigate = useNavigate()
   const dispatch = useDispatch()
+  const dashboardStatState = useSelector((state) => state.dashboardStat)
+
   const schoolsState = useSelector((state) => state.schools)
   const studentsState = useSelector((state) => state.students)
   const {
@@ -83,6 +86,12 @@ export const UpdateAttendanceSheet = () => {
     loading: schoolsLoading,
     error: schoolsError,
   } = schoolsState
+
+  const {
+    data: dashboardData,
+    loading: dashboardStatLoading,
+    error: dashboardStatError,
+  } = dashboardStatState
 
   const contentRef = useRef(null)
   const reactToPrintFn = useReactToPrint({ contentRef })
@@ -146,6 +155,10 @@ export const UpdateAttendanceSheet = () => {
 
   useEffect(() => {
     dispatch(fetchSchools({ schoolType: '', lgaOfEnrollment: '' }))
+  }, [dispatch])
+
+  useEffect(() => {
+    dispatch(fetchDashboardStat())
   }, [dispatch])
 
   //   useEffect(() => {
@@ -241,7 +254,6 @@ export const UpdateAttendanceSheet = () => {
       sortBy: '',
       lga: '',
       schoolId: '',
-    
     })
     // setStudentsData(studentsData);
   }
@@ -385,20 +397,15 @@ export const UpdateAttendanceSheet = () => {
 
       console.error(err)
       console.error(
-        '❌ Error saving attendance:',
-        err.response?.data || err.message
+       err
       )
-      const timeout = setTimeout(
-        () =>
-          setSavingMessage(
-            err.response?.data ||
-              err.response?.data?.message ||
-              err.message ||
-              'Error saving attendance'
-          ),
-        5000
+      setSavingMessage(
+    
+          err.response?.data?.message ||
+          err.message ||
+          'Error saving attendance'
       )
-      return () => clearTimeout(timeout) // cleanup
+      setTimeout(() => setSavingMessage(''), 5000)
 
       // Optional: show error toast or retry logic
     }
@@ -420,7 +427,7 @@ export const UpdateAttendanceSheet = () => {
             page,
             limit: 5000,
             presentClass: filters.presentClass,
-            middlewareOnly: true
+            middlewareOnly: true,
           },
           withCredentials: true,
           headers: {
@@ -434,7 +441,6 @@ export const UpdateAttendanceSheet = () => {
       })
 
       setAttendanceDownloading(false)
-
 
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
@@ -459,7 +465,6 @@ export const UpdateAttendanceSheet = () => {
       return () => clearTimeout(timeout) // cleanup
     }
   }
-  
 
   const handlePageChange = (event, value) => {
     // console.log(value)
@@ -555,7 +560,6 @@ export const UpdateAttendanceSheet = () => {
     })
   }, [chunkStudentsDataNoPrint, presentPage, handleChecked])
 
- 
   if (schoolsError || studentsError) {
     return (
       <div>
@@ -595,6 +599,8 @@ export const UpdateAttendanceSheet = () => {
   }
 
   const days = getMonthDaysWithWeekdays(filters.year, filters.month) // July 2025 → month = 6
+  const uniqueSchools =
+    dashboardData?.results?.[0]?.distinctSchoolsDetails || []
   // console.log(filters)
 
   // console.log('students data', studentsData)
@@ -602,6 +608,8 @@ export const UpdateAttendanceSheet = () => {
   // console.log(chunkStudentsData)
 
   // console.log('studentsData', studentsData)
+
+  console.log(uniqueSchools)
 
   //   ! DOM
   return (
@@ -634,7 +642,7 @@ export const UpdateAttendanceSheet = () => {
             <InputLabel id="lga-label" sx={{ marginBottom: 1 }}>
               All Schools
             </InputLabel>
-            {schoolOptions.length > 0 ? (
+            {uniqueSchools.length > 0 ? (
               <Autocomplete
                 sx={{
                   width: '100%',
@@ -646,23 +654,23 @@ export const UpdateAttendanceSheet = () => {
                 }}
                 id="school-select"
                 value={
-                  schoolOptions.find(
-                    (option) => option._id === filters.schoolId
+                  uniqueSchools.find(
+                    (option) => option.schoolId === filters.schoolId
                   ) || null
                 }
                 onChange={(event, newValue) => {
                   setFilters((prevFilters) => ({
                     ...prevFilters,
-                    schoolId: newValue?._id || null,
+                    schoolId: newValue?.schoolId || null,
                   }))
                   setSchoolCode(newValue?.schoolCode)
-                  setSchoolLga(newValue?.LGA)
+                  setSchoolLga(newValue?.schoolLGA)
                   setSchoolName(newValue?.schoolName)
                 }}
-                options={schoolOptions}
+                options={uniqueSchools}
                 getOptionLabel={(option) => option?.schoolName || ''}
                 isOptionEqualToValue={(option, value) =>
-                  option?._id === value?._id
+                  option?.schoolId === value?.schoolId
                 }
                 renderInput={(params) => (
                   <TextField
@@ -684,11 +692,6 @@ export const UpdateAttendanceSheet = () => {
                     }}
                   />
                 )}
-                loading={loadingSchools}
-                noOptionsText="No schools found"
-                getOptionKey={(option, index) =>
-                  option?._id || `${option.schoolName}-${index}`
-                } // Unique key
               />
             ) : (
               <Typography
@@ -788,7 +791,11 @@ export const UpdateAttendanceSheet = () => {
             type="submit"
             variant="contained"
             size="large"
-            disabled={filters.schoolId === '' || loadingAttendance || attendanceDownloading}
+            disabled={
+              filters.schoolId === '' ||
+              loadingAttendance ||
+              attendanceDownloading
+            }
             sx={{
               textTransform: 'none',
               width: '48%',
@@ -804,7 +811,7 @@ export const UpdateAttendanceSheet = () => {
           </Button>
         </Box>
       </Box>
-      {filters.schoolId && studentsData && filters.month && filters.year ? (
+      {filters.schoolId && studentsData && filters.year ? (
         <Box component={'paper'} mt={5} ref={contentRef}>
           <Box
             sx={{
@@ -815,11 +822,11 @@ export const UpdateAttendanceSheet = () => {
             }}
           >
             <Button
-            sx = {{
-              display: "flex", 
-              alignItems: "center", 
-              gap: "20px"
-            }}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '20px',
+              }}
               variant="contained"
               id="button"
               disabled={attendanceDownloading}

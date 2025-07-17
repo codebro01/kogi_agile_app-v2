@@ -1,105 +1,71 @@
-import React, {
+import  {
   useState,
-  useContext,
   useEffect,
   useCallback,
-  memo,
   useRef,
 } from 'react'
-import axios from 'axios'
-import { Previewer } from 'pagedjs'
-import { resolvePath, useNavigate } from 'react-router-dom'
-import EditIcon from '@mui/icons-material/Edit'
+import { useNavigate } from 'react-router-dom'
+
 import chunk from 'lodash.chunk'
-import { tokens } from '../../theme'
 // import { PersonLoader } from '../../components/personLoader'
-import { getNigeriaStates } from 'geo-ng'
-import lgasAndWards from '../../Lga&wards.json'
+
 // import { SchoolsContext } from '../../components/dataContext.jsx'
-import DataTable from 'react-data-table-component'
-import DeleteIcon from '@mui/icons-material/Delete'
+
 import CloseIcon from '@mui/icons-material/Close'
 import CheckIcon from '@mui/icons-material/Check'
 import { useSelector, useDispatch } from 'react-redux'
 import { useReactToPrint } from 'react-to-print'
+import { fetchDashboardStat } from '../../components/dashboardStatsSlice'
 
 import {
-  deleteStudent,
-  fetchStudents,
+
   fetchStudentsFromComponent,
-  filterStudents,
-  resetStudentsData,
-  setRowsPerPage,
-  setPage,
-  setCurrentPage,
-  setSearchQuery,
-  setStudents,
+
 } from '../../components/studentsSlice.js'
 import { fetchSchools } from '../../components/schoolsSlice.js'
-import { SpinnerLoader } from '../../components/spinnerLoader.jsx'
-import UpgradeIcon from '@mui/icons-material/Upgrade'
-import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
-import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp'
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
-import ArrowBackwardIcon from '@mui/icons-material/ArrowBack'
-import { AlertSnackbars } from '../../components/alertSnackbar.jsx'
-import CancelIcon from '@mui/icons-material/Cancel'
 import { useAuth } from '../auth/authContext'
-import { DeleteButton } from '../../components/deleteButton.jsx'
-import { UploadButtonField } from '../../components/uploadButtonField.jsx'
+
 import '../../attendanceSheet.css'
 import { Months, Years } from '../../../data/data'
 import {
-  Container,
-  useTheme,
+
   Typography,
-  Table,
   Button,
-  TableBody,
-  TableCell,
+ 
   Select,
   MenuItem,
-  TableContainer,
-  IconButton,
-  TableHead,
-  TableRow,
-  Paper,
+  
   Box,
   TextField,
   Grid,
   InputLabel,
   Autocomplete,
-  Fade,
   CircularProgress,
 } from '@mui/material'
 
-export const AttendanceSheet = ({
-  students = [{ name: 'victor' }, { name: 'damilola' }],
-}) => {
-  const { userPermissions } = useAuth()
+export const AttendanceSheet = () => {
   // const [currentPage, setCurrentPage] = useState(1);
-  const [perPage, setPerPage] = useState(100) // Number of students per page
-  const navigate = useNavigate()
   const dispatch = useDispatch()
   const schoolsState = useSelector((state) => state.schools)
   const studentsState = useSelector((state) => state.students)
+  const dashboardStatState = useSelector((state) => state.dashboardStat)
+
+
+
   const {
-    data: schoolsData,
-    loading: schoolsLoading,
-    error: schoolsError,
-  } = schoolsState
+    data: dashboardData,
+    loading: dashboardStatLoading,
+    error: dashboardStatError,
+  } = dashboardStatState
 
   const contentRef = useRef(null)
   const reactToPrintFn = useReactToPrint({ contentRef })
   const {
     currentPage,
-    totalRows,
-    rowsPerPage,
-    data,
+   
     filteredStudents,
     loading: studentsLoading,
-    error: studentsError,
-    searchQuery,
+  
   } = studentsState
   const [filters, setFilters] = useState({
     file: '',
@@ -157,163 +123,27 @@ export const AttendanceSheet = ({
     dispatch(fetchSchools({ schoolType: '', lgaOfEnrollment: '' }))
   }, [dispatch])
 
-  //   useEffect(() => {
-  //     if (!filters.schoolId !== '') {
-  //       dispatch(
-  //         fetchStudentsFromComponent({
-  //           filteredParams,
-  //           sortParam,
-  //           page: currentPage,
-  //           limit: 500,
-  //         })
-  //       )
-  //     }
-  //   }, [dispatch, currentPage, rowsPerPage])
+    useEffect(() => {
+      dispatch(fetchDashboardStat())
+    }, [dispatch])
 
-  // const [filterLoading, setFilterLoading] = useState(false);
-  const schools = schoolsData
-  const [schoolOptions, setSchoolOptions] = useState([]) // Start with an empty array
-  const [hasMore, setHasMore] = useState(true) // To check if more data is available
-  const [loadingSchools, setLoadingSchools] = useState(false) // Loading state for schools
-  const [page, setPage] = useState(1) // Kee
-  const [filterError, setFilterError] = useState(null)
-  const [statesData, setStatesData] = useState([])
-  const [lgasData, setLgasData] = useState([])
-  const [enumeratorsData, setEnumeratorsData] = useState([])
-  const [enumeratorsLoading, setEnumeratorsLoading] = useState(false)
-  // const [fetchLoading, setFetchLoading] = useState(false)
-  const [selectedItem, setSelectedItem] = useState(null)
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  // const [filteredData, setFilteredData] = useState([]); // State for filtered data
-  const [checked, setChecked] = useState(false)
-  const [demotionChecked, setDemotionChecked] = useState(false)
-  const [bulkPromotionMessage, setBulkPromotionMessage] = useState('')
-  const [bulkPromotionLoading, setBulkPromotionLoading] = useState(false)
-  const [singlePromotionMessage, setSinglePromotionMessage] = useState('')
-  const [singlePromotionLoading, setSinglePromotionLoading] = useState(false)
-  const [bulkDemotionMessage, setBulkDemotionMessage] = useState('')
-  const [bulkdemotionLoading, setBulkDemotionLoading] = useState(false)
+  
+
   // const [allStudentsData, setAllStudentsData] = useState([]); // State for filtered data
   // const [snackbarOpen, setSnackbarOpen] = useState(true); // State to control visibility
-  const [singleSnackbarOpen, setSingleSnackbarOpen] = useState(false)
-  const [bulkSnackbarOpen, setBulkSnackbarOpen] = useState(false)
-  const [bulkDemotionSnackbarOpen, setBulkDemotionSnackbarOpen] =
-    useState(false)
-  const [selectedStudents, setSelectedStudents] = useState([])
+
   const [studentsData, setStudentsData] = useState(filteredStudents)
-  const [updateAccountMessage, setUpdateAccountMessage] = useState('')
-  const [updateAccountLoading, setUpdateAccountLoading] = useState(false)
+
 
   const API_URL = `${import.meta.env.VITE_API_URL}/api/v1`
-  const token = localStorage.getItem('token') || ''
-  useEffect(() => {
-    if (singlePromotionMessage) setSingleSnackbarOpen(true)
-    if (bulkPromotionMessage) setBulkSnackbarOpen(true)
-    if (bulkDemotionMessage) setBulkDemotionSnackbarOpen(true)
-  }, [singlePromotionMessage, bulkPromotionMessage, bulkDemotionMessage])
 
-  useEffect(() => {
-    if (schools && schools.length > 0) {
-      setSchoolOptions(schools) // Set schools if available
-    }
-  }, [schools]) // Re-run whenever schools change
-  const loadMoreSchools = async () => {
-    if (loadingSchools || !hasMore) return
-
-    setLoadingSchools(true)
-
-    // Fetch the next batch of schools here (this is just a mock-up)
-    const nextSchools = await fetchMoreSchools(page)
-
-    if (nextSchools.length > 0) {
-      setSchoolOptions((prev) => [...prev, ...nextSchools]) // Append new schools to the list
-      setPage((prev) => prev + 1) // Increment the page
-    } else {
-      setHasMore(false) // No more schools to load
-    }
-
-    setLoadingSchools(false)
-  }
+ 
 
   useEffect(() => {
     setStudentsData(filteredStudents)
   }, [filteredStudents])
 
-  const fetchMoreSchools = async (page) => {
-    // Simulate network request to fetch schools for the current page
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const startIndex = (page - 1) * 20
-        resolve(schools.slice(startIndex, startIndex + 20)) // Return a slice of the schools array
-      }, 1000)
-    })
-  }
 
-  const yearOfAdmissionOptions = [
-    { year: '2020' },
-    { year: '2021' },
-    { year: '2022' },
-    { year: '2023' },
-    { year: '2024' },
-    { year: '2025' },
-  ]
-
-  const registrationYearOptions = [
-    { year: '2024' },
-    { year: '2025' },
-    { year: '2026' },
-    { year: '2027' },
-    { year: '2028' },
-    { year: '2029' },
-  ]
-
-  useEffect(() => {
-    ;(async () => {
-      try {
-        const token = localStorage.getItem('token')
-        setEnumeratorsLoading(true)
-        const response = await axios.get(`${API_URL}/admin-enumerator`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          withCredentials: true,
-        })
-        const { registrars } = response.data
-        setEnumeratorsData(registrars)
-      } catch (err) {
-        console.log(err)
-      }
-    })()
-  }, [])
-  // ! Nationality state and local government data set up
-  const nationalityOptions = [
-    { value: 'Nigeria', label: 'Nigeria' },
-    { value: 'Others', label: 'Others' },
-  ]
-  const getLGAs = (stateName) => {
-    const state = getNigeriaStates().find((s) => s.name === stateName)
-    return state ? state.lgas : []
-  }
-
-  useEffect(() => {
-    if (filters.nationality === 'Nigeria') {
-      const statesObjects = getNigeriaStates()
-      const newStates = statesObjects.map((state) => state.name)
-      setStatesData(newStates)
-    } else {
-      setStatesData([])
-      setLgasData([])
-    }
-  }, [filters.nationality])
-
-  useEffect(() => {
-    if (filters.state && filters.nationality === 'Nigeria') {
-      const lgas = getLGAs(filters.state)
-      setLgasData(lgas)
-    } else {
-      setLgasData([])
-    }
-  }, [filters.state, filters.nationality])
 
   const clearFilters = () => {
     setFilters({
@@ -336,13 +166,6 @@ export const AttendanceSheet = ({
     { class: 'JSS 2', id: 3 },
     { class: 'JSS 3', id: 4 },
     { class: 'SSS 1', id: 5 },
-  ]
-  const classPromotionOptions = [
-    { class: 'JSS 1', prevClass: 'Primary 6', id: 1 },
-    { class: 'JSS 2', prevClass: 'JSS 1', id: 2 },
-    { class: 'JSS 3', prevClass: 'JSS 2', id: 3 },
-    { class: 'SSS 1', prevClass: 'JSS 3', id: 4 },
-    { class: 'SSS 2', prevClass: 'SSS 1', id: 5 },
   ]
 
   const handleInputChange = useCallback((e) => {
@@ -384,27 +207,6 @@ export const AttendanceSheet = ({
   //   })
   // }
 
-  const handleChecked = () => {
-    setChecked((prev) => !prev)
-  }
-  const handleDemotionChecked = () => {
-    setDemotionChecked((prev) => !prev)
-  }
-
-  const handleEdit = (student) => {
-    navigate(`/enumerator-dashboard/update-student/${student._id}`, {
-      state: student,
-    })
-  }
-
-  function DowngradeIcon() {
-    return (
-      <Box sx={{ transform: 'rotate(180deg)' }}>
-        <UpgradeIcon sx={{ color: 'red' }} />
-      </Box>
-    )
-  }
-
   // if (schoolsLoading || studentsLoading) {
   //   return (
   //     <Box
@@ -422,482 +224,7 @@ export const AttendanceSheet = ({
   //   )
   // }
 
-  if (schoolsError || studentsError) {
-    return (
-      <div>
-        Error: {schoolsError} {studentsError}
-      </div>
-    )
-  }
 
-  const handleDelete = (row) => {
-    // Replace this with your actual delete logic, such as making an API request to delete the record
-    const confirmDelete = window.confirm(
-      `Are you sure you want to delete ${row.firstname} ${row.surname}?`
-    )
-
-    if (confirmDelete) {
-      try {
-        ;(async () => {
-          try {
-            dispatch(deleteStudent(row.randomId)).unwrap()
-          } catch (err) {
-            console.log(err)
-          }
-        })()
-
-        // Optionally, you can refresh or re-fetch the data here
-      } catch (error) {
-        console.error('Error deleting student:', error)
-      }
-    }
-  }
-
-  const customStyles = {
-    rows: {
-      style: {
-        marginBottom: '20px', // Adds spacing between rows
-      },
-    },
-
-    header: {
-      style: {
-        justifyContent: 'center', // Centers the title
-        textAlign: 'center',
-        fontWeight: 'bold',
-        fontSize: '20px',
-        color: '#4A4A4A', // Optional styling for the title color
-        padding: '10px',
-        display: 'none',
-      },
-    },
-  }
-
-  const columns = [
-    {
-      name: 'S/N',
-      selector: (row, index) => index + 1, // Calculate serial number (starting from 1)
-      sortable: true,
-    },
-
-    userPermissions.includes('handle_registrars') && {
-      name: 'Edit',
-      cell: (row) => (
-        <button
-          onClick={() => handleEdit(row)}
-          style={{
-            padding: '5px 10px',
-            backgroundColor: 'transparent', // Optional: color for the delete button
-            color: '#fff',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-          }}
-        >
-          <EditIcon style={{ marginRight: '8px', color: '#196b57' }} />
-        </button>
-      ),
-    },
-
-    {
-      name: 'View',
-      cell: (row) => (
-        <Typography
-          onClick={() => handleViewItem(row)}
-          sx={{
-            padding: '5px 10px',
-            backgroundColor: '#196b57',
-            color: '#fff',
-            border: 'none',
-            cursor: 'pointer',
-            fontSize: '12px',
-          }}
-        >
-          View
-        </Typography>
-      ),
-    },
-
-    {
-      name: 'Image',
-      cell: (row) => (
-        <img
-          src={row?.passport} // Placeholder for missing images
-          alt="Student"
-          style={{ width: '50px', height: '50px' }}
-        />
-      ),
-      sortable: false,
-    },
-
-    {
-      name: 'Surname',
-      selector: (row) => row?.surname,
-      sortable: true,
-    },
-    {
-      name: 'Firstname',
-      selector: (row) => row?.firstname,
-      sortable: true,
-    },
-    {
-      name: 'Middlename',
-      selector: (row) => row?.middlename,
-      sortable: true,
-    },
-    {
-      name: 'School',
-      selector: (row) => row?.schoolId?.schoolName,
-      sortable: true,
-    },
-    {
-      name: 'School Type',
-      selector: (row) => row?.schoolId?.schoolCategory,
-      sortable: true,
-    },
-    {
-      name: 'dob',
-      selector: (row) => row?.dob,
-      sortable: true,
-    },
-    {
-      name: 'LGA of Enrollment',
-      selector: (row) => row?.lgaOfEnrollment,
-      sortable: true,
-    },
-    {
-      name: 'Present Class',
-      selector: (row) => row?.presentClass,
-      sortable: true,
-    },
-    {
-      name: 'Year of Enrollment',
-      selector: (row) => row?.yearOfEnrollment,
-      sortable: true,
-    },
-    {
-      name: 'Src',
-      selector: (row) => row?.src,
-      sortable: true,
-    },
-
-    userPermissions.includes('handle_admins', 'handle_registrars') && {
-      name: 'Promote',
-      cell: (row) => (
-        <button
-          onClick={() => handleSinglePromotion(row)}
-          style={{
-            padding: '5px 10px',
-            backgroundColor: 'transparent', // Optional: color for the delete button
-            color: '#fff',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-          }}
-        >
-          <UpgradeIcon style={{ marginRight: '8px', color: '#196b57' }} />
-        </button>
-      ),
-    },
-    userPermissions.includes('handle_admins', 'handle_registrars') && {
-      name: 'Demote',
-      cell: (row) => (
-        <button
-          onClick={() => handleSingleDemotion(row)}
-          style={{
-            padding: '5px 10px',
-            backgroundColor: 'transparent', // Optional: color for the delete button
-            color: '#fff',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-          }}
-        >
-          <DowngradeIcon />
-        </button>
-      ),
-    },
-    userPermissions.includes('handle_admins') && {
-      name: 'Delete',
-      cell: (row) => (
-        <button
-          onClick={() => handleDelete(row)}
-          style={{
-            padding: '5px 10px',
-            backgroundColor: 'transparent', // Optional: color for the delete button
-            color: '#fff',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-          }}
-        >
-          <DeleteIcon style={{ marginRight: '8px', color: 'red' }} />
-        </button>
-      ),
-    },
-  ]
-
-  const handleViewItem = (item) => {
-    setSelectedItem(item)
-    setIsModalOpen(true)
-  }
-
-  const handleSearch = (event) => {
-    const query = event.target.value
-    dispatch(setSearchQuery(query))
-  }
-
-  const handleSinglePromotion = async (row) => {
-    const studentRandomId = row.randomId
-    const getNextClass = (currentClass) => {
-      const nextClassObj = classPromotionOptions.find(
-        (option) => option.prevClass === currentClass
-      )
-      return nextClassObj ? nextClassObj.class : null
-    }
-    const currentClass = row.presentClass // Assuming `row.class` contains the student's current class
-    const nextClass = getNextClass(currentClass)
-    try {
-      const confirmUpdate = window.confirm(
-        `This action will promote ${row.surname} ${row.firstname} to the ${nextClass}.`
-      )
-      if (!confirmUpdate) return
-      setSinglePromotionLoading(true)
-      const token = localStorage.getItem('token')
-      const response = await axios.patch(
-        `${API_URL}/student/promote/single/student`,
-        { studentRandomId },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          // params: {...studentRandomId},
-          withCredentials: true,
-        }
-      )
-      setSinglePromotionLoading(false)
-      setSinglePromotionMessage(response.data.message)
-    } catch (err) {
-      console.error(err)
-      setSinglePromotionLoading(false)
-      setSinglePromotionMessage(err?.response?.data?.message)
-    }
-  }
-  const handleSingleDemotion = async (row) => {
-    const studentRandomId = row.randomId
-    const getPrevClass = (currentClass) => {
-      const nextClassObj = classPromotionOptions.find(
-        (option) => option.class === currentClass
-      )
-      return nextClassObj ? nextClassObj.prevClass : null
-    }
-    const currentClass = row.presentClass // Assuming `row.class` contains the student's current class
-    const prevClass = getPrevClass(currentClass)
-    try {
-      const confirmUpdate = window.confirm(
-        `This action will demote ${row.surname} ${row.firstname} from ${currentClass} to ${prevClass}.`
-      )
-      if (!confirmUpdate) return
-      setSinglePromotionLoading(true)
-      const token = localStorage.getItem('token')
-      const response = await axios.patch(
-        `${API_URL}/student/demote/single/student`,
-        { studentRandomId },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          // params: {...studentRandomId},
-          withCredentials: true,
-        }
-      )
-      setSinglePromotionLoading(false)
-      setSinglePromotionMessage(response.data.message)
-    } catch (err) {
-      console.error(err)
-      setSinglePromotionLoading(false)
-      setSinglePromotionMessage(err?.response?.data?.message)
-    }
-  }
-  const handleBulkdemotion = async (presentClass) => {
-    try {
-      const token = localStorage.getItem('token')
-
-      const confirmUpdate = window.confirm(
-        `This action will demote all students in ${presentClass} to the previous class.`
-      )
-      if (!confirmUpdate) return
-      setBulkDemotionLoading(true)
-      const response = await axios.patch(
-        `${API_URL}/student/demote/plenty/students`,
-        { presentClass },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          withCredentials: true,
-        }
-      )
-      setBulkDemotionLoading(false)
-      setBulkDemotionMessage(response.data.message)
-    } catch (err) {
-      console.error(err)
-      setBulkDemotionLoading(false)
-      setBulkDemotionMessage(response?.data?.message)
-    }
-  }
-  const handleBulkPromotion = async (presentClass) => {
-    try {
-      const token = localStorage.getItem('token')
-
-      const confirmUpdate = window.confirm(
-        `This action will Promote all students in ${presentClass} to the next class.`
-      )
-      if (!confirmUpdate) return
-
-      setBulkPromotionLoading(true)
-      const response = await axios.patch(
-        `${API_URL}/student/promote/plenty/students`,
-        { presentClass },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          withCredentials: true,
-        }
-      )
-      setBulkPromotionLoading(false)
-      setBulkPromotionMessage(response.data.message)
-    } catch (err) {
-      console.error(err)
-      setBulkPromotionLoading(false)
-      setBulkPromotionMessage(response?.data?.message)
-    }
-  }
-
-  const handleSelectedStudentsChange = ({ selectedRows }) => {
-    setSelectedStudents(selectedRows)
-    // console.log('Selected Rows:', selectedStudents)
-  }
-
-  const handleDeleteManyStudents = async () => {
-    try {
-      // const confirmDelete = window.confirm(`Are you sure you want to delete ${selectedStudents.length} students `)
-      // if (!confirmDelete) return;
-      // setDeleteLoading(true)
-
-      const ids = selectedStudents.map(
-        (selectedStudents) => selectedStudents.randomId
-      )
-      // const ids = selectedStudents.join(',');
-      const joinedIds = ids.join(',')
-
-      const response = await axios.delete(
-        `${API_URL}/student/delete/delete-many/?ids=${joinedIds}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-          withCredentials: true,
-        }
-      )
-      setStudentsData((prevStudents) =>
-        prevStudents.filter((student) => !ids.includes(student.randomId))
-      )
-
-      setSelectedStudents([])
-    } catch (err) {
-      console.log(err)
-      if (err.response.statusText === '"Unauthorized"' || err.status === 401)
-        return navigate('/')
-      alert(
-        err.response?.message ||
-          err.response?.data?.message ||
-          err?.message ||
-          'an error occured, please try again'
-      )
-    }
-  }
-
-  // ! handle bank accounts details update for students
-
-  const handleBankAccountDetailsUpdate = async (e) => {
-    e.preventDefault()
-
-    try {
-      const formData = new FormData()
-      formData.append('file', filters['file'])
-      if (filters.file === '') {
-        setUpdateAccountMessage('Please select a file')
-        setTimeout(() => setUpdateAccountMessage(''), 2000)
-        return
-      }
-      const token = localStorage.getItem('token')
-      setUpdateAccountLoading(true)
-      setUpdateAccountMessage('...Please wait while the update completes.')
-
-      const response = await axios.patch(
-        `${API_URL}/student/update/bank-account-details`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          withCredentials: true,
-        }
-      )
-      setUpdateAccountLoading(false)
-      setUpdateAccountMessage(
-        'Students Accounts has been successfully updated!!!'
-      )
-      setFilters((prev) => ({ ...prev, file: '' }))
-      setTimeout(() => {
-        setUpdateAccountMessage('')
-      }, 15000)
-    } catch (err) {
-      setUpdateAccountLoading(false)
-      console.log(err)
-      console.log(err.response?.data?.message)
-      if (err.response?.data?.message) {
-        setUpdateAccountMessage(err.response?.data?.message)
-        setTimeout(() => {
-          setUpdateAccountMessage('')
-        }, 15000)
-        return
-      } else if (err.response?.data) {
-        setUpdateAccountMessage(err.response?.data)
-        setTimeout(() => {
-          setUpdateAccountMessage('')
-        }, 15000)
-        return
-      } else {
-        setUpdateAccountMessage('An error occured, please try again')
-        setTimeout(() => {
-          setUpdateAccountMessage('')
-        }, 15000)
-      }
-    }
-  }
-
-  // console.log(selectedStudents.length)
-
-  const handleEditManyStudents = () => {
-    if (selectedStudents.length < 1) return
-
-    // just pass the selected students as state
-    navigate('/admin-dashboard/edit-many-students', {
-      state: { selectedStudents },
-    })
-  }
 
   // console.log('filters', filters)
 
@@ -930,6 +257,8 @@ export const AttendanceSheet = ({
   }
 
   const days = getMonthDaysWithWeekdays(filters.year, filters.month) // July 2025 → month = 6
+
+  
   // console.log(filters)
 
   const studentsSorted = [...studentsData].sort((a, b) => {
@@ -943,8 +272,11 @@ export const AttendanceSheet = ({
   })
 
   const chunkStudentsData = chunk(studentsSorted, 25)
+  const uniqueSchools =
+    dashboardData?.results?.[0]?.distinctSchoolsDetails || []
 
-  // console.log('chunkStudentsData', chunkStudentsData)
+  // console.log(schoolOptions, uniqueSchools)
+  // console.log(uniqueSchools)
   return (
     <Box
       className="attendance-container"
@@ -975,7 +307,7 @@ export const AttendanceSheet = ({
             <InputLabel id="lga-label" sx={{ marginBottom: 1 }}>
               All Schools
             </InputLabel>
-            {schoolOptions.length > 0 ? (
+            {uniqueSchools.length > 0 ? (
               <Autocomplete
                 sx={{
                   width: '100%',
@@ -987,20 +319,20 @@ export const AttendanceSheet = ({
                 }}
                 id="school-select"
                 value={
-                  schoolOptions.find(
-                    (option) => option._id === filters.schoolId
+                  uniqueSchools.find(
+                    (option) => option.schoolId === filters.schoolId
                   ) || null
                 }
                 onChange={(event, newValue) => {
                   setFilters((prevFilters) => ({
                     ...prevFilters,
-                    schoolId: newValue?._id || null,
+                    schoolId: newValue?.schoolId || null,
                   }))
                 }}
-                options={schoolOptions}
+                options={uniqueSchools}
                 getOptionLabel={(option) => option?.schoolName || ''}
                 isOptionEqualToValue={(option, value) =>
-                  option?._id === value?._id
+                  option?.schoolId === value?.schoolId
                 }
                 renderInput={(params) => (
                   <TextField
@@ -1022,11 +354,11 @@ export const AttendanceSheet = ({
                     }}
                   />
                 )}
-                loading={loadingSchools}
-                noOptionsText="No schools found"
-                getOptionKey={(option, index) =>
-                  option?._id || `${option.schoolName}-${index}`
-                } // Unique key
+                // loading={loadingSchools}
+                // noOptionsText="No schools found"
+                // getOptionKey={(option, index) =>
+                //   option?._id || `${option.schoolName}-${index}`
+                // } // Unique key
               />
             ) : (
               <Typography
@@ -1141,9 +473,8 @@ export const AttendanceSheet = ({
           </Button>
         </Box>
 
-        {filterError && <Typography>{filterError}</Typography>}
       </Box>
-      {studentsData.length !== 0 && filters.month && filters.year ? (
+      {studentsData.length !== 0 && filters.year ? (
         <Box component={'paper'} mt={5} ref={contentRef}>
           <Box
             sx={{

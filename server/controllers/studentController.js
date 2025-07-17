@@ -212,7 +212,9 @@ export const getStudentsStats = async (req, res, next) => {
                 _id: 0, // Remove the _id field
                 schoolId: '$_id', // Rename _id to schoolId
                 schoolName: '$schoolDetails.schoolName',
-                schoolId: '$schoolDetails._id',
+                schoolLGA: '$schoolDetails.LGA',
+                schoolCode: '$schoolDetails.schoolCode',
+                // schoolId: '$schoolDetails._id',
               },
             },
           ],
@@ -346,7 +348,7 @@ export const filterAndDownload = async (req, res, next) => {
       status,
       disabilitystatus,
       schoolType,
-      cohort
+      cohort,
     } = req.query
 
     // Create a basket object
@@ -448,7 +450,7 @@ export const filterAndDownload = async (req, res, next) => {
       'gender',
       'dob',
       'presentClass',
-      'cohort', 
+      'cohort',
       'nationality',
       'stateOfOrigin',
       'lga',
@@ -580,13 +582,11 @@ export const filterAndView = async (req, res, next) => {
       yearOfAdmission,
       yearOfEnrollment,
       disabilitystatus,
-      cohort
-
+      cohort,
     } = req.query.filteredParams || {}
     const { page, limit } = req.query
     const { sortBy, sortOrder } = req.query.sortParam
     let { status } = req.query.filteredParams
-   
 
     // Create a basket object
     let basket
@@ -651,7 +651,6 @@ export const filterAndView = async (req, res, next) => {
     const skip = (page - 1) * limit
 
     const total = await Student.countDocuments(basket)
-
 
     const students = await Student.find(basket)
       .populate('schoolId')
