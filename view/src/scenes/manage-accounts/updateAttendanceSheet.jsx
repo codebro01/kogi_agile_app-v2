@@ -1666,6 +1666,7 @@ export const UpdateAttendanceSheet = () => {
         }}
         onClick={handleChecked}
         variant="contained"
+        disabled={attendanceRecord.length === 0}
         startIcon={
           saving ? (
             <CircularProgress
