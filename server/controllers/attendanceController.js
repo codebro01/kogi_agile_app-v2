@@ -136,7 +136,7 @@ export const getAttendanceTable = async (req, res, next) => {
     monthlyTotalAttendanceScore,
   } = req.query
 
-  console.log(req.query)
+  // console.log(req.query)
   year = Number(year)
   monthlyTotalAttendanceScore = Number(monthlyTotalAttendanceScore)
   month = Number(month) - 1

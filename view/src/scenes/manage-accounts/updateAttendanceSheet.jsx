@@ -362,8 +362,8 @@ export const UpdateAttendanceSheet = () => {
             return student // no updates for this one
           }
 
-          console.log(updatesForThisStudent.length === 0)
-          console.log('updatesForThisStudent', updatesForThisStudent)
+          // console.log(updatesForThisStudent.length === 0)
+          // console.log('updatesForThisStudent', updatesForThisStudent)
           const updatedAttendance = student.attendance.map((day) => {
             const matchedUpdate = updatesForThisStudent.find(
               (record) =>
@@ -429,7 +429,7 @@ export const UpdateAttendanceSheet = () => {
         },
       })
 
-      console.log(response)
+      // console.log(response)
 
       // console.log(response)
       setLoadingAttendance(false)
@@ -712,7 +712,7 @@ export const UpdateAttendanceSheet = () => {
 
   // console.log('studentsData', studentsData)
 
-  console.log(filters)
+  // console.log(filters)
 
   //   ! DOM
   return (
