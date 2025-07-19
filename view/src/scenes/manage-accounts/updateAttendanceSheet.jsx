@@ -40,6 +40,8 @@ import { SpinnerLoader } from '../../components/spinnerLoader.jsx'
 import { ArrowBackIos, ArrowForwardIos } from '@mui/icons-material'
 
 import UpgradeIcon from '@mui/icons-material/Upgrade'
+import SaveIcon from '@mui/icons-material/Save'
+
 import { useAuth } from '../auth/authContext'
 
 import '../../attendanceSheet.css'
@@ -69,8 +71,7 @@ import {
   CircularProgress,
   Pagination,
 } from '@mui/material'
-import { DataArrayOutlined, Dataset } from '@mui/icons-material'
-
+import { TextField as MyTextField } from '../../components/InputFields/TextField.jsx'
 export const UpdateAttendanceSheet = () => {
   const { userPermissions } = useAuth()
   // const [currentPage, setCurrentPage] = useState(1);
@@ -108,6 +109,7 @@ export const UpdateAttendanceSheet = () => {
     sortBy: '',
     sortOrder: '',
     lga: '',
+    monthlyTotalAttendanceScore: 0,
     schoolId: '',
     time: new Date().getTime(),
     month: new Date().getMonth(),
@@ -141,6 +143,9 @@ export const UpdateAttendanceSheet = () => {
     disabilitystatus: filters.disabilitystatus,
     cohort: filters.cohort,
   }
+
+  const [attendanceRecord, setAttendanceRecord] = useState([])
+
   const filteredParams = Object.entries(params)
     .filter(([_, value]) => value != null && value !== '') // Filter out empty values
     .reduce((acc, [key, value]) => {
@@ -183,11 +188,13 @@ export const UpdateAttendanceSheet = () => {
   const [schoolName, setSchoolName] = useState(false) // Loading state for schools
   const [loadingSchools, setLoadingSchools] = useState(false) // Loading state for schools
   const [loadingAttendance, setLoadingAttendance] = useState(false) // Loading state for schools
-  const [savingMessage, setSavingMessage] = useState('') // Loading state for schools
+  const [savingMessage, setSavingMessage] = useState('Save') // Loading state for schools
+  const [saving, setSaving] = useState(false) // Loading state for schools
   const [page, setPage] = useState(1) // Kee
   const [presentPage, setPresentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [attendanceDownloading, setAttendanceDownloading] = useState(false) // Loading state for schools
+  const [localAttendance, setLocalAttendance] = useState([])
 
   // const [fetchLoading, setFetchLoading] = useState(false)
 
@@ -264,6 +271,8 @@ export const UpdateAttendanceSheet = () => {
 
   const handleInputChange = useCallback((e) => {
     const { name, value, type, files } = e.target
+
+    // console.log(e.target)
     if (type === 'file') {
       setFilters({
         ...filters,
@@ -292,77 +301,111 @@ export const UpdateAttendanceSheet = () => {
     )
   }
 
-  const handleChecked = useCallback(
-    async (studentId, present, date) => {
-      // console.log(present, date)
-      // console.log(studentId, present, `${API_URL}/attendance`)
-      setSavingMessage('Saving record .....')
+  const handleChecked = async () => {
+    // console.log(present, date)
+    // console.log(studentId, present, `${API_URL}/attendance`)
+    setSavingMessage('Saving record .....')
+    setSaving(true)
+    const token = localStorage.getItem('token') || ''
 
-      const token = localStorage.getItem('token') || ''
-
-      try {
-        const res = await axios.post(
-          `${API_URL}/attendance`,
-          {
-            studentId,
-            present,
-            date, // Must be a valid ISO string like "2025-07-10"
+    try {
+      const res = await axios.post(
+        `${API_URL}/attendance`,
+        {
+          attendanceArray: attendanceRecord,
+          // studentId,
+          // present,
+          // date, // Must be a valid ISO string like "2025-07-10"
+        },
+        {
+          withCredentials: true,
+          headers: {
+            Authorization: `Bearer ${token}`,
           },
-          {
-            withCredentials: true,
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+        }
+      )
+
+      // setStudentsData((prev) =>
+      //   prev.map((student) => {
+      //     if (student.studentId === studentId) {
+      //       const updatedAttendance = student.attendance.map((day) => {
+      //         const sameDay =
+      //           new Date(day.date).toDateString() ===
+      //           new Date(date).toDateString()
+
+      //         if (sameDay) {
+      //           return { ...day, present }
+      //         }
+      //         return day
+      //       })
+
+      //       return {
+      //         ...student,
+      //         attendance: updatedAttendance,
+      //       }
+      //     }
+      //     return student
+      //   })
+      // )
+      // console.log('res', res)
+      // console.log('studensData', studentsData)
+      setAttendanceRecord([])
+      setStudentsData((prevStudents) => {
+        return prevStudents.map((student) => {
+          console.log('prevStudents', prevStudents)
+          // Find all attendance updates for this student
+          const updatesForThisStudent = res.data.attendance.filter(
+            (record) => record.studentId === student.studentId
+          )
+
+          if (updatesForThisStudent.length === 0) {
+            return student // no updates for this one
           }
-        )
 
-        setStudentsData((prev) =>
-          prev.map((student) => {
-            if (student.studentId === studentId) {
-              const updatedAttendance = student.attendance.map((day) => {
-                const sameDay =
-                  new Date(day.date).toDateString() ===
-                  new Date(date).toDateString()
+          console.log(updatesForThisStudent.length === 0)
+          console.log('updatesForThisStudent', updatesForThisStudent)
+          const updatedAttendance = student.attendance.map((day) => {
+            const matchedUpdate = updatesForThisStudent.find(
+              (record) =>
+                new Date(record.date).toDateString() ===
+                new Date(day.date).toDateString()
+            )
 
-                if (sameDay) {
-                  return { ...day, present }
-                }
-                return day
-              })
-
-              return {
-                ...student,
-                attendance: updatedAttendance,
-              }
+            if (matchedUpdate) {
+              return { ...day, present: matchedUpdate.present }
             }
-            return student
+
+            return day
           })
-        )
-        setSavingMessage('Record Saved')
-        const timeout = setTimeout(() => setSavingMessage(''), 5000)
-        return () => clearTimeout(timeout) // cleanup
-      } catch (err) {
-        const timeout = setTimeout(
-          () =>
-            setSavingMessage(
-              err.response?.data ||
-                err.response?.data?.message ||
-                err.message ||
-                'Error saving attendance'
-            ),
-          5000
-        )
-        console.error(err)
-        console.error(
-          '❌ Error saving attendance:',
-          err.response?.data || err.message
-        )
-        return () => clearTimeout(timeout) // cleanup
-        // Optional: show error toast or retry logic
-      }
-    },
-    [API_URL]
-  )
+
+          return {
+            ...student,
+            attendance: updatedAttendance,
+          }
+        })
+      })
+      setSaving(false)
+      setSavingMessage('Record Saved')
+      const timeout = setTimeout(() => setSavingMessage('Save'), 5000)
+      return () => clearTimeout(timeout) // cleanup
+    } catch (err) {
+      setSaving(false)
+      setSavingMessage(
+        err.response?.data ||
+          err.response?.data?.message ||
+          err.message ||
+          'Error saving attendance'
+      )
+      const timeout = setTimeout(() => setSavingMessage(''), 5000)
+      console.error(err)
+      console.error(
+        '❌ Error saving attendance:',
+        err.response?.data || err.message
+      )
+      return () => clearTimeout(timeout) // cleanup
+      // Optional: show error toast or retry logic
+    }
+  }
   const getAttendanceTable = async (e, page = 1) => {
     if (e && e.preventDefault) e.preventDefault() // ✅ Safe guard
 
@@ -378,12 +421,15 @@ export const UpdateAttendanceSheet = () => {
           page,
           limit: 25,
           presentClass: filters.presentClass,
+          monthlyTotalAttendanceScore: filters.monthlyTotalAttendanceScore,
         },
         withCredentials: true,
         headers: {
           Authorization: `Bearer ${token}`,
         },
       })
+
+      console.log(response)
 
       // console.log(response)
       setLoadingAttendance(false)
@@ -396,26 +442,34 @@ export const UpdateAttendanceSheet = () => {
       setLoadingAttendance(false)
 
       console.error(err)
-      console.error(
-       err
-      )
-      setSavingMessage(
-    
-          err.response?.data?.message ||
-          err.message ||
-          'Error saving attendance'
-      )
-      setTimeout(() => setSavingMessage(''), 5000)
+      console.error(err)
+      // setSavingMessage(
+      //   err.response?.data?.message || err.message || 'Error saving attendance'
+      // )
+      // setTimeout(() => setSavingMessage(''), 5000)
 
       // Optional: show error toast or retry logic
     }
   }
 
+  useEffect(() => {
+    if (studentsData.length > 0) {
+      const cloned = studentsData.map((student) => ({
+        studentId: student.studentId,
+        attendance: student.attendance.map((att) => ({
+          date: att.date.split('T')[0],
+          present: att.present,
+        })),
+      }))
+      setLocalAttendance(cloned)
+    }
+  }, [studentsData])
+
   const downloadAttendanceRecordExcel = async () => {
     try {
       setAttendanceDownloading(true)
       const token = localStorage.getItem('token') || ''
-      console.log(`${API_URL}/download-attendance-record`)
+      // console.log(`${API_URL}/download-attendance-record`)
       const res = await axios.get(
         `${API_URL}/attendance/download-attendance-record`,
         {
@@ -428,6 +482,7 @@ export const UpdateAttendanceSheet = () => {
             limit: 5000,
             presentClass: filters.presentClass,
             middlewareOnly: true,
+            monthlyTotalAttendanceScore: filters.monthlyTotalAttendanceScore,
           },
           withCredentials: true,
           headers: {
@@ -452,16 +507,16 @@ export const UpdateAttendanceSheet = () => {
       setAttendanceDownloading(false)
 
       console.error(err)
-      const timeout = setTimeout(
-        () =>
-          setSavingMessage(
-            err.res?.data ||
-              err.res?.data?.message ||
-              err.message ||
-              'Error saving attendance'
-          ),
-        5000
-      )
+      // const timeout = setTimeout(
+      //   () =>
+      //     setSavingMessage(
+      //       err.res?.data ||
+      //       err.res?.data?.message ||
+      //       err.message ||
+      //       'Error saving attendance'
+      //     ),
+      //   5000
+      // )
       return () => clearTimeout(timeout) // cleanup
     }
   }
@@ -482,7 +537,7 @@ export const UpdateAttendanceSheet = () => {
     return fullNameA.localeCompare(fullNameB)
   })
 
-  const chunkStudentsData = chunk(studentsSorted, 25)
+  // const chunkStudentsData = chunk(studentsSorted, 25)
   const chunkStudentsDataNoPrint = chunk(studentsSorted, 25)
 
   // console.log('chunkStudentsDataNoPrint', chunkStudentsDataNoPrint)
@@ -491,11 +546,13 @@ export const UpdateAttendanceSheet = () => {
     student,
     index,
     page,
-    handleChecked,
+    // handleChecked,
   }) {
     // console.log('rendering', student.surname) // just to check
 
     const sn = String((presentPage - 1) * 25 + index + 1).padStart(3, '0')
+
+    console.log(attendanceRecord)
 
     return (
       <tr key={student.studentId}>
@@ -521,14 +578,60 @@ export const UpdateAttendanceSheet = () => {
                   cursor: 'pointer',
                 }}
                 type="checkbox"
-                checked={date.present === true}
-                onChange={(e) =>
-                  handleChecked(
-                    student.studentId,
-                    e.target.checked,
-                    splittedDate
-                  )
+                checked={
+                  localAttendance
+                    .find((entry) => entry.studentId === student.studentId)
+                    ?.attendance.find((a) => a.date === splittedDate)
+                    ?.present === true
                 }
+                onChange={(e) => {
+                  const isChecked = e.target.checked
+                  const studentId = student.studentId
+                  setLocalAttendance((prev) =>
+                    prev.map((entry) => {
+                      if (entry.studentId !== studentId) return entry
+
+                      const updatedAttendance = entry.attendance.map((a) => {
+                        if (a.date !== splittedDate) return a
+                        return { ...a, present: !a.present }
+                      })
+
+                      return { ...entry, attendance: updatedAttendance }
+                    })
+                  )
+                  // handleChecked(studentId, isChecked, splittedDate)
+
+                  // Call your handleChecked logic
+
+                  setAttendanceRecord((prev) => {
+                    // Check if the current student & date combo already exists
+                    const existingIndex = prev.findIndex(
+                      (att) =>
+                        att.studentId === studentId &&
+                        att.splittedDate === splittedDate
+                    )
+
+                    if (existingIndex !== -1) {
+                      // If it exists, update it
+                      const updated = [...prev]
+                      updated[existingIndex] = {
+                        ...updated[existingIndex],
+                        present: isChecked,
+                      }
+                      return updated
+                    } else {
+                      // Otherwise, add it
+                      return [
+                        ...prev,
+                        {
+                          studentId,
+                          present: isChecked,
+                          splittedDate,
+                        },
+                      ]
+                    }
+                  })
+                }}
               />
             </td>
           )
@@ -554,7 +657,7 @@ export const UpdateAttendanceSheet = () => {
           student={student}
           index={index}
           page={presentPage}
-          handleChecked={handleChecked}
+          // handleChecked={handleChecked}
         />
       )
     })
@@ -609,13 +712,18 @@ export const UpdateAttendanceSheet = () => {
 
   // console.log('studentsData', studentsData)
 
-  console.log(uniqueSchools)
+  console.log(filters)
 
   //   ! DOM
   return (
     <Box
       className="attendance-container"
-      sx={{ display: 'flex', flexDirection: 'column', minHeight: '90vh' }}
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: '90vh',
+        paddingBottom: '100px',
+      }}
     >
       {/* ! Form section  */}
       <Box
@@ -773,6 +881,22 @@ export const UpdateAttendanceSheet = () => {
                 </MenuItem>
               ))}
             </Select>
+          </Grid>
+          <Grid item xs={12} sm={6} md={4}>
+            <InputLabel id="year" sx={{ marginBottom: 1 }}>
+              Minumum Monthly Score
+            </InputLabel>
+            <MyTextField
+              name={'monthlyTotalAttendanceScore'}
+              value={filters.monthlyTotalAttendanceScore}
+              handleInputChange={handleInputChange}
+              height={35}
+              inputProps={{
+                maxLength: 3, // Stops further input after 11 characters
+                pattern: '\\d{1,3}', // Requires exactly 11 digits
+                title: 'Student Nin must be exactly 11 digits', // Shows this message on invalid input
+              }}
+            />
           </Grid>
         </Grid>
 
@@ -1518,10 +1642,9 @@ export const UpdateAttendanceSheet = () => {
           justifyContent: 'center',
           alignItems: 'center',
           gap: 2,
-          mt: 3,
+          mt: 5,
           mb: 2,
           height: '100%',
-          marginTop: 'auto',
           marginLeft: 'auto',
         }}
       >
@@ -1535,15 +1658,29 @@ export const UpdateAttendanceSheet = () => {
         />
       </Box>
 
-      <Box
+      <Button
         sx={{
           position: 'fixed',
           bottom: '4%',
           right: '4%',
         }}
+        onClick={handleChecked}
+        variant="contained"
+        startIcon={
+          saving ? (
+            <CircularProgress
+              size={18}
+              sx={{
+                color: '#fff',
+              }}
+            />
+          ) : (
+            <SaveIcon size={18} />
+          )
+        }
       >
-        {savingMessage && <Button variant="contained">{savingMessage}</Button>}
-      </Box>
+        {savingMessage}
+      </Button>
     </Box>
   )
 }

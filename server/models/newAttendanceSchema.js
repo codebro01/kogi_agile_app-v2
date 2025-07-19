@@ -15,6 +15,7 @@ const newAttendanceSchema = new Schema(
       type: Boolean,
       required: true,
     },
+    score: Number, 
   },
   { timestamps: true }
 )

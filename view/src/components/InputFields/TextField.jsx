@@ -1,9 +1,6 @@
-import { Box, TextField as MuiTextField } from "@mui/material";
-
+import { Box, TextField as MuiTextField } from '@mui/material'
+import {memo} from 'react';
 import PropTypes from 'prop-types'
-
-
-
 
 export const TextField = ({
   value,
@@ -15,6 +12,7 @@ export const TextField = ({
   label,
   InputLabelProps,
   required,
+  height = 50,
 }) => {
   return (
     <Box>
@@ -32,7 +30,7 @@ export const TextField = ({
         InputLabelProps={InputLabelProps}
         sx={{
           '& .MuiOutlinedInput-root': {
-            height: '50px', // Adjusts the overall height of the input box
+            height: `${height}px`, // Adjusts the overall height of the input box
           },
         }}
       />
@@ -47,6 +45,7 @@ TextField.propTypes = {
   name: PropTypes.string.isRequired,
   placeholder: PropTypes.string,
   label: PropTypes.string,
+  height: PropTypes.number,
   required: PropTypes.bool,
   inputProps: PropTypes.object,
   InputLabelProps: PropTypes.object,
