@@ -454,9 +454,9 @@ export const UpdateAttendanceSheet = () => {
 
   useEffect(() => {
     if (studentsData.length > 0) {
-      const cloned = studentsData.map((student) => ({
+      const cloned = studentsData?.map((student) => ({
         studentId: student.studentId,
-        attendance: student.attendance.map((att) => ({
+        attendance: student.attendance?.map((att) => ({
           date: att.date.split('T')[0],
           present: att.present,
         })),

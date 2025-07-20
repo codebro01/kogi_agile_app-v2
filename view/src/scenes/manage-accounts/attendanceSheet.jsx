@@ -3,6 +3,7 @@ import  {
   useEffect,
   useCallback,
   useRef,
+  useMemo
 } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -275,7 +276,7 @@ export const AttendanceSheet = () => {
 
   const getUniqueSchools =
     dashboardData?.results?.[0]?.distinctSchoolsDetails || []
-    
+
  const uniqueSchools = useMemo(() => {
     const sorted = [...getUniqueSchools].sort((a, b) =>
       a.schoolName.toLowerCase().localeCompare(b.schoolName.toLowerCase())
@@ -473,7 +474,7 @@ export const AttendanceSheet = () => {
             type="submit"
             variant="contained"
             size="large"
-            disabled={filters.schoolId === '' || studentsLoading}
+            disabled={filters.schoolId === '' || studentsLoading || filters.schoolId === 'all'}
             sx={{
               textTransform: 'none',
               width: '48%',
