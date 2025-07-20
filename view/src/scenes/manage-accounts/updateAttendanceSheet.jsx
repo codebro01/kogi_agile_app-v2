@@ -901,7 +901,7 @@ export const UpdateAttendanceSheet = () => {
           </Grid>
           <Grid item xs={12} sm={6} md={4}>
             <InputLabel id="year" sx={{ marginBottom: 1 }}>
-              Minumum Monthly Score
+              Minumum Monthly Score (%)
             </InputLabel>
             <MyTextField
               name={'monthlyTotalAttendanceScore'}

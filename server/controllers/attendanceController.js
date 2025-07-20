@@ -137,7 +137,7 @@ export const getAttendanceTable = async (req, res, next) => {
   } = req.query
 
   // console.log(req.query)
-  
+
   limit = Number(limit)
   year = Number(year)
   page = Number(page)
@@ -153,6 +153,7 @@ export const getAttendanceTable = async (req, res, next) => {
   if (schoolId && schoolId !== 'all') basket.schoolId = schoolId
 
   // console.log(basket, schoolId === 'all')
+  // console.log(req.query)
 
   try {
     const skip = (page - 1) * limit
@@ -161,7 +162,6 @@ export const getAttendanceTable = async (req, res, next) => {
     const students = await Student.find(basket)
       .collation({ locale: 'en', strength: 1 })
       .sort({ surname: 1 })
-      
 
     let totalStudents
 
@@ -204,23 +204,23 @@ export const getAttendanceTable = async (req, res, next) => {
     const daysInWeek = getWeekdaysInMonth(year, month) // e.g. 31
     const daysInMonth = new Date(year, month + 1, 0).getDate() // total days in month
 
+    const filteredStudents = students.filter((student) => {
+      const studentAttendance = attendance.filter(
+        (a) => a.studentId.toString() === student._id.toString()
+      )
 
-      const filteredStudents = students.filter((student) => {
-        const studentAttendance = attendance.filter(
-          (a) => a.studentId.toString() === student._id.toString()
-        )
+      const totalPresent = studentAttendance.filter((a) => a.present).length
+      const score = totalPresent * 5
+      const percentage = (score / (daysInWeek * 5)) * 100
 
-        const totalPresent = studentAttendance.filter((a) => a.present).length
-        const score = totalPresent * 5
-        const percentage = (score / (daysInWeek * 5)) * 100
+      return percentage >= monthlyTotalAttendanceScore
+    })
 
-        return percentage >= monthlyTotalAttendanceScore
-      });
+    const paginatedStudents = filteredStudents.slice(skip, skip + limit)
 
+    // !!!!!!!!!!!!!!!!!!!!!
 
-      const paginatedStudents = filteredStudents.slice(skip, skip + limit)
-
- 
+    // !!!!!!!!!!!!!!!!!!!!!!!1
 
     const table = paginatedStudents.reduce((acc, student) => {
       let studentAttendance = attendance.filter(
@@ -276,12 +276,8 @@ export const getAttendanceTable = async (req, res, next) => {
 
     // console.log('Total students found:', students.length)
     // console.log('After filtering by score:', table.length)
-
-
-   
-
-
-    // console.log(req.query.middlewareOnly === 'true')
+// 
+    // console.log(table)
 
     if (req.query.middlewareOnly === 'true') {
       let school
@@ -294,7 +290,7 @@ export const getAttendanceTable = async (req, res, next) => {
       } else {
         req.attandanceRecordTable = {
           table,
-          school: 'All',
+          school: 'All Schools',
         }
       }
 
@@ -302,11 +298,13 @@ export const getAttendanceTable = async (req, res, next) => {
       return next()
     }
 
+    // console.log(filteredStudents.length)
+
     res.status(200).json({
       message: 'NewAttendance table ready',
       table,
       currentPage: Number(page),
-      totalPages: Math.ceil(totalStudents / limit),
+      totalPages: Math.ceil(filteredStudents.length / limit),
       totalStudents: filteredStudents.length,
     })
   } catch (err) {
@@ -391,8 +389,8 @@ export const downloadAttendanceRecordExcel = async (req, res) => {
       pTotal,
       xTotal,
     ]
-    worksheetData.push(row);
-  });
+    worksheetData.push(row)
+  })
 
   // console.log(worksheetData)
 
@@ -409,5 +407,5 @@ export const downloadAttendanceRecordExcel = async (req, res) => {
     'Content-Type',
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
   )
-  res.send(buffer);
+  res.send(buffer)
 }

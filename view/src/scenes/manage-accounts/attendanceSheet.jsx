@@ -272,8 +272,24 @@ export const AttendanceSheet = () => {
   })
 
   const chunkStudentsData = chunk(studentsSorted, 25)
-  const uniqueSchools =
+
+  const getUniqueSchools =
     dashboardData?.results?.[0]?.distinctSchoolsDetails || []
+    
+ const uniqueSchools = useMemo(() => {
+    const sorted = [...getUniqueSchools].sort((a, b) =>
+      a.schoolName.toLowerCase().localeCompare(b.schoolName.toLowerCase())
+    )
+    return [
+      {
+        schoolName: 'All Schools',
+        schoolId: 'all',
+        schoolCode: '',
+        LGA: '',
+      },
+      ...sorted,
+    ]
+  }, [getUniqueSchools])
 
   // console.log(schoolOptions, uniqueSchools)
   // console.log(uniqueSchools)
