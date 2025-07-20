@@ -352,7 +352,7 @@ export const UpdateAttendanceSheet = () => {
       setAttendanceRecord([])
       setStudentsData((prevStudents) => {
         return prevStudents.map((student) => {
-          console.log('prevStudents', prevStudents)
+          // console.log('prevStudents', prevStudents)
           // Find all attendance updates for this student
           const updatesForThisStudent = res.data.attendance.filter(
             (record) => record.studentId === student.studentId
@@ -552,7 +552,7 @@ export const UpdateAttendanceSheet = () => {
 
     const sn = String((presentPage - 1) * 25 + index + 1).padStart(3, '0')
 
-    console.log(attendanceRecord)
+    // console.log(attendanceRecord)
 
     return (
       <tr key={student.studentId}>
@@ -702,8 +702,25 @@ export const UpdateAttendanceSheet = () => {
   }
 
   const days = getMonthDaysWithWeekdays(filters.year, filters.month) // July 2025 → month = 6
-  const uniqueSchools =
+
+  const getUniqueSchools =
     dashboardData?.results?.[0]?.distinctSchoolsDetails || []
+
+  const uniqueSchools = useMemo(() => {
+    const sorted = [...getUniqueSchools].sort((a, b) =>
+      a.schoolName.toLowerCase().localeCompare(b.schoolName.toLowerCase())
+    )
+    return [
+      {
+        schoolName: 'All Schools',
+        schoolId: 'all',
+        schoolCode: '',
+        LGA: '',
+      },
+      ...sorted,
+    ]
+  }, [getUniqueSchools])
+
   // console.log(filters)
 
   // console.log('students data', studentsData)

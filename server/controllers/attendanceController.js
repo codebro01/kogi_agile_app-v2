@@ -137,17 +137,23 @@ export const getAttendanceTable = async (req, res, next) => {
   } = req.query
 
   // console.log(req.query)
+  
+  limit = Number(limit)
   year = Number(year)
+  page = Number(page)
   monthlyTotalAttendanceScore = Number(monthlyTotalAttendanceScore)
   month = Number(month) - 1
-  if (!schoolId || !year || !month === null) {
+  if (!schoolId || !year || month === null) {
     return res.status(400).json({ message: 'Missing schoolId, year, or month' })
   }
 
   const basket = {}
 
   if (presentClass) basket.presentClass = presentClass
-  if (schoolId) basket.schoolId = schoolId
+  if (schoolId && schoolId !== 'all') basket.schoolId = schoolId
+
+  // console.log(basket, schoolId === 'all')
+
   try {
     const skip = (page - 1) * limit
 
@@ -155,9 +161,14 @@ export const getAttendanceTable = async (req, res, next) => {
     const students = await Student.find(basket)
       .collation({ locale: 'en', strength: 1 })
       .sort({ surname: 1 })
-      .limit(limit)
-      .skip(skip)
-    const totalStudents = await Student.countDocuments({ schoolId })
+      
+
+    let totalStudents
+
+    if (schoolId === 'all') totalStudents = await Student.countDocuments({})
+    else {
+      totalStudents = await Student.countDocuments({ schoolId })
+    }
 
     // console.log('students', students)
     // 2. Get all attendance records for those students in that month
@@ -193,91 +204,25 @@ export const getAttendanceTable = async (req, res, next) => {
     const daysInWeek = getWeekdaysInMonth(year, month) // e.g. 31
     const daysInMonth = new Date(year, month + 1, 0).getDate() // total days in month
 
-    const filteredStudents = []
-    // const table = students.map((student) => {
-    //   // Filter this student’s attendance records
 
-    //   let studentAttendance = attendance.filter(
-    //     (a) => a.studentId.toString() === student._id.toString()
-    //   )
+      const filteredStudents = students.filter((student) => {
+        const studentAttendance = attendance.filter(
+          (a) => a.studentId.toString() === student._id.toString()
+        )
 
-    //   const totalPresent = studentAttendance.filter(
-    //     (a) => a.present === true
-    //   ).length
-    //   // calculate the score for the month
-    //   const attendanceScore = totalPresent * 5
-    //   // check if they passed the threshold
-    //   if (
-    //     (attendanceScore / (daysInWeek * 5)) * 100 >=
-    //     monthlyTotalAttendanceScore
-    //   ) {
-    //     // ✅ Student passed — include them in the final list
-    //     filteredStudents.push({
-    //       studentId: student._id,
-    //       fullName: `${student.surname} ${student.firstname} ${student.middlename}`,
-    //       totalPresent,
-    //       attendanceScore,
-    //     })
-    //   }
+        const totalPresent = studentAttendance.filter((a) => a.present).length
+        const score = totalPresent * 5
+        const percentage = (score / (daysInWeek * 5)) * 100
 
-    //   // First, create a Set of student IDs who passed
-    //   const diligentStudentIds = new Set(
-    //     filteredStudents.map((s) => s.studentId.toString())
-    //   )
+        return percentage >= monthlyTotalAttendanceScore
+      });
 
-    //   // Now filter the attendance to only those students
-    //   const filteredAttendance = studentAttendance.filter((record) =>
-    //     diligentStudentIds.has(record.studentId.toString())
-    //   )
 
-    //   console.log('filteredAttendance', filteredAttendance)
-    //   console.log('diligentStudentIds', diligentStudentIds)
+      const paginatedStudents = filteredStudents.slice(skip, skip + limit)
 
-    //   const dailyRecords = []
+ 
 
-    //   for (let day = 1; day <= daysInMonth; day++) {
-    //     const dateObj = new Date(Date.UTC(year, month, day))
-    //     const dayOfWeek = dateObj.getUTCDay() // 0 = Sunday, 6 = Saturday
-
-    //     // Skip weekends
-    //     if (dayOfWeek === 0 || dayOfWeek === 6) continue
-
-    //     const record = filteredAttendance.find((r) => {
-    //       return (
-    //         r.date.getUTCDate() === day &&
-    //         r.date.getUTCMonth() === month &&
-    //         r.date.getUTCFullYear() === year
-    //       )
-    //     })
-
-    //     dailyRecords.push({
-    //       date: dateObj,
-    //       present: record ? record.present : false,
-    //     })
-    //   }
-
-    //   if (req.query.middlewareOnly === 'true') {
-    //     return {
-    //       randomId: student.randomId,
-    //       studentId: student._id,
-    //       firstname: student.firstname,
-    //       surname: student.surname,
-    //       middlename: student?.middlename || '',
-    //       attendance: dailyRecords,
-    //       presentClass: student.presentClass,
-    //     }
-    //   }
-
-    //   return {
-    //     studentId: student._id,
-    //     firstname: student.firstname,
-    //     surname: student.surname,
-    //     middlename: student?.middlename || '',
-    //     attendance: dailyRecords,
-    //   }
-    // })
-
-    const table = students.reduce((acc, student) => {
+    const table = paginatedStudents.reduce((acc, student) => {
       let studentAttendance = attendance.filter(
         (a) => a.studentId.toString() === student._id.toString()
       )
@@ -329,17 +274,31 @@ export const getAttendanceTable = async (req, res, next) => {
       return acc
     }, [])
 
+    // console.log('Total students found:', students.length)
+    // console.log('After filtering by score:', table.length)
+
+
+   
+
 
     // console.log(req.query.middlewareOnly === 'true')
 
     if (req.query.middlewareOnly === 'true') {
-      const school = await AllSchools.findOne({ _id: schoolId })
+      let school
+      if (schoolId !== 'all') {
+        school = await AllSchools.findOne({ _id: schoolId })
+        req.attandanceRecordTable = {
+          table,
+          school: school.schoolName,
+        }
+      } else {
+        req.attandanceRecordTable = {
+          table,
+          school: 'All',
+        }
+      }
 
       // console.log('middleawate')
-      req.attandanceRecordTable = {
-        table,
-        school: school.schoolName,
-      }
       return next()
     }
 
@@ -348,7 +307,7 @@ export const getAttendanceTable = async (req, res, next) => {
       table,
       currentPage: Number(page),
       totalPages: Math.ceil(totalStudents / limit),
-      totalStudents: Number(totalStudents),
+      totalStudents: filteredStudents.length,
     })
   } catch (err) {
     console.error(err)
@@ -432,8 +391,8 @@ export const downloadAttendanceRecordExcel = async (req, res) => {
       pTotal,
       xTotal,
     ]
-    worksheetData.push(row)
-  })
+    worksheetData.push(row);
+  });
 
   // console.log(worksheetData)
 
@@ -450,5 +409,5 @@ export const downloadAttendanceRecordExcel = async (req, res) => {
     'Content-Type',
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
   )
-  res.send(buffer)
+  res.send(buffer);
 }
