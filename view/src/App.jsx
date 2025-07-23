@@ -6,7 +6,7 @@ import Dashboard from "./scenes/dashboard";
 import { CssBaseline, ThemeProvider } from "@mui/material";
 import { ColorModeContext, useMode } from "./theme";
 import BrandingSignUpPage from "./scenes/auth/register";
-import { SignInForm, EnumeratorSignInForm, PayrollSpecialistSignInForm, EnumeratorSignInFormWebView } from "./scenes/auth/signIn";
+import { SignInForm, EnumeratorSignInForm, PayrollSpecialistSignInForm, EnumeratorSignInFormWebView, VerifierSignInForm } from "./scenes/auth/signIn";
 import CreateEnumerator from "./scenes/manage-accounts/createEnumeratorForm";
 import RegistrationSelector from './scenes/manage-accounts/registrationSelector';
 import { ViewAllStudentsData } from './scenes/manage-accounts/viewAllStudentsData';
@@ -322,6 +322,88 @@ function App() {
                       <Routes>
                         <Route
                           path="/payroll-specialist-dashboard"
+                          element={<Dashboard />}
+                        />
+                        {/* <Route
+                          path="/export-attendance-sheet/"
+                          element={<ExportAttendanceSheetPayroll />}
+                        /> */}
+                        <Route
+                          path="/export-attendance-sheet/"
+                          element={<AttendanceSheet />}
+                        />
+                        <Route
+                          path="/payroll-specialist-dashboard/update-attendance-sheet"
+                          element={<UpdateAttendanceSheet />}
+                        />
+                        <Route
+                          path="/payroll-specialist-dashboard/view-students"
+                          element={<AdminViewAllStudentsDataNoExport />}
+                        />
+                        <Route
+                          path="/payroll-specialist-dashboard/update-bank-record"
+                          element={<UpdateBankAccountInfo />}
+                        />
+                        <Route
+                          path="payroll-specialist-dashboard/upload-payment"
+                          element={<ImportPaymentSheet />}
+                        />
+                        <Route
+                          path="/payroll-specialist-dashboard/view-payments-records"
+                          element={<ViewPaymentsRecords />}
+                        />
+                        <Route
+                          path="/index.html"
+                          element={<Navigate to="/" />}
+                        />
+
+                        <Route
+                          path="*"
+                          element={
+                            <Navigate to="/payroll-specialist-dashboard" />
+                          }
+                        />
+                      </Routes>
+                    </Provider>
+                  }
+                />
+              </Routes>
+            </main>
+          </div>
+        </ThemeProvider>
+      </ColorModeContext.Provider>
+    )
+  }
+  if (subdomain === 'verifier') {
+    return (
+      <ColorModeContext.Provider value={colorMode}>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <div className="app">
+            {location.pathname !== '/dashboard/sign-in' &&
+              location.pathname !== '/' &&
+              location.pathname !== '/sign-in' && (
+                <Sidebar isSidebar={isSidebar} />
+              )}
+
+            <main className={`content ${isSidebar ? '' : 'collapsed'}`}>
+              {location.pathname !== '/sign-in' &&
+                location.pathname !== '/' &&
+                location.pathname !== '/dashboard/sign-in' && (
+                  <Topbar setIsSidebar={setIsSidebar} />
+                )}
+
+              <Routes>
+                <Route path="/sign-in" element={<VerifierSignInForm />} />
+                <Route path="/" element={<VerifierSignInForm />} />
+
+                <Route
+                  path="/*"
+                  element={
+                    <Provider store={store}>
+                      <Routes>
+                        <Route
+                          path="/verifier-dashboard"
                           element={<Dashboard />}
                         />
                         {/* <Route

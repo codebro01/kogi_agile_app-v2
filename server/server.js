@@ -20,7 +20,8 @@ import {
   allSchoolsRouter,
   payrollSpecialistRouter,
   schoolsRouter,
-  attendanceRouter
+  attendanceRouter,
+  verifierRouter
 } from './routes/index.js'
 import {
   authMiddleware,
@@ -56,6 +57,7 @@ const allowedOrigins = [
   'https://enrollment.kogiagile.org',
   'https://www.enrollment.kogiagile.org',
   'https://www.portal.kogiagile.org',
+  'https://www.verifier.kogiagile.org',
   'https://cct.kogiagile.org',
   'https://www.cct.kogiagile.org',
   'www.portal.kogiagile.org',
@@ -66,6 +68,7 @@ const allowedOrigins = [
   'http://enrollment.localhost:3000',
   'http://enrolment.localhost:3000',
   'http://cct.localhost:3000',
+  'http://verifier.localhost:3000',
   'https://server-g10x.onrender.com',
   // 'https://calm-stardust-05aabe.netlify.app',
   // 'https://kogi-agile-app-vite.vercel.app',
@@ -141,6 +144,7 @@ app.use('/api/v1/schools', schoolsRouter)
 app.use('/api/v1/wards', wards)
 app.use('/api/v1/payments', paymentRouter)
 app.use('/api/v1/attendance', attendanceRouter)
+app.use('/api/v1/verifier', verifierRouter)
 
 // app.get("*", (req, res) => {
 //     res.sendFile(path.join(__dirname, "client/build", "index.html"));

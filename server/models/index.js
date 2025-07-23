@@ -10,6 +10,8 @@ import { Payment } from './paymentSchema.js';
 import { PayrollSpecialist } from "./payRollSpecialistSchema.js";
 import { AllSchools } from "./schoolsSchema.js";
 import { NewAttendance } from "./newAttendanceSchema.js";
+import { Verifier } from './verifierSchema.js';
+import { Verification } from "./verificationSchema.js";
 
 
 
@@ -26,4 +28,6 @@ export {
   Payment,
   PayrollSpecialist,
   NewAttendance,
+  Verifier,
+  Verification,
 }

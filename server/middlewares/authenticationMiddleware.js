@@ -1,15 +1,18 @@
 import { NotAuthenticatedError, NotFoundError } from '../errors/index.js'
-import { Admin } from '../models/adminSchema.js'
-import { Registrar } from '../models/registrarSchema.js'
+import {
+  Admin,
+  Registrar,
+  Verifier,
+  PayrollSpecialist,
+} from '../models/index.js'
 import { verifyJWT } from '../utils/index.js'
 import { StatusCodes } from 'http-status-codes'
-import { PayrollSpecialist } from '../models/payRollSpecialistSchema.js'
 
 export const authMiddleware = async (req, res, next) => {
   const authHeader = req.headers['authorization']
-//   console.log(req.url)
+  //   console.log(req.url)
   let token = authHeader && authHeader.split(' ')[1]
-//   console.log(token)
+  //   console.log(token)
 
   if (!token) {
     token = req.query.token // Extract token from query string
@@ -47,8 +50,15 @@ export const authMiddleware = async (req, res, next) => {
         },
       }
     )
+    const verifier = await Verifier.findById(userID).populate({
+      path: 'roles', // Populate roles
+      populate: {
+        path: 'permissions', // Populate permissions within each role
+        select: 'name', // Select only the "name" field of permissions
+      },
+    })
 
-    if (!admin && !registrar && !payrollSpecialist)
+    if (!admin && !registrar && !payrollSpecialist && !verifier)
       next(new NotFoundError('User not found'))
     if (admin) {
       const permissionsArray = admin.roles.flatMap((role) =>
@@ -72,6 +82,14 @@ export const authMiddleware = async (req, res, next) => {
       )
       payrollSpecialist.permissions = permissionsArray
       const { fullName, email, permissions, userID: _id } = payrollSpecialist
+      req.user = { fullName, email, permissions, userID }
+    }
+    if (verifier) {
+      const permissionsArray = verifier.roles.flatMap((role) =>
+        role.permissions.map((permission) => permission.name)
+      )
+      verifier.permissions = permissionsArray
+      const { fullName, email, permissions, userID: _id } = verifier
       req.user = { fullName, email, permissions, userID }
     }
 

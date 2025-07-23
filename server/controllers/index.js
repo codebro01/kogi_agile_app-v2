@@ -1,6 +1,35 @@
 // import { loginSuperAdmin } from "./authController.js";
-import { getSingleAdmin, resetAdminPassword, toggleAdminStatus, createAdmin, updateAdmin, loginAdmin, getAllAdmins } from "./authController.js";
-import {loginWithUrl, toggleRegistrarStatus, createRegistrar, getSingleRegistrar, loginRegistrar, getAllRegistrars, changeRegistrarPassword, resetRegistrarPassword, updateRegistrar } from "./registrarController.js";
+import {
+  getSingleAdmin,
+  resetAdminPassword,
+  toggleAdminStatus,
+  createAdmin,
+  updateAdmin,
+  loginAdmin,
+  getAllAdmins,
+} from './authController.js'
+import {
+  loginWithUrl,
+  toggleRegistrarStatus,
+  createRegistrar,
+  getSingleRegistrar,
+  loginRegistrar,
+  getAllRegistrars,
+  changeRegistrarPassword,
+  resetRegistrarPassword,
+  updateRegistrar,
+} from './registrarController.js'
+import {
+  toggleVerifierStatus,
+  createVerifier,
+  getSingleVerifier,
+  loginVerifier,
+  getAllVerifiers,
+  changeVerifierPassword,
+  resetVerifierPassword,
+  updateVerifier,
+} from './verifierController.js'
+import { verifyStudent } from './verificationController.js'
 import {
   totalStudentsByEnumerators,
   importPaymentSheet,
@@ -26,16 +55,40 @@ import {
   updateStudentsBankAccountDetails,
   EditManyStudents,
 } from './studentController.js'
-import { getSinglePayrollSpecialist, togglePayrollSpecialistStatus, getAllPayrollSpecialists, createPayrollSpecialist, loginPayrollSpecialist, updatePayrollSpecialist, changePayrollSpecialistPassword, resetPayrollSpecialistPassword } from "./payrollSpecialistController.js";
-import { enumeratorsByyHighestRegisteredStudents, lgasByHighestRegisteredStudents } from "./adminUniqueQueriesController.js";
-import { getTotalAmountPaid, getTotalStudentsPaidMonthly, getLGAWithTotalPayments, viewPayments, getPaymentsByLGA, getTotalStudentPaid } from "./paymentController.js";
-import { updateSchool, createSchool, deleteSchool, getAllSchools, getSingleSchool } from "./schoolController.js";
+import {
+  getSinglePayrollSpecialist,
+  togglePayrollSpecialistStatus,
+  getAllPayrollSpecialists,
+  createPayrollSpecialist,
+  loginPayrollSpecialist,
+  updatePayrollSpecialist,
+  changePayrollSpecialistPassword,
+  resetPayrollSpecialistPassword,
+} from './payrollSpecialistController.js'
+import {
+  enumeratorsByyHighestRegisteredStudents,
+  lgasByHighestRegisteredStudents,
+} from './adminUniqueQueriesController.js'
+import {
+  getTotalAmountPaid,
+  getTotalStudentsPaidMonthly,
+  getLGAWithTotalPayments,
+  viewPayments,
+  getPaymentsByLGA,
+  getTotalStudentPaid,
+} from './paymentController.js'
+import {
+  updateSchool,
+  createSchool,
+  deleteSchool,
+  getAllSchools,
+  getSingleSchool,
+} from './schoolController.js'
 import {
   createOrUpdateAttendance,
   getAttendanceTable,
   downloadAttendanceRecordExcel,
 } from './attendanceController.js'
-
 
 export {
   getTotalStudentPaid,
@@ -101,4 +154,13 @@ export {
   createOrUpdateAttendance,
   getAttendanceTable,
   downloadAttendanceRecordExcel,
+  toggleVerifierStatus,
+  createVerifier,
+  getSingleVerifier,
+  loginVerifier,
+  getAllVerifiers,
+  changeVerifierPassword,
+  resetVerifierPassword,
+  updateVerifier,
+  verifyStudent,
 }
