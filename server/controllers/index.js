@@ -26,6 +26,7 @@ import {
   loginVerifier,
   getAllVerifiers,
   changeVerifierPassword,
+  verifierDashboard,
   resetVerifierPassword,
   updateVerifier,
 } from './verifierController.js'
@@ -160,6 +161,7 @@ export {
   loginVerifier,
   getAllVerifiers,
   changeVerifierPassword,
+  verifierDashboard,
   resetVerifierPassword,
   updateVerifier,
   verifyStudent,

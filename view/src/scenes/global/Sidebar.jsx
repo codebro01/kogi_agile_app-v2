@@ -35,6 +35,7 @@ import AttachMoneyIcon from '@mui/icons-material/AttachMoney'
 import ContentCopyIcon from '@mui/icons-material/ContentCopy'
 import FileDownloadIcon from '@mui/icons-material/FileDownload'
 import EventNoteIcon from '@mui/icons-material/EventNote'
+import CheckIcon from '@mui/icons-material/Check'
 import EditIcon from '@mui/icons-material/Edit'
 import NoteAddIcon from '@mui/icons-material/NoteAdd'
 import PrintIcon from '@mui/icons-material/Print'
@@ -190,7 +191,7 @@ const Sidebar = ({ isSidebar }) => {
           )}
 
           <Box paddingLeft={isCollapsed ? undefined : '10%'} marginTop={5}>
-            <Item
+            {/* <Item
               title="Dashboard"
               to={
                 userPermissions.includes('handle_registrars')
@@ -200,7 +201,7 @@ const Sidebar = ({ isSidebar }) => {
               icon={<HomeOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
-            />
+            /> */}
 
             {/* {userPermissions.includes('handle_registrars') && <Typography
               variant="h6"
@@ -209,9 +210,10 @@ const Sidebar = ({ isSidebar }) => {
             >
               
             </Typography>} */}
-            {!userPermissions.includes('handle_payments') ||
+            {/* {!userPermissions.includes('handle_payments') ||
             (userPermissions.includes('handle_students') &&
-              userPermissions.includes('handle_admins')) ? (
+              userPermissions.includes('handle_admins') &&
+              userPermissions.includes('handle_verifications')) ? (
               <Item
                 title="Register Account"
                 to={
@@ -258,19 +260,36 @@ const Sidebar = ({ isSidebar }) => {
               icon={<ContactsOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
-            />
+            /> */}
 
             {/**********************************  Super Admin Sidebar ******************************** */}
 
             {userPermissions.includes('handle_admins') && (
               <>
                 <Item
+                  title="Dashboard"
+                  to={'/admin-dashboard'}
+                  icon={<HomeOutlinedIcon />}
+                  selected={selected}
+                  setSelected={setSelected}
+                />
+                <Item
+                  title="Register Account"
+                  to={'/admin-dashboard/role-selector'}
+                  icon={<PeopleOutlinedIcon />}
+                  selected={selected}
+                  setSelected={setSelected}
+                />
+                <Item
+                  title="Manage Students"
+                  to={'/admin-dashboard/view-all-students-data'}
+                  icon={<ContactsOutlinedIcon />}
+                  selected={selected}
+                  setSelected={setSelected}
+                />
+                <Item
                   title="View all Students"
-                  to={
-                    userPermissions.includes('handle_registrars')
-                      ? '/admin-dashboard/admin-view-all-students-no-export'
-                      : 'enumerator-dashboard/view-all-students-data'
-                  }
+                  to={'/admin-dashboard/admin-view-all-students-no-export'}
                   icon={<VisibilityIcon />}
                   selected={selected}
                   setSelected={setSelected}
@@ -279,9 +298,7 @@ const Sidebar = ({ isSidebar }) => {
                 <Item
                   title="Manage Duplicate Students Record"
                   to={
-                    userPermissions.includes('handle_registrars')
-                      ? '/admin-dashboard/manage-accounts/manage-duplicate-records'
-                      : 'enumerator-dashboard/view-all-students-data'
+                    '/admin-dashboard/manage-accounts/manage-duplicate-records'
                   }
                   icon={<ContentCopyIcon />}
                   selected={selected}
@@ -550,6 +567,25 @@ const Sidebar = ({ isSidebar }) => {
             {userPermissions.length === 1 && (
               <>
                 <Item
+                  title="Dashboard"
+                  to={'/enumerator-dashboard'}
+                  icon={<HomeOutlinedIcon />}
+                  selected={selected}
+                  setSelected={setSelected}
+                />
+                <Item
+                  title="Register Account"
+                  to={
+                    userPermissions.includes('handle_registrars')
+                      ? '/admin-dashboard/role-selector'
+                      : // : '/enumerator-dashboard/create-student-school-selector'
+                        '/enumerator-dashboard'
+                  }
+                  icon={<PeopleOutlinedIcon />}
+                  selected={selected}
+                  setSelected={setSelected}
+                />
+                <Item
                   title="Export Attendance Sheet"
                   to={'/export-attendance-sheet'}
                   icon={<DescriptionIcon />}
@@ -580,6 +616,13 @@ const Sidebar = ({ isSidebar }) => {
             {userPermissions.length === 2 &&
               userPermissions.includes('handle_payments') && (
                 <>
+                  <Item
+                    title="Dashboard"
+                    to={'/payroll-specialist-dashboard'}
+                    icon={<HomeOutlinedIcon />}
+                    selected={selected}
+                    setSelected={setSelected}
+                  />
                   <Item
                     title="Export Attendance"
                     to={'/export-attendance-sheet'}
@@ -619,75 +662,24 @@ const Sidebar = ({ isSidebar }) => {
                 </>
               )}
 
-            {/* {userPermissions.includes('handle_registrars') &&
-
+            {userPermissions.includes('handle_verifications') && (
               <>
-
-                <Typography
-                  variant="h6"
-                  color={colors.grey[300]}
-                  sx={{ m: "15px 0 5px 20px" }}
-                >
-                  Manage Enumerators
-                </Typography>
                 <Item
-                  title="Enumerators Info"
-                  to="/form"
-                  icon={<PersonOutlinedIcon />}
+                  title="Dashboard"
+                  to={'/verifier-dashboard'}
+                  icon={<HomeOutlinedIcon />}
                   selected={selected}
                   setSelected={setSelected}
                 />
                 <Item
-                  title="Create Enumerator"
-                  to="/calendar"
-                  icon={<CalendarTodayOutlinedIcon />}
-                  selected={selected}
-                  setSelected={setSelected}
-                />
-                <Item
-                  title="Enumerators Activites"
-                  to="/faq"
-                  icon={<HelpOutlineOutlinedIcon />}
+                  title="Verify Students"
+                  to={'/verifier-dashboard/verify-student'}
+                  icon={<CheckIcon />}
                   selected={selected}
                   setSelected={setSelected}
                 />
               </>
-            } */}
-
-            {/* 
-            {userPermissions.includes('handle_registrars') &&
-              <>
-                <Typography
-                  variant="h6"
-                  color={colors.grey[300]}
-                  sx={{ m: "15px 0 5px 20px" }}
-                >
-                  Statistics
-                </Typography>
-                <Item
-                  title="Bar Chart"
-                  to="/bar"
-                  icon={<BarChartOutlinedIcon />}
-                  selected={selected}
-                  setSelected={setSelected}
-                />
-                <Item
-                  title="Pie Chart"
-                  to="/pie"
-                  icon={<PieChartOutlineOutlinedIcon />}
-                  selected={selected}
-                  setSelected={setSelected}
-                />
-                <Item
-                  title="Line Chart"
-                  to="/line"
-                  icon={<TimelineOutlinedIcon />}
-                  selected={selected}
-                  setSelected={setSelected}
-                />
-              </>
-
-            } */}
+            )}
           </Box>
         </Menu>
       </ProSidebar>

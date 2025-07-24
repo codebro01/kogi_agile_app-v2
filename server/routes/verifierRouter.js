@@ -9,6 +9,7 @@ import {
   resetVerifierPassword,
   updateVerifier,
   verifyStudent,
+  verifierDashboard
 } from '../controllers/index.js'
 import { upload } from '../config/multer.js'
 import { cloudinaryImageUploader } from '../utils/cloudinaryImageUploader.js'
@@ -41,6 +42,12 @@ router.get(
   authMiddleware,
   authorizePermission(['handle_registrars', 'handle_students']),
   getSingleVerifier
+)
+router.get(
+  '/verifier-dashboard',
+  authMiddleware,
+  authorizePermission(['handle_verifications']),
+  verifierDashboard
 )
 router.patch(
   '/update/:id',

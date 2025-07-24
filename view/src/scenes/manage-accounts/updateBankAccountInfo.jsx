@@ -4,7 +4,14 @@ import { UploadButtonField } from '../../components/uploadButtonField'
 import axios from 'axios'
 
 export const UpdateBankAccountInfo = () => {
-  const [updateAccountMessage, setUpdateAccountMessage] = useState('')
+  const [updateAccountMessage, setUpdateAccountMessage] = useState({
+    message: '',
+    matched: 0,
+    modified: 0,
+    unmatchedStudents: [
+
+    ],
+  })
   const [updateAccountLoading, setUpdateAccountLoading] = useState(false)
   const [filters, setFilters] = useState({
     file: '',
@@ -45,7 +52,7 @@ export const UpdateBankAccountInfo = () => {
       setUpdateAccountLoading(true)
       setUpdateAccountMessage('...Please wait while the update completes.')
 
-      await axios.patch(
+      const res = await axios.patch(
         `${API_URL}/student/update/bank-account-details`,
         formData,
         {
@@ -56,34 +63,47 @@ export const UpdateBankAccountInfo = () => {
         }
       )
       setUpdateAccountLoading(false)
-      setUpdateAccountMessage(
-        'Students Accounts has been successfully updated!!!'
-      )
+      setUpdateAccountMessage(res.data)
       setFilters((prev) => ({ ...prev, file: '' }))
       setTimeout(() => {
-        setUpdateAccountMessage('')
-      }, 15000)
+        setUpdateAccountMessage({
+          message: '',
+          matched: 0,
+          modified: 0,
+          unmatchedStudents: [],
+        })
+      }, 60000)
     } catch (err) {
       setUpdateAccountLoading(false)
       console.log(err)
       console.log(err.response?.data?.message)
       if (err.response?.data?.message) {
-        setUpdateAccountMessage(err.response?.data?.message)
+        setUpdateAccountMessage({
+          message: err.response?.data?.message
+        })
         setTimeout(() => {
-          setUpdateAccountMessage('')
-        }, 15000)
+          setUpdateAccountMessage({
+            message: '',
+          })
+        }, 60000)
         return
       } else if (err.response?.data) {
-        setUpdateAccountMessage(err.response?.data)
+        setUpdateAccountMessage({
+          message: err.response?.data
+        })
         setTimeout(() => {
-          setUpdateAccountMessage('')
-        }, 15000)
+          setUpdateAccountMessage({
+            message: '',
+          })
+        }, 60000)
         return
       } else {
-        setUpdateAccountMessage('An error occured, please try again')
+        setUpdateAccountMessage({
+          message: 'An error occured, please try again',
+        })
         setTimeout(() => {
           setUpdateAccountMessage('')
-        }, 15000)
+        }, 60000)
       }
     }
   }
@@ -94,7 +114,7 @@ export const UpdateBankAccountInfo = () => {
         justifyContent: 'center',
         alignItems: 'center',
         width: '100%',
-        height: '70%',
+        minHeight: '70%',
       }}
     >
       <Box
@@ -175,7 +195,7 @@ export const UpdateBankAccountInfo = () => {
               sx={{
                 display: 'flex',
                 justifyContent: 'center',
-                
+
                 gap: 2,
                 alignItems: 'center',
                 fontSize: {
@@ -206,12 +226,86 @@ export const UpdateBankAccountInfo = () => {
           )}
         </Button>
 
-        {!updateAccountLoading && (
-          <Typography sx = {{
-            display:"flex", 
-            justifyContent:"center", 
-            alignItems: "center"
-          }}>{updateAccountMessage}</Typography>
+        {!updateAccountLoading && updateAccountMessage.message && (
+          <Box
+            sx={{
+              fontSize: '20px',
+              fontWeight: 600,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '10px',
+              flexWrap: 'wrap',
+            }}
+          >
+            <Typography
+              sx={{
+                display: 'flex',
+                justifyContent: 'flex-start',
+                fontWeight: 600,
+
+                alignItems: 'center',
+              }}
+            >
+              Message: {updateAccountMessage?.message}
+            </Typography>
+            <Typography
+              sx={{
+                display: 'flex',
+                justifyContent: 'flex-start',
+                fontWeight: 600,
+                alignItems: 'center',
+              }}
+            >
+              Matched: {updateAccountMessage?.matched}
+            </Typography>
+            <Typography
+              sx={{
+                display: 'flex',
+                justifyContent: 'flex-start',
+                fontWeight: 600,
+                alignItems: 'center',
+              }}
+            >
+              Modified: {updateAccountMessage?.modified}
+            </Typography>
+            <Typography
+              sx={{
+                display: 'flex',
+                justifyContent: 'flex-start',
+                fontWeight: 600,
+                alignItems: 'center',
+                wordBreak: 'break-word',
+                whiteSpace: 'normal',
+                overflowWrap: 'break-word',
+                flexDirection: 'column',
+              }}
+            >
+              <Typography
+                sx={{
+                  fontWeight: 600,
+                  textAlign: 'left',
+                  display: 'flex',
+                  justifyContent: 'flex-start',
+                  alignItems: 'center',
+                }}
+              >
+                Could not find students with the following ids:{' '}
+              </Typography>
+              {updateAccountMessage?.unmatchedStudents.map((s) => (
+                <Typography
+                  key={s}
+                  sx={{
+                    textAlign: 'left',
+                    display: 'flex',
+                    width: '100%',
+                    fontWeight: 600,
+                  }}
+                >
+                  [{s}],{' '}
+                </Typography>
+              ))}
+            </Typography>
+          </Box>
         )}
       </Box>
     </Box>

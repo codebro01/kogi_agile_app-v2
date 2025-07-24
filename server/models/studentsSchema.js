@@ -6,6 +6,7 @@ const StudentSchema = new mongoose.Schema(
     randomId: {
       type: String,
       required: true,
+      unique: true,
     },
     biometricfinger_index: {
       type: String,

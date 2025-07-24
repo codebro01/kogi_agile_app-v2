@@ -46,6 +46,7 @@ import { UpdateSchool } from "./scenes/manage-accounts/updateSchool.jsx";
 import { EditManyStudents } from "./scenes/manage-accounts/EditManyStudents.jsx";
 import { AttendanceSheet } from "./scenes/manage-accounts/attendanceSheet.jsx";
 import { UpdateAttendanceSheet } from "./scenes/manage-accounts/updateAttendanceSheet.jsx";
+import VerifyStudent from "./scenes/manage-accounts/verifyStudent.jsx";
 
 
 function App() {
@@ -410,30 +411,12 @@ function App() {
                           path="/export-attendance-sheet/"
                           element={<ExportAttendanceSheetPayroll />}
                         /> */}
+           
                         <Route
-                          path="/export-attendance-sheet/"
-                          element={<AttendanceSheet />}
+                          path="/verifier-dashboard/verify-student"
+                          element={<VerifyStudent />}
                         />
-                        <Route
-                          path="/payroll-specialist-dashboard/update-attendance-sheet"
-                          element={<UpdateAttendanceSheet />}
-                        />
-                        <Route
-                          path="/payroll-specialist-dashboard/view-students"
-                          element={<AdminViewAllStudentsDataNoExport />}
-                        />
-                        <Route
-                          path="/payroll-specialist-dashboard/update-bank-record"
-                          element={<UpdateBankAccountInfo />}
-                        />
-                        <Route
-                          path="payroll-specialist-dashboard/upload-payment"
-                          element={<ImportPaymentSheet />}
-                        />
-                        <Route
-                          path="/payroll-specialist-dashboard/view-payments-records"
-                          element={<ViewPaymentsRecords />}
-                        />
+             
                         <Route
                           path="/index.html"
                           element={<Navigate to="/" />}
@@ -442,7 +425,7 @@ function App() {
                         <Route
                           path="*"
                           element={
-                            <Navigate to="/payroll-specialist-dashboard" />
+                            <Navigate to="/verifier-dashboard" />
                           }
                         />
                       </Routes>

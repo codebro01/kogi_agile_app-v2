@@ -2403,34 +2403,88 @@ export const updateStudentsBankAccountDetails = async (req, res, next) => {
     const updateStudentsAccount = async () => {
       try {
         console.log(res.parsedData)
-        const updatePromises = req.parsedData.map((student) => {
-          const escapedId = escapeRegex(student.STUDENTID)
-          // console.log(
-          //   student['ACTUAL ACCOUNT OPENNED'],
-          //   student['BANKNAME'],
-          //   student['NUBAN'],
-          //   student['PARENTPHONE']
-          // )
-          return Student.updateMany(
-            { randomId: { $regex: new RegExp(`^${escapedId}$`, 'i') } },
-            {
-              $set: {
-                accountNumber:
-                  student['ACTUAL ACCOUNT OPENNED'] ||
-                  student['ACTUALACCOUNTOPENNED'],
-                bankName: student['BANK NAME'] || student['BANKNAME'],
-                NUBAN: student['NUBAN'],
-                parentPhone: student['PARENTPHONE'] || student['PARENT PHONE'],
+        // const updatePromises = req.parsedData.map((student) => {
+        //   const escapedId = escapeRegex(student.STUDENTID)
+        //   // console.log(
+        //   //   student['ACTUAL ACCOUNT OPENNED'],
+        //   //   student['BANKNAME'],
+        //   //   student['NUBAN'],
+        //   //   student['PARENTPHONE']
+        //   // )
+
+        //   return Student.updateMany(
+        //     { randomId: student.STUDENTID },
+        //     {
+        //       $set: {
+        //         accountNumber:
+        //           student['ACTUAL ACCOUNT OPENNED'] ||
+        //           student['ACTUALACCOUNTOPENNED'],
+        //         bankName: student['BANK NAME'] || student['BANKNAME'],
+        //         NUBAN: student['NUBAN'],
+        //         parentPhone: student['PARENTPHONE'] || student['PARENT PHONE'],
+        //       },
+        //     }
+        //   )
+        // })
+
+        // await Promise.all(updatePromises)
+
+        const operations = req.parsedData.map((student) => {
+          // const lowerId = student.STUDENTID.toLowerCase()
+
+          return {
+            updateOne: {
+              filter: { randomId: student.STUDENTID },
+              update: {
+                $set: {
+                  accountNumber:
+                    student['ACTUAL ACCOUNT OPENNED'] ||
+                    student['ACTUALACCOUNTOPENNED'],
+                  bankName: student['BANK NAME'] || student['BANKNAME'],
+                  NUBAN: student['NUBAN'],
+                  parentPhone:
+                    student['PARENTPHONE'] || student['PARENT PHONE'],
+                },
               },
-            }
-          )
+            },
+          }
         })
 
-        await Promise.all(updatePromises)
+        const result = await Student.bulkWrite(operations)
+        // console.log(
+        //   `Matched: ${result.matchedCount}, Modified: ${result.modifiedCount}`
+        // )
+        // Extract all IDs from parsedData (Excel side)
+        const studentIdsFromExcel = req.parsedData.map((student) =>
+          student.STUDENTID.trim()
+        )
+
+        // Fetch all matching students from DB
+        const foundStudents = await Student.find({
+          randomId: { $in: studentIdsFromExcel },
+        }).select('randomId')
+
+        // Convert DB IDs into a Set for faster lookup
+        const foundIdsSet = new Set(foundStudents.map((s) => s.randomId))
+
+        // Filter the missing ones
+        const unmatchedStudents = req.parsedData.filter(
+          (student) => !foundIdsSet.has(student.STUDENTID.trim())
+        )
+
+      const unmatchedStudentsArray = unmatchedStudents.map(s => s.STUDENTID)
+
+        // console.log('Unmatched students:', unmatchedStudents.length)
+        // console.log(unmatchedStudents.map((s) => s.STUDENTID))
 
         res
           .status(200)
-          .json({ message: 'Students informations updated successfully!!!' })
+          .json({
+            message: 'Students informations updated successfully!!!',
+            matched: result.matchedCount,
+            modified: result.modifiedCount,
+            unmatchedStudents: unmatchedStudentsArray,
+          })
       } catch (error) {
         console.error('Error updating students:', error)
         res.status(500).json({ message: 'Failed to update students' })

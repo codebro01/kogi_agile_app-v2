@@ -1,4 +1,4 @@
-import { Verifier } from '../models/index.js'
+import { Student, Verifier, Verification } from '../models/index.js'
 import { createTokenUser } from '../utils/createTokenUser.js'
 import {
   attachCookieToResponse,
@@ -40,7 +40,7 @@ export const getSingleVerifier = async (req, res, next) => {
 }
 
 export const createVerifier = async (req, res, next) => {
-    // console.log('got in here')
+  // console.log('got in here')
   try {
     const verifierRole = await Roles.findOne({ role: 'verifier' })
     const lastLogged = new Date(Date.now())
@@ -87,7 +87,7 @@ export const createVerifier = async (req, res, next) => {
     })
 
     if (!verifier)
-      return next(new BadRequestError('An error occured creating Enumerator'));
+      return next(new BadRequestError('An error occured creating Enumerator'))
     const verifierObj = verifier.toObject() // convert Mongoose doc to plain object
     delete verifierObj.password
     res.status(200).json({ verifier: verifierObj, verifierRole })
@@ -97,6 +97,7 @@ export const createVerifier = async (req, res, next) => {
 }
 
 export const loginVerifier = async (req, res, next) => {
+    console.log('entered here')
   try {
     let { email, password } = req.body
     // console.log(req.body)
@@ -290,6 +291,93 @@ export const deleteVerifier = async (req, res, next) => {
 
 // ! verifier's dashboard
 
-export const verifierDashboard = async (req, res) => {
-    
+export const verifierDashboard = async (req, res, next) => {
+  try {
+    const pipeline = [
+      {
+        $lookup: {
+          from: 'verifications',
+          localField: '_id',
+          foreignField: 'studentId',
+          as: 'verification',
+        },
+      },
+      {
+        $addFields: {
+          verified: {
+            $cond: [
+              { $gt: [{ $size: '$verification' }, 0] },
+              { $arrayElemAt: ['$verification.verified', 0] },
+              false,
+            ],
+          },
+        },
+      },
+      {
+        $facet: {
+          totalStudents: [{ $count: 'count' }],
+          verifiedStudents: [
+            { $match: { verified: true } },
+            { $count: 'count' },
+          ],
+          unverifiedStudents: [
+            { $match: { verified: false } },
+            { $count: 'count' },
+          ],
+          schoolsWithVerifiedStudents: [
+            { $match: { verified: true } },
+            {
+              $group: {
+                _id: '$schoolId',
+              },
+            },
+            { $count: 'count' },
+          ],
+          schoolsWithUnverifiedStudents: [
+            { $match: { verified: false } },
+            {
+              $group: {
+                _id: '$schoolId',
+              },
+            },
+            { $count: 'count' },
+          ],
+        },
+      },
+      {
+        $project: {
+          totalStudents: { $arrayElemAt: ['$totalStudents.count', 0] },
+          verifiedCount: { $arrayElemAt: ['$verifiedStudents.count', 0] },
+          unverifiedCount: { $arrayElemAt: ['$unverifiedStudents.count', 0] },
+          schoolsWithVerifiedStudentsCount: {
+            $arrayElemAt: ['$schoolsWithVerifiedStudents.count', 0],
+          },
+          schoolsWithUnverifiedStudentsCount: {
+            $arrayElemAt: ['$schoolsWithUnverifiedStudents.count', 0],
+          },
+        },
+      },
+    ]
+
+    // console.log(await Verification.countDocuments({}));
+
+    const verifierDashboardData = await Student.aggregate(pipeline)
+
+    // const testPipeline = [
+    //   {
+    //     $lookup: {
+    //       from: 'students',
+    //       localField: 'studentId',
+    //       foreignField: '_id',
+    //       as: 'student',
+    //     },
+    //   },
+    // ]
+    // const result = await Verification.aggregate(testPipeline)
+    // console.log(result)
+
+    res.status(StatusCodes.OK).json({ verifierDashboardData })
+  } catch (error) {
+    return next(error)
+  }
 }

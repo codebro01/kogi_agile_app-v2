@@ -710,7 +710,7 @@ export const VerifierSignInForm = () => {
                 setIsLoading(false)
                 // Check permissions and navigate
                 console.log(allPermissionNames)
-                if (allPermissionNames.includes('handle_verification')) {
+                if (allPermissionNames.includes('handle_verifications')) {
                   navigate('/verifier-dashboard')
                 } else {
                   navigate('/sign-in')
