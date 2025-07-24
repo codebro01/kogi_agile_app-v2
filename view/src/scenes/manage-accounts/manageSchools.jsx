@@ -52,7 +52,7 @@ if(schoolsError) {
     )
 }
 
-console.log(schoolsState)
+// console.log(schoolsState)
  const handleDelete = (row) => {
 
         const confirmDelete = window.confirm(`Are you sure you want to delete ${row.schoolName}?`);

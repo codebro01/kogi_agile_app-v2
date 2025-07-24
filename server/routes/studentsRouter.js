@@ -85,7 +85,11 @@ router.get(
 router.get(
   '/get-students-stats',
   authMiddleware,
-  authorizePermission(['handle_registrars', 'handle_payments']),
+  authorizePermission([
+    'handle_registrars',
+    'handle_payments',
+    'handle_verifications',
+  ]),
   getStudentsStats
 )
 router.get(

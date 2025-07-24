@@ -76,7 +76,7 @@ export const UpdateBankAccountInfo = () => {
     } catch (err) {
       setUpdateAccountLoading(false)
       console.log(err)
-      console.log(err.response?.data?.message)
+      // console.log(err.response?.data?.message)
       if (err.response?.data?.message) {
         setUpdateAccountMessage({
           message: err.response?.data?.message

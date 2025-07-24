@@ -80,6 +80,11 @@ body,
 }
 
 @media Print {
+    @page {
+        /* size: A4; */
+        /* margin: 0 12mm 0 10mm; */
+        /* counter-increment: page; */
+      }
   .no-print {
     display: none !important;
   }

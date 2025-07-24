@@ -411,7 +411,7 @@ export const filterAndDownload = async (req, res, next) => {
       sort[sortBy] = sortOrder === 'asc' ? 1 : -1
     }
 
-    console.log(basket)
+    // console.log(basket)
 
     let students
 
@@ -2377,28 +2377,6 @@ export const demotePlentyStudents = async (req, res, next) => {
 
 export const updateStudentsBankAccountDetails = async (req, res, next) => {
   try {
-    // ! These stuff commented is to check duplicate students on the uploaded excel sheet!
-    // console.log(res.body)
-    // const dataToLog = req.parsedData.slice(0, 10)
-    // console.log(dataToLog, req.parsedData.length)
-
-    // const studentIds = req.parsedData.map((s) => s.STUDENTID)
-    // const seen = new Set()
-    // const duplicates = new Set()
-
-    // for (const id of studentIds) {
-    //   if (seen.has(id)) {
-    //     duplicates.add(id)
-    //   } else {
-    //     seen.add(id)
-    //   }
-    // }
-
-    // console.log('🚨 Duplicate IDs (after uppercasing):', [...duplicates])
-
-    const escapeRegex = (string) => {
-      return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') // escape regex special chars
-    }
 
     const updateStudentsAccount = async () => {
       try {
@@ -2434,7 +2412,7 @@ export const updateStudentsBankAccountDetails = async (req, res, next) => {
 
           return {
             updateOne: {
-              filter: { randomId: student.STUDENTID },
+              filter: { randomId: student.STUDENTID.trim()},
               update: {
                 $set: {
                   accountNumber:
@@ -2451,10 +2429,6 @@ export const updateStudentsBankAccountDetails = async (req, res, next) => {
         })
 
         const result = await Student.bulkWrite(operations)
-        // console.log(
-        //   `Matched: ${result.matchedCount}, Modified: ${result.modifiedCount}`
-        // )
-        // Extract all IDs from parsedData (Excel side)
         const studentIdsFromExcel = req.parsedData.map((student) =>
           student.STUDENTID.trim()
         )
@@ -2473,6 +2447,12 @@ export const updateStudentsBankAccountDetails = async (req, res, next) => {
         )
 
       const unmatchedStudentsArray = unmatchedStudents.map(s => s.STUDENTID)
+
+      // ! check duplicates 
+
+      // const ids = req.parsedData.map((s) => s.STUDENTID?.trim()).filter(Boolean)
+      // const duplicates = ids.filter((id, index) => ids.indexOf(id) !== index)
+      // console.log('Duplicates:', duplicates)
 
         // console.log('Unmatched students:', unmatchedStudents.length)
         // console.log(unmatchedStudents.map((s) => s.STUDENTID))

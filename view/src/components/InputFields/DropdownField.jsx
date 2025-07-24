@@ -10,6 +10,7 @@ import PropTypes from 'prop-types'
 
 export const DropdownField = ({
   value,
+  height,
   handleInputChange,
   options,
   name,
@@ -32,8 +33,13 @@ export const DropdownField = ({
         select
         fullWidth
         labelId="class-label"
-        label={label} 
-        required ={required}
+        label={label}
+        required={required}
+        sx={{
+          '& .MuiInputBase-root': {
+            height: height, // or whatever height you want
+          },
+        }}
       >
         {setDefaultValue && (
           <MenuItem value="">
@@ -41,7 +47,10 @@ export const DropdownField = ({
           </MenuItem>
         )}
         {options?.map((option) => (
-          <MenuItem key={option?.id || option.name || option } value={option?.value || option?.name ||option }>
+          <MenuItem
+            key={option?.id || option.name || option}
+            value={option?.value || option?.name || option}
+          >
             {option?.name || option}
           </MenuItem>
         ))}
@@ -52,6 +61,7 @@ export const DropdownField = ({
 
 DropdownField.propTypes = {
   value: PropTypes.string.isRequired,
+  height: PropTypes.string.isRequired,
   handleInputChange: PropTypes.func.isRequired,
   name: PropTypes.string.isRequired,
   inputLabel: PropTypes.string.isRequired,

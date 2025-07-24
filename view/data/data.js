@@ -64,3 +64,12 @@ export const Years = [
   { id: 2029, name: '2029' },
 ]
 
+export  const classOptions = [
+  { name: 'Primary 6', id: 1 },
+  { name: 'JSS 1', id: 2 },
+  { name: 'JSS 3', id: 3 },
+  { name: 'SSS 1', id: 4 },
+]
+
+
+

@@ -14,8 +14,10 @@ import { useDispatch, useSelector } from 'react-redux'
 import { fetchStudentsFromComponent } from '../../components/studentsSlice'
 import { fetchDashboardStat } from '../../components/dashboardStatsSlice'
 import { SpinnerLoader } from '../../components/spinnerLoader'
+import '../../attendanceSheet.css';
 
 export const PrintIdCard = () => {
+
   const studentsState = useSelector((state) => state.students)
   const dashboardStatState = useSelector((state) => state.dashboardStat)
 
@@ -196,10 +198,12 @@ export const PrintIdCard = () => {
             alignItems: 'center',
             '@media Print': {
               width: '1134px',
-              marginLeft: "12mm", 
+              marginLeft: "0mm", 
+              visibilty: "visible", 
 
               '@page': {
-                marginTop: '0.8cm',
+                size: "A4 potrait", 
+                marginTop: '1.7cm',
                 marginBottom: '1cm',
               },
             },
@@ -223,6 +227,7 @@ export const PrintIdCard = () => {
 
                   '@media Print': {
                     flexDirection: 'column',
+                    gap:"20px"
                   },
 
                   gap: {

@@ -46,7 +46,7 @@ import { UpdateSchool } from "./scenes/manage-accounts/updateSchool.jsx";
 import { EditManyStudents } from "./scenes/manage-accounts/EditManyStudents.jsx";
 import { AttendanceSheet } from "./scenes/manage-accounts/attendanceSheet.jsx";
 import { UpdateAttendanceSheet } from "./scenes/manage-accounts/updateAttendanceSheet.jsx";
-import VerifyStudent from "./scenes/manage-accounts/verifyStudent.jsx";
+import {VerifyStudent, Preselect} from "./scenes/manage-accounts/verifyStudent.jsx";
 
 
 function App() {
@@ -412,6 +412,10 @@ function App() {
                           element={<ExportAttendanceSheetPayroll />}
                         /> */}
            
+                        <Route
+                          path="/verifier-dashboard/preselect-info"
+                          element={<Preselect />}
+                        />
                         <Route
                           path="/verifier-dashboard/verify-student"
                           element={<VerifyStudent />}

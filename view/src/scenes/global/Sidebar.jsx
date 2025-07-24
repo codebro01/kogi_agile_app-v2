@@ -673,7 +673,7 @@ const Sidebar = ({ isSidebar }) => {
                 />
                 <Item
                   title="Verify Students"
-                  to={'/verifier-dashboard/verify-student'}
+                  to={'/verifier-dashboard/preselect-info'}
                   icon={<CheckIcon />}
                   selected={selected}
                   setSelected={setSelected}
