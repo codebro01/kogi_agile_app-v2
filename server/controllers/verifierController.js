@@ -42,6 +42,7 @@ export const getSingleVerifier = async (req, res, next) => {
 export const createVerifier = async (req, res, next) => {
   // console.log('got in here')
   try {
+    if(req.body.gender  === '') req.body = {...req.body, gender: "Others"}
     const verifierRole = await Roles.findOne({ role: 'verifier' })
     const lastLogged = new Date(Date.now())
     // await Verifier.deleteMany({});
@@ -97,7 +98,7 @@ export const createVerifier = async (req, res, next) => {
 }
 
 export const loginVerifier = async (req, res, next) => {
-    console.log('entered here')
+    // console.log('entered here')
   try {
     let { email, password } = req.body
     // console.log(req.body)

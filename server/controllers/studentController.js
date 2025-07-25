@@ -583,6 +583,7 @@ export const filterAndView = async (req, res, next) => {
       yearOfEnrollment,
       disabilitystatus,
       cohort,
+      verified
     } = req.query.filteredParams || {}
     const { page, limit } = req.query
     const { sortBy, sortOrder } = req.query.sortParam
@@ -606,6 +607,7 @@ export const filterAndView = async (req, res, next) => {
     if (schoolId) basket.schoolId = schoolId
     if (nationality) basket.nationality = nationality
     if (stateOfOrigin) basket.stateOfOrigin = stateOfOrigin
+    if (verified) basket.verified = verified
     if (enumerator) basket.createdBy = enumerator
     if (cohort) basket.cohort = parseInt(cohort)
     if (dateFrom || dateTo) {
@@ -2380,7 +2382,7 @@ export const updateStudentsBankAccountDetails = async (req, res, next) => {
 
     const updateStudentsAccount = async () => {
       try {
-        console.log(res.parsedData)
+        // console.log(res.parsedData)
         // const updatePromises = req.parsedData.map((student) => {
         //   const escapedId = escapeRegex(student.STUDENTID)
         //   // console.log(
@@ -2501,7 +2503,7 @@ export const EditManyStudents = async (req, res, next) => {
       }
     )
 
-    console.log(updateManyStudents)
+    // console.log(updateManyStudents)
 
     if (updateManyStudents.modifiedCount === 0) {
       return next(new NotFoundError('No student updated.'))

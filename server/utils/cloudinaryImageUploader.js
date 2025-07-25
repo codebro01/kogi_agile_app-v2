@@ -2,6 +2,9 @@ import cloudinary from '../config/cloudinary.js';
 import { BadRequestError } from "../errors/index.js";
 
 export const cloudinaryImageUploader = async (req, res, next, cloudinaryFolder) => {
+    // console.log(req.body)
+    // console.log(req.file, 'file');
+    console.log(req.url === '/verify-students')
     try {
         const image = req.file; // Handle only one image
         if (!image) {
@@ -22,19 +25,26 @@ export const cloudinaryImageUploader = async (req, res, next, cloudinaryFolder) 
         const uploadToCloudinary = (buffer) =>
             new Promise((resolve, reject) => {
                 const stream = cloudinary.uploader.upload_stream(
-                    {
-                        folder: cloudinaryFolder,
-                        transformation: [{ width: 100, height: 100, crop: 'scale' }],
-                    },
-                    (error, result) => {
-                        if (error) {
-                            console.error("Cloudinary upload error:", error);
-                            reject(new BadRequestError('Failed to upload image to Cloudinary'));
-                        } else {
-                            resolve(result);
-                        }
+                  {
+                    folder: cloudinaryFolder,
+                    transformation:
+                      req.url === '/verify-students'
+                        ? [{ width: 300, height: 300, crop: 'scale' }]
+                        : [{ width: 100, height: 100, crop: 'scale' }],
+                  },
+                  (error, result) => {
+                    if (error) {
+                      console.error('Cloudinary upload error:', error)
+                      reject(
+                        new BadRequestError(
+                          'Failed to upload image to Cloudinary'
+                        )
+                      )
+                    } else {
+                      resolve(result)
                     }
-                );
+                  }
+                )
                 stream.end(buffer); // Stream the image buffer
             });
 

@@ -26,6 +26,7 @@ export const RoleSelector = () => {
             enumerator: "/admin-dashboard/create-accounts/register-enumerator",
             payrollSpecialist: "/admin-dashboard/create-accounts/register-payroll-specialists",
             school: "/admin-dashboard/create-accounts/register-school",
+            verifier: "/admin-dashboard/create-accounts/register-verifier",
         };
 
         if (role && roleLinks[role]) {
@@ -121,6 +122,7 @@ export const RoleSelector = () => {
                             <MenuItem value="admin">Register new Admin</MenuItem>
                             <MenuItem value="enumerator">Register new Enumerator</MenuItem>
                             <MenuItem value="payrollSpecialist">Register Payroll Specialist</MenuItem>
+                            <MenuItem value="verifier">Register Verifier</MenuItem>
                             <MenuItem value="school">Add School</MenuItem>
                         </Select>
                     </FormControl>

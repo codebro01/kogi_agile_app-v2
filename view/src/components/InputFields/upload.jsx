@@ -3,18 +3,16 @@ import { Box, Button, Typography } from '@mui/material'
 import UploadFileIcon from '@mui/icons-material/UploadFile'
 import PropTypes from 'prop-types'
 
-
 export const UploadField = ({ handleInputChange, accept, name }) => {
+  const [fileName, setFileName] = useState('')
 
-    const [fileName, setFileName] = useState('')
-
-    const handleFileChange = (e) => {
-      const file = e.target.files[0]
-      if (file) {
-        setFileName(file.name)
-        handleInputChange(e)
-      }
+  const handleFileChange = (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      setFileName(file.name)
+      handleInputChange(e)
     }
+  }
   return (
     <>
       {/* <InputLabel htmlFor="file-upload">Select File</InputLabel> */}
@@ -39,10 +37,17 @@ export const UploadField = ({ handleInputChange, accept, name }) => {
           }}
         >
           Select File
-          <input type="file" name={name} accept = {accept} hidden  onChange={(e) =>{
-            handleFileChange(e)
-            handleInputChange(e);
-          }} />
+          <input
+            capture
+            type="file"
+            name={name}
+            accept={accept}
+            hidden
+            onChange={(e) => {
+              handleFileChange(e)
+              handleInputChange(e)
+            }}
+          />
         </Button>
 
         {fileName && (

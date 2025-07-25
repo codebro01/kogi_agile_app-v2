@@ -5,6 +5,7 @@ import { Types } from 'mongoose'
 
 export const verifyStudent = async (req, res, next) => {
   try {
+    console.log(req.body)
     const verificationImage = req.uploadedImage
 
     let { studentId, verified, cardNo, reasonNotVerified } = req.body
@@ -34,13 +35,22 @@ export const verifyStudent = async (req, res, next) => {
         new: true,
       }
     )
+    await Student.findOneAndUpdate({_id: studentId}, 
+      {
+      
+          verificationStatus: verified
+        
+      },
+      {
+        new: true, 
+        runValidators: true
+      }
+    )
 
-    res
-      .status(StatusCodes.OK)
-      .json({
-        verify,
-        message: `Students verification status has been successfully updated!!!`,
-      })
+    res.status(StatusCodes.OK).json({
+      verify,
+      message: `Students verification status has been successfully updated!!!`,
+    })
   } catch (error) {
     console.log(error)
     return next(error)

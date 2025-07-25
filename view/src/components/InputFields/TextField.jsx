@@ -12,6 +12,7 @@ export const TextField = ({
   label,
   InputLabelProps,
   required,
+  readOnly,
   height = 50,
 }) => {
   return (
@@ -27,6 +28,7 @@ export const TextField = ({
         inputProps={inputProps}
         onInput={onInput}
         required={required}
+        readOnly = {readOnly}
         InputLabelProps={InputLabelProps}
         sx={{
           '& .MuiOutlinedInput-root': {
@@ -47,6 +49,7 @@ TextField.propTypes = {
   label: PropTypes.string,
   height: PropTypes.number,
   required: PropTypes.bool,
+  readOnly: PropTypes.bool,
   inputProps: PropTypes.object,
   InputLabelProps: PropTypes.object,
 }

@@ -87,6 +87,10 @@ const StudentSchema = new mongoose.Schema(
     //     type: String,
     //     required: [true, "Please select Year admitted"]
     // },
+    verificationStatus : {
+        type: Boolean, 
+        default: false, 
+    }, 
 
     parentContact: {
       type: String,

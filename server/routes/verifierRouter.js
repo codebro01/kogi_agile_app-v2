@@ -72,7 +72,7 @@ router.patch(
 
 // ! verification
 
-router.post(
+router.patch(
   '/verify-students',
   authMiddleware,
   authorizePermission(['handle_verifications', 'handle_registrars']),

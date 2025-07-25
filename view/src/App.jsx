@@ -47,6 +47,7 @@ import { EditManyStudents } from "./scenes/manage-accounts/EditManyStudents.jsx"
 import { AttendanceSheet } from "./scenes/manage-accounts/attendanceSheet.jsx";
 import { UpdateAttendanceSheet } from "./scenes/manage-accounts/updateAttendanceSheet.jsx";
 import {VerifyStudent, Preselect} from "./scenes/manage-accounts/verifyStudent.jsx";
+import CreateVerifier from "./scenes/manage-accounts/createVerifier.jsx";
 
 
 function App() {
@@ -126,6 +127,10 @@ function App() {
                         <Route
                           path="/admin-dashboard/create-accounts/register-admin"
                           element={<CreateAdmin />}
+                        />
+                        <Route
+                          path="/admin-dashboard/create-accounts/register-verifier"
+                          element={<CreateVerifier />}
                         />
                         <Route
                           path="/admin-dashboard/view-all-students-data"

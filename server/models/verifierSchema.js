@@ -25,13 +25,14 @@ const VerifierSchema = new Schema({
     },
     lga: {
         type: String,
-        required: [true, 'lga is required'],
+        // required: [true, 'lga is required'],
         lowercase: true,
         unique: false
     },
     gender: {
         type: String,
         enum: ['Male', 'Female', 'Others'],
+        default: "Others", 
         // required: [true, 'Gender is required'],
     },
     phone: {
@@ -48,7 +49,7 @@ const VerifierSchema = new Schema({
     },
     bankName: {
         type: String,
-        required: [true, 'Bank name is required'],
+        // required: [true, 'Bank name is required'],
     },
     bvn:{
         type:String, 
@@ -60,7 +61,7 @@ const VerifierSchema = new Schema({
     }, 
     accountNumber: {
         type: Number,
-        required: [true, 'Account Number is required'],
+        // required: [true, 'Account Number is required'],
         unique: true,
     },
     isActive: {
