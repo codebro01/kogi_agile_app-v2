@@ -54,6 +54,7 @@ const allowedOrigins = [
   'https://www.enrolment.kogiagile.org',
   'https://enrolment.kogiagile.org',
   'https://portal.kogiagile.org',
+  'https://verifier.kogiagile.org',
   'https://enrollment.kogiagile.org',
   'https://www.enrollment.kogiagile.org',
   'https://www.portal.kogiagile.org',
