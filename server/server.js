@@ -60,6 +60,7 @@ const allowedOrigins = [
   'https://www.verifier.kogiagile.org',
   'https://cct.kogiagile.org',
   'https://www.cct.kogiagile.org',
+  'https://www.verifier.kogiagile.org',
   'www.portal.kogiagile.org',
   'https://www.cct.kogiagile.org',
   'https://reactbuildapp.onrender.com',

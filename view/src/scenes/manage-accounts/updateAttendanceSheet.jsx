@@ -708,7 +708,7 @@ export const UpdateAttendanceSheet = () => {
 
   const uniqueSchools = useMemo(() => {
     const sorted = [...getUniqueSchools].sort((a, b) =>
-      a.schoolName.toLowerCase().localeCompare(b.schoolName.toLowerCase())
+      a.schoolName?.toLowerCase().localeCompare(b.schoolName?.toLowerCase())
     )
     return [
       {

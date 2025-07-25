@@ -63,7 +63,7 @@ export const UpdateBankAccountInfo = () => {
         }
       )
       setUpdateAccountLoading(false)
-      setUpdateAccountMessage(res.data)
+      setUpdateAccountMessage(res?.data)
       setFilters((prev) => ({ ...prev, file: '' }))
       setTimeout(() => {
         setUpdateAccountMessage({
