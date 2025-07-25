@@ -53,16 +53,16 @@ const VerifierSchema = new Schema({
     },
     bvn:{
         type:String, 
-        unique: true,
+        // unique: true,
     }, 
     nin:{
         type:String, 
-        unique: true,
+        // unique: true,
     }, 
     accountNumber: {
         type: Number,
         // required: [true, 'Account Number is required'],
-        unique: true,
+        // unique: true,
     },
     isActive: {
         type: Boolean,

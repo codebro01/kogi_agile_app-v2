@@ -434,6 +434,13 @@ const Sidebar = ({ isSidebar }) => {
               userPermissions.length === 2 && (
                 <>
                   <Item
+                    title="Manage Students"
+                    to={'/admin-dashboard/view-all-students-data'}
+                    icon={<ContactsOutlinedIcon />}
+                    selected={selected}
+                    setSelected={setSelected}
+                  />
+                  <Item
                     title="View all Students"
                     to={
                       userPermissions.includes('handle_registrars')
