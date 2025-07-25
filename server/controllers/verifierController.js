@@ -55,26 +55,26 @@ export const createVerifier = async (req, res, next) => {
     const { secure_url, public_id } = uploadedImage
 
     const isExistingEmail = await Verifier.findOne({ email: req.body.email })
-    const isExistingAccountNumber = await Verifier.findOne({
-      accountNumber: req.body.accountNumber,
-    })
-    const isExistingPhone = await Verifier.findOne({ phone: req.body.phone })
+    // const isExistingAccountNumber = await Verifier.findOne({
+    //   accountNumber: req.body.accountNumber,
+    // })
+    // const isExistingPhone = await Verifier.findOne({ phone: req.body.phone })
     if (isExistingEmail)
       return next(
         new BadRequestError('User already exist with email: ' + req.body.email)
       )
-    if (isExistingAccountNumber)
-      return next(
-        new BadRequestError(
-          'User already exist with Account Number: ' + req.body.accountNumber
-        )
-      )
-    if (isExistingPhone)
-      return next(
-        new BadRequestError(
-          'User already exist with phone Number: ' + req.body.phone
-        )
-      )
+    // if (isExistingAccountNumber)
+    //   return next(
+    //     new BadRequestError(
+    //       'User already exist with Account Number: ' + req.body.accountNumber
+    //     )
+    //   )
+    // if (isExistingPhone)
+    //   return next(
+    //     new BadRequestError(
+    //       'User already exist with phone Number: ' + req.body.phone
+    //     )
+    //   )
     //   console.log('verifierRole', verifierRole)
     const generatedRandomId = generateRandomId()
 
