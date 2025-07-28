@@ -26,6 +26,7 @@ import {
   fetchStudentsFromComponent,
   setRowsPerPage,
   setCurrentPage,
+  setSearchQuery,
 } from '../../components/studentsSlice.js'
 import axios from 'axios'
 import { TextField as MyTextField } from '../../components/InputFields/TextField.jsx'
@@ -77,6 +78,8 @@ export const Preselect = () => {
       state: preselected,
     })
   }
+
+ 
 
   // console.log(preselected)
 
@@ -237,6 +240,7 @@ export const VerifyStudent = () => {
     rowsPerPage,
     filteredStudents,
     loading: studentsLoading,
+    searchQuery,
   } = studentsState
 
   const [verifyFormActive, setVerifyFormActive] = React.useState(false)
@@ -357,7 +361,7 @@ export const VerifyStudent = () => {
       setLoading(false)
       setResponseMessage(
         err?.response?.data?.message ||
-        err?.res?.message ||
+          err?.res?.message ||
           err?.message ||
           err?.res?.message ||
           'an error occured, please try again'
@@ -387,6 +391,12 @@ export const VerifyStudent = () => {
     })
     setVerifyFormActive(true)
   }, [])
+
+   const handleSearch = (event) => {
+     const query = event.target.value;
+     console.log(query)
+     dispatch(setSearchQuery(query))
+   }
 
   const customStyles = {
     rows: {
@@ -641,6 +651,47 @@ export const VerifyStudent = () => {
       </Box>
       <Box
         sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          marginTop: '40px',
+          width: {
+            sm: '100%',
+            md: '700px',
+          },
+        }}
+      >
+        <div
+          style={{ marginBottom: '20px', position: 'relative', width: '100%' }}
+        >
+          <input
+            type="text"
+            placeholder="Enter search text"
+            value={searchQuery}
+            onChange={handleSearch}
+            style={{
+              width: '100%',
+              padding: '12px 16px',
+              fontSize: '16px',
+              color: '#333',
+              backgroundColor: '#efefef',
+              border: "none",
+              borderRadius: '8px',
+              // boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+              outline: 'none',
+              // transition: 'box-shadow 0.2s ease-in-out',
+            }}
+            onFocus={(e) =>
+              (e.target.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)')
+            }
+            onBlur={(e) =>
+              (e.target.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)')
+            }
+          />
+        </div>
+      </Box>
+      <Box
+        sx={{
           width: '100%',
           mt: 4,
           // overflowX: "scroll",
@@ -727,7 +778,7 @@ export const VerifyStudent = () => {
               background: '#fff',
               display: 'flex',
               flexDirection: 'column',
-            
+
               padding: '40px 20px',
               gap: '20px',
               minHeight: '400px',
@@ -736,7 +787,7 @@ export const VerifyStudent = () => {
             <Box
               onClick={() => setVerifyFormActive(false)}
               sx={{
-                cursor: 'pointer', 
+                cursor: 'pointer',
                 position: 'absolute',
                 top: '30px',
                 right: '30px',
@@ -791,9 +842,13 @@ export const VerifyStudent = () => {
                 alignItems: 'center',
               }}
             >
-              <Typography sx= {{
-                fontWeight: 700
-              }}>Verify:</Typography>
+              <Typography
+                sx={{
+                  fontWeight: 700,
+                }}
+              >
+                Verify:
+              </Typography>
 
               <Checkbox
                 checked={formData.verified}

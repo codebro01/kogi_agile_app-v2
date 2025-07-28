@@ -1612,7 +1612,6 @@ export const AdminViewAllStudentsDataNoExport = () => {
             View Registered Students Information
           </Typography>
           <div>
-            {/* Search Input */}
             <div style={{ marginBottom: '20px', position: 'relative' }}>
               <input
                 type="text"
