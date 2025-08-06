@@ -583,7 +583,7 @@ export const filterAndView = async (req, res, next) => {
       yearOfEnrollment,
       disabilitystatus,
       cohort,
-      verified
+      verified,
     } = req.query.filteredParams || {}
     const { page, limit } = req.query
     const { sortBy, sortOrder } = req.query.sortParam
@@ -607,7 +607,8 @@ export const filterAndView = async (req, res, next) => {
     if (schoolId) basket.schoolId = schoolId
     if (nationality) basket.nationality = nationality
     if (stateOfOrigin) basket.stateOfOrigin = stateOfOrigin
-    if (verified) basket.verified = verified
+    if (verified === 'true') basket.verificationStatus = true
+    if (verified === 'false') basket.verificationStatus = false
     if (enumerator) basket.createdBy = enumerator
     if (cohort) basket.cohort = parseInt(cohort)
     if (dateFrom || dateTo) {
@@ -643,7 +644,7 @@ export const filterAndView = async (req, res, next) => {
 
     // if (yearOfAdmission) basket.yearAdmitted = yearOfAdmission;
 
-    let sort = { lgaOfEnrollment: 1 } // Default sort
+    let sort = { createdAt: -1 } // Default sort
     if (sortBy && sortOrder) {
       sort[sortBy] = sortOrder === 'asc' ? 1 : -1
     }
@@ -654,23 +655,38 @@ export const filterAndView = async (req, res, next) => {
 
     const total = await Student.countDocuments(basket)
 
-    const students = await Student.find(basket)
+    const students = await Student.find({...basket })
       .populate('schoolId')
       .populate('ward')
       .populate({
         path: 'createdBy',
         select: '-password', // Exclude the password field
       })
+      .populate({
+        path: 'verificationInfo', // 💥 this is your virtual populate
+      })
       .sort(sort)
       .collation({ locale: 'en', strength: 2 })
       .skip(skip)
       .limit(parseInt(limit))
       .lean()
+    // console.log(students)
+    // console.log(basket)
+    const studentsWithVerification = students.map((student) => {
+      const verification = student.verificationInfo || {}
+      return {
+        ...student,
+        verified: verification.verified || false,
+        cardNo: verification.cardNo || null,
+        verificationImage: verification.verificationImage || null,
+        reasonNotVerified: verification.reasonNotVerified || null,
+      }
+    })
 
     // console.log(students)
     // console.log(students.length)
 
-    res.status(200).json({ students, total })
+    res.status(200).json({ students: studentsWithVerification, total })
   } catch (err) {
     console.log(err)
     return next(err)
@@ -2379,7 +2395,6 @@ export const demotePlentyStudents = async (req, res, next) => {
 
 export const updateStudentsBankAccountDetails = async (req, res, next) => {
   try {
-
     const updateStudentsAccount = async () => {
       try {
         // console.log(res.parsedData)
@@ -2414,7 +2429,7 @@ export const updateStudentsBankAccountDetails = async (req, res, next) => {
 
           return {
             updateOne: {
-              filter: { randomId: student.STUDENTID.trim()},
+              filter: { randomId: student.STUDENTID.trim() },
               update: {
                 $set: {
                   accountNumber:
@@ -2448,25 +2463,23 @@ export const updateStudentsBankAccountDetails = async (req, res, next) => {
           (student) => !foundIdsSet.has(student.STUDENTID.trim())
         )
 
-      const unmatchedStudentsArray = unmatchedStudents.map(s => s.STUDENTID)
+        const unmatchedStudentsArray = unmatchedStudents.map((s) => s.STUDENTID)
 
-      // ! check duplicates 
+        // ! check duplicates
 
-      // const ids = req.parsedData.map((s) => s.STUDENTID?.trim()).filter(Boolean)
-      // const duplicates = ids.filter((id, index) => ids.indexOf(id) !== index)
-      // console.log('Duplicates:', duplicates)
+        // const ids = req.parsedData.map((s) => s.STUDENTID?.trim()).filter(Boolean)
+        // const duplicates = ids.filter((id, index) => ids.indexOf(id) !== index)
+        // console.log('Duplicates:', duplicates)
 
         // console.log('Unmatched students:', unmatchedStudents.length)
         // console.log(unmatchedStudents.map((s) => s.STUDENTID))
 
-        res
-          .status(200)
-          .json({
-            message: 'Students informations updated successfully!!!',
-            matched: result.matchedCount,
-            modified: result.modifiedCount,
-            unmatchedStudents: unmatchedStudentsArray,
-          })
+        res.status(200).json({
+          message: 'Students informations updated successfully!!!',
+          matched: result.matchedCount,
+          modified: result.modifiedCount,
+          unmatchedStudents: unmatchedStudentsArray,
+        })
       } catch (error) {
         console.error('Error updating students:', error)
         res.status(500).json({ message: 'Failed to update students' })

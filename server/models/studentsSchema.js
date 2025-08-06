@@ -87,10 +87,10 @@ const StudentSchema = new mongoose.Schema(
     //     type: String,
     //     required: [true, "Please select Year admitted"]
     // },
-    verificationStatus : {
-        type: Boolean, 
-        default: false, 
-    }, 
+    verificationStatus: {
+      type: Boolean,
+      default: false,
+    },
 
     parentContact: {
       type: String,
@@ -158,6 +158,16 @@ const StudentSchema = new mongoose.Schema(
   },
   { timestamps: true }
 )
+
+StudentSchema.virtual('verificationInfo', {
+  ref: 'verification',
+  localField: '_id',
+  foreignField: 'studentId',
+  justOne: true, // because each student has only one verification record
+})
+
+StudentSchema.set('toObject', { virtuals: true })
+StudentSchema.set('toJSON', { virtuals: true })
 
 StudentSchema.index({ randomId: 1, ward: 1, lga: 1, presentClass: 1 })
 

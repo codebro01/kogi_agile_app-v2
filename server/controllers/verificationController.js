@@ -35,15 +35,14 @@ export const verifyStudent = async (req, res, next) => {
         new: true,
       }
     )
-    await Student.findOneAndUpdate({_id: studentId}, 
+    await Student.findOneAndUpdate(
+      { _id: studentId },
       {
-      
-          verificationStatus: verified
-        
+        verificationStatus: verified,
       },
       {
-        new: true, 
-        runValidators: true
+        new: true,
+        runValidators: true,
       }
     )
 

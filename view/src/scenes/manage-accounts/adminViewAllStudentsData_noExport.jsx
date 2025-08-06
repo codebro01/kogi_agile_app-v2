@@ -110,7 +110,8 @@ export const AdminViewAllStudentsDataNoExport = () => {
     yearOfAdmission: '',
     disabilitystatus: '',
     status: 'active',
-    cohort: '' 
+    cohort: '',
+    verified: null,
   })
   const params = {
     status: filters.status,
@@ -129,6 +130,7 @@ export const AdminViewAllStudentsDataNoExport = () => {
     classAtEnrollment: filters.classAtEnrollment,
     disabilitystatus: filters.disabilitystatus,
     cohort: filters.cohort,
+    verified: filters.verified,
   }
   const filteredParams = Object.entries(params)
     .filter(([_, value]) => value != null && value !== '') // Filter out empty values
@@ -876,7 +878,7 @@ export const AdminViewAllStudentsDataNoExport = () => {
     })
   }
 
-  console.log(filters)
+  console.log(studentsData)
 
   return (
     <>
@@ -897,20 +899,18 @@ export const AdminViewAllStudentsDataNoExport = () => {
               zIndex: 999999,
               right: 50,
               bottom: 30,
-              gap: "10px"
+              gap: '10px',
             }}
           >
             <Box
               sx={{
-                display:"flex", 
-                justifyContent:"center", 
-                alignItems:"center", 
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
                 padding: '12px',
                 background: 'rgb(194, 186, 186)',
-                cursor: "pointer"
-
+                cursor: 'pointer',
               }}
-            
               onClick={handleEditManyStudents}
             >
               <EditIcon />
@@ -1479,6 +1479,24 @@ export const AdminViewAllStudentsDataNoExport = () => {
                 </Select>
               </Grid>
               <Grid item xs={12} sm={6} md={4}>
+                <InputLabel id="Verification Status" sx={{ marginBottom: 1 }}>
+                  Verification Status
+                </InputLabel>
+                <Select
+                  name="verified"
+                  value={filters.verified || ''}
+                  onChange={handleInputChange}
+                  displayEmpty
+                  fullWidth
+                  size="small"
+                  labelId="sortBy-label"
+                >
+                  <MenuItem value="">All</MenuItem>
+                  <MenuItem value="true">True</MenuItem>
+                  <MenuItem value="false">False</MenuItem>
+                </Select>
+              </Grid>
+              <Grid item xs={12} sm={6} md={4}>
                 <InputLabel id="cohort" sx={{ marginBottom: 1 }}>
                   Cohort
                 </InputLabel>
@@ -1491,7 +1509,9 @@ export const AdminViewAllStudentsDataNoExport = () => {
                   size="small"
                   labelId="cohort"
                 >
-                  <MenuItem value=""><em>all</em></MenuItem>
+                  <MenuItem value="">
+                    <em>all</em>
+                  </MenuItem>
                   <MenuItem value="1">1</MenuItem>
                   <MenuItem value="2">2</MenuItem>
                   <MenuItem value="3">3</MenuItem>
@@ -1741,11 +1761,72 @@ export const AdminViewAllStudentsDataNoExport = () => {
                   </Box>
                 </Box>
 
-                <div style={{ alignSelf: 'center' }}>
-                  <img src={`${selectedItem.passport}`} alt="" />
+                <div
+                  style={{
+                    alignSelf: 'center',
+                    display: 'flex',
+                    gap: '20px',
+                    alignItems: 'center',
+                  }}
+                >
+                  <div
+                    style={{
+                      alignSelf: 'center',
+                      display: 'flex',
+                      gap: '10px',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <h3>Passport</h3>
+                    <img
+                      src={`${selectedItem.passport}`}
+                      alt=""
+                      style={{
+                        minHeight: '120px',
+                      }}
+                    />
+                  </div>
+                  <div
+                    style={{
+                      alignSelf: 'center',
+                      display: 'flex',
+                      gap: '10px',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <h3>Verification Image</h3>
+                    {selectedItem.verified ? (
+                      <img
+                        src={`${selectedItem.verificationImage}`}
+                        alt=""
+                        style={{
+                          minHeight: '120px',
+                        }}
+                      />
+                    ) : (
+                      <img
+                        src={`/not-verified.png`}
+                        alt="Not Verified!!!"
+                        style={{
+                          width: '140px',
+                          minHeight: '120px',
+                        }}
+                      />
+                    )}
+                  </div>
                 </div>
                 <p>
                   <strong>Student ID:</strong> {selectedItem.randomId}
+                </p>
+                <p>
+                  <strong>Verified Status: </strong>{' '}
+                  {selectedItem.verified ? (
+                    <span>Verfified</span>
+                  ) : (
+                    <span>Not Verified</span>
+                  )}
                 </p>
                 <p>
                   <strong>Name:</strong>{' '}
@@ -1784,8 +1865,20 @@ export const AdminViewAllStudentsDataNoExport = () => {
                   <strong>Parent Contact:</strong> 0{selectedItem?.parentPhone}
                 </p>
                 <p>
+                  <strong> Card No:</strong>
+                  {selectedItem?.cardNo}
+                </p>
+
+                <p>
                   <strong>Registered By: </strong>{' '}
                   {selectedItem?.createdBy?.fullName}
+                </p>
+                <p>
+                  {!selectedItem.verified && (
+                    <strong>
+                      Reason Not Verified: {selectedItem?.reasonNotVerified}
+                    </strong>
+                  )}
                 </p>
                 <button
                   onClick={() => setIsModalOpen(false)}
