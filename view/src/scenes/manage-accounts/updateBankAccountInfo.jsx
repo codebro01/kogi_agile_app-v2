@@ -8,9 +8,7 @@ export const UpdateBankAccountInfo = () => {
     message: '',
     matched: 0,
     modified: 0,
-    unmatchedStudents: [
-
-    ],
+    unmatchedStudents: [],
   })
   const [updateAccountLoading, setUpdateAccountLoading] = useState(false)
   const [filters, setFilters] = useState({
@@ -79,7 +77,7 @@ export const UpdateBankAccountInfo = () => {
       // console.log(err.response?.data?.message)
       if (err.response?.data?.message) {
         setUpdateAccountMessage({
-          message: err.response?.data?.message
+          message: err.response?.data?.message,
         })
         setTimeout(() => {
           setUpdateAccountMessage({
@@ -89,7 +87,7 @@ export const UpdateBankAccountInfo = () => {
         return
       } else if (err.response?.data) {
         setUpdateAccountMessage({
-          message: err.response?.data
+          message: err.response?.data,
         })
         setTimeout(() => {
           setUpdateAccountMessage({
@@ -268,43 +266,45 @@ export const UpdateBankAccountInfo = () => {
             >
               Modified: {updateAccountMessage?.modified}
             </Typography>
-            <Typography
-              sx={{
-                display: 'flex',
-                justifyContent: 'flex-start',
-                fontWeight: 600,
-                alignItems: 'center',
-                wordBreak: 'break-word',
-                whiteSpace: 'normal',
-                overflowWrap: 'break-word',
-                flexDirection: 'column',
-              }}
-            >
+            {updateAccountMessage.unmatchedStudents && (
               <Typography
                 sx={{
-                  fontWeight: 600,
-                  textAlign: 'left',
                   display: 'flex',
                   justifyContent: 'flex-start',
+                  fontWeight: 600,
                   alignItems: 'center',
+                  wordBreak: 'break-word',
+                  whiteSpace: 'normal',
+                  overflowWrap: 'break-word',
+                  flexDirection: 'column',
                 }}
               >
-                Could not find students with the following ids:{' '}
-              </Typography>
-              {updateAccountMessage?.unmatchedStudents.map((s) => (
                 <Typography
-                  key={s}
                   sx={{
+                    fontWeight: 600,
                     textAlign: 'left',
                     display: 'flex',
-                    width: '100%',
-                    fontWeight: 600,
+                    justifyContent: 'flex-start',
+                    alignItems: 'center',
                   }}
                 >
-                  [{s}],{' '}
+                  Could not find students with the following ids:{' '}
                 </Typography>
-              ))}
-            </Typography>
+                {updateAccountMessage?.unmatchedStudents.map((s) => (
+                  <Typography
+                    key={s}
+                    sx={{
+                      textAlign: 'left',
+                      display: 'flex',
+                      width: '100%',
+                      fontWeight: 600,
+                    }}
+                  >
+                    [{s}],{' '}
+                  </Typography>
+                ))}
+              </Typography>
+            )}
           </Box>
         )}
       </Box>

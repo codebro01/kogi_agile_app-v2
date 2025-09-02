@@ -655,7 +655,7 @@ export const filterAndView = async (req, res, next) => {
 
     const total = await Student.countDocuments(basket)
 
-    const students = await Student.find({...basket })
+    const students = await Student.find({ ...basket })
       .populate('schoolId')
       .populate('ward')
       .populate({
@@ -2397,45 +2397,18 @@ export const updateStudentsBankAccountDetails = async (req, res, next) => {
   try {
     const updateStudentsAccount = async () => {
       try {
-        // console.log(res.parsedData)
-        // const updatePromises = req.parsedData.map((student) => {
-        //   const escapedId = escapeRegex(student.STUDENTID)
-        //   // console.log(
-        //   //   student['ACTUAL ACCOUNT OPENNED'],
-        //   //   student['BANKNAME'],
-        //   //   student['NUBAN'],
-        //   //   student['PARENTPHONE']
-        //   // )
-
-        //   return Student.updateMany(
-        //     { randomId: student.STUDENTID },
-        //     {
-        //       $set: {
-        //         accountNumber:
-        //           student['ACTUAL ACCOUNT OPENNED'] ||
-        //           student['ACTUALACCOUNTOPENNED'],
-        //         bankName: student['BANK NAME'] || student['BANKNAME'],
-        //         NUBAN: student['NUBAN'],
-        //         parentPhone: student['PARENTPHONE'] || student['PARENT PHONE'],
-        //       },
-        //     }
-        //   )
-        // })
-
-        // await Promise.all(updatePromises)
+        // console.log(req.parsedData)
 
         const operations = req.parsedData.map((student) => {
-          // const lowerId = student.STUDENTID.toLowerCase()
-
           return {
             updateOne: {
-              filter: { randomId: student.STUDENTID.trim() },
+              filter: { randomId: student.STUDENTID?.toString()?.trim() },
               update: {
                 $set: {
                   accountNumber:
                     student['ACTUAL ACCOUNT OPENNED'] ||
                     student['ACTUALACCOUNTOPENNED'],
-                  bankName: student['BANK NAME'] || student['BANKNAME'],
+                  bankName: student['BANK NAME']?.trim() || student['BANKNAME'],
                   NUBAN: student['NUBAN'],
                   parentPhone:
                     student['PARENTPHONE'] || student['PARENT PHONE'],
@@ -2446,8 +2419,9 @@ export const updateStudentsBankAccountDetails = async (req, res, next) => {
         })
 
         const result = await Student.bulkWrite(operations)
+        console.log(result)
         const studentIdsFromExcel = req.parsedData.map((student) =>
-          student.STUDENTID.trim()
+          student.STUDENTID?.toString()?.trim()
         )
 
         // Fetch all matching students from DB
@@ -2459,15 +2433,25 @@ export const updateStudentsBankAccountDetails = async (req, res, next) => {
         const foundIdsSet = new Set(foundStudents.map((s) => s.randomId))
 
         // Filter the missing ones
-        const unmatchedStudents = req.parsedData.filter(
-          (student) => !foundIdsSet.has(student.STUDENTID.trim())
-        )
 
-        const unmatchedStudentsArray = unmatchedStudents.map((s) => s.STUDENTID)
+        const unmatchedStudents = req.parsedData.filter((student) => {
+          const id =
+            student.STUDENTID != null ? student.STUDENTID.toString().trim() : []
+          return !foundIdsSet.has(id)
+        })
+
+        let unmatchedStudentsArray = unmatchedStudents.map((s) => s.STUDENTID)
+
+        if (unmatchedStudentsArray.includes(undefined)) {
+          unmatchedStudentsArray = null
+        }
+
+        // ! check unmatrched studetns array if the elements there are defined, if not just return null
 
         // ! check duplicates
+        console.log(unmatchedStudentsArray)
 
-        // const ids = req.parsedData.map((s) => s.STUDENTID?.trim()).filter(Boolean)
+        // const ids = req.parsedData.map((s) => s.STUDENTID?.trim?()).filter(Boolean)
         // const duplicates = ids.filter((id, index) => ids.indexOf(id) !== index)
         // console.log('Duplicates:', duplicates)
 

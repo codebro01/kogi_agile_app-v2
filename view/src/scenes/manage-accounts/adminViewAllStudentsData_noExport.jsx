@@ -1748,7 +1748,17 @@ export const AdminViewAllStudentsDataNoExport = () => {
                     width: '100%',
                   }}
                 >
-                  <Typography sx={{ fontWeight: 700, fontSize: '17px' }}>
+                  <Typography
+                    sx={{
+                      fontWeight: 800,
+                      fontSize: '25px',
+                      color: '#196b57',
+                      textAlign: 'center',
+                      display: "flex", 
+                      justifyContent:"center", 
+                      width: "100%"
+                    }}
+                  >
                     Student Details
                   </Typography>
                   <Box
@@ -1779,13 +1789,26 @@ export const AdminViewAllStudentsDataNoExport = () => {
                     }}
                   >
                     <h3>Passport</h3>
-                    <img
-                      src={`${selectedItem.passport}`}
-                      alt=""
+                    <div
                       style={{
-                        minHeight: '120px',
+                        alignSelf: 'center',
+                        display: 'flex',
+                        gap: '10px',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        width: '150px',
+                        height: '150px',
                       }}
-                    />
+                    >
+                      <img
+                        src={`${selectedItem.passport}`}
+                        alt=""
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                        }}
+                      />
+                    </div>
                   </div>
                   <div
                     style={{
@@ -1798,19 +1821,33 @@ export const AdminViewAllStudentsDataNoExport = () => {
                   >
                     <h3>Verification Image</h3>
                     {selectedItem.verified ? (
-                      <img
-                        src={`${selectedItem.verificationImage}`}
-                        alt=""
+                      <div
                         style={{
-                          minHeight: '120px',
+                          alignSelf: 'center',
+                          display: 'flex',
+                          gap: '10px',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          width: '150px',
+                          height: '150px',
                         }}
-                      />
+                      >
+                        <img
+                          src={`${selectedItem.verificationImage}`}
+                          alt="verification Image"
+                          style={{
+                            height: '100%',
+                            width: '100%',
+                          }}
+                        />
+                      </div>
                     ) : (
                       <img
                         src={`/not-verified.png`}
                         alt="Not Verified!!!"
                         style={{
                           width: '140px',
+                          
                           minHeight: '120px',
                         }}
                       />
@@ -1883,11 +1920,11 @@ export const AdminViewAllStudentsDataNoExport = () => {
                 <button
                   onClick={() => setIsModalOpen(false)}
                   style={{
-                    padding: '5px 10px',
+                    padding: '5px 13px',
                     backgroundColor: '#dc3545',
                     color: '#fff',
                     border: 'none',
-                    borderRadius: '5px',
+                    // borderRadius: '5px',
                     cursor: 'pointer',
                   }}
                 >
