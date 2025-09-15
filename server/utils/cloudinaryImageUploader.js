@@ -2,9 +2,7 @@ import cloudinary from '../config/cloudinary.js';
 import { BadRequestError } from "../errors/index.js";
 
 export const cloudinaryImageUploader = async (req, res, next, cloudinaryFolder) => {
-    // console.log(req.body)
-    // console.log(req.file, 'file');
-    // console.log(req.url === '/verify-students')
+   
     try {
         const image = req.file; // Handle only one image
         if (!image) {

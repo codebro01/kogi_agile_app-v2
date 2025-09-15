@@ -332,6 +332,7 @@ export const filterAndDownload = async (req, res, next) => {
     const { userID, permissions } = req.user
 
     const {
+      verified,
       ward,
       schoolId,
       lga,
@@ -373,6 +374,7 @@ export const filterAndDownload = async (req, res, next) => {
     if (stateOfOrigin) basket.stateOfOrigin = stateOfOrigin
     if (disabilitystatus) basket.disabilitystatus = disabilitystatus
     if (enumerator) basket.createdBy = enumerator
+
     if (dateFrom || dateTo) {
       basket.createdAt = {}
 
@@ -419,9 +421,29 @@ export const filterAndDownload = async (req, res, next) => {
       .populate('schoolId')
       .populate('ward')
       .populate('createdBy')
+      .populate('verificationInfo')
       .sort(sort)
       .collation({ locale: 'en', strength: 2 })
       .lean()
+
+    if (verified === 'true') students = students.filter(student => student.verificationStatus === true)
+    if (verified === 'false') students = students.filter(
+      (student) => student.verificationStatus !== true
+    )
+            
+    students = students.map((student) => {
+      const verification = student.verificationInfo || {}
+      if(!student.verificationStatus) verification.verified === false
+      return {  
+        ...student,
+        verified: verification.verified || false,
+        // cardNo: verification.cardNo || null,
+        // verificationImage: verification.verificationImage || null,
+        // reasonNotVerified: verification.reasonNotVerified || null,
+      }
+    })
+
+    console.log(basket, 'students', students)
 
     if (schoolType) {
       students = students.filter(
@@ -451,6 +473,7 @@ export const filterAndDownload = async (req, res, next) => {
       'dob',
       'presentClass',
       'cohort',
+      'verified',
       'nationality',
       'stateOfOrigin',
       'lga',

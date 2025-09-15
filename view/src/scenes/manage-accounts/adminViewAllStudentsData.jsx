@@ -77,6 +77,7 @@ export const AdminViewAllStudentsData = () => {
     yearOfAdmission: '',
     cohort: '',
     schoolType: '',
+    verified:'', 
     status: 'active',
   })
 
@@ -147,6 +148,7 @@ export const AdminViewAllStudentsData = () => {
     disabilitystatus: filters.disabilitystatus,
     schoolType: filters.schoolType,
     status: filters.status,
+    verified: filters.verified,
     cohort: filters.cohort,
   }
   const filteredParams = Object.entries(params)
@@ -244,6 +246,7 @@ export const AdminViewAllStudentsData = () => {
       yearOfAdmission: '',
       disabilitystatus: '',
       status: 'active',
+      verified: '', 
     })
     // setStudentsData(studentsData);
     // dispatch(filterStudents(studentsData));
@@ -773,6 +776,26 @@ export const AdminViewAllStudentsData = () => {
                   <MenuItem value="2">2</MenuItem>
                   <MenuItem value="3">3</MenuItem>
                   <MenuItem value="4">4</MenuItem>
+                </Select>
+              </Grid>
+              <Grid item xs={12} sm={6} md={4}>
+                <InputLabel id="Verification Status" sx={{ marginBottom: 1 }}>
+                  Verification Status
+                </InputLabel>
+                <Select
+                  name="verified"
+                  value={filters.verified}
+                  onChange={handleInputChange}
+                  displayEmpty
+                  fullWidth
+                  size="small"
+                  labelId="verified"
+                >
+                  <MenuItem value="">
+                    <em>all</em>
+                  </MenuItem>
+                  <MenuItem value="true">Verified</MenuItem>
+                  <MenuItem value="false">Not Verified</MenuItem>
                 </Select>
               </Grid>
 
