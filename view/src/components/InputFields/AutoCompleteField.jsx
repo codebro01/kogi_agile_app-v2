@@ -5,7 +5,7 @@ import { fetchSchools } from '../../components/schoolsSlice.js'
 
 
 
-export const AutoCompleteField = () => {
+export const AutoCompleteField = ({filters, setFilters}) => {
 
 const dispatch = useDispatch()
   const schoolsState = useSelector((state) => state.schools)
@@ -23,9 +23,9 @@ const dispatch = useDispatch()
       // const [selectedSchool, setSelectedSchool] = useState(null);
       // const [submitting, setSubmitting] = useState(false);
       // const [submitMessage, setSubmitMessage] = useState('');
-      const [filters, setFilters] = React.useState({
-        schoolId: "", 
-      })
+      // const [filters, setFilters] = React.useState({
+      //   schoolId: "", 
+      // })
 
   React.useEffect(() => {
     dispatch(fetchSchools({ schoolType: '', lgaOfEnrollment: '' }))

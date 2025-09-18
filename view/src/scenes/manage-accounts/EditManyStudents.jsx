@@ -13,6 +13,8 @@ export const EditManyStudents = () => {
   const ids = selectedStudents.map(
     (selectedStudents) => selectedStudents.randomId
   )
+
+  console.log(ids)
   // const ids = selectedStudents.join(',');
   const joinedIds = ids.join(',')
   // const handleEditManyStudents = async (e) => {
@@ -59,9 +61,9 @@ export const EditManyStudents = () => {
   // }
   return (
     <FormComponent
-      formTitle="Edit Students"
+      formTitle="Bulk Edit Students"
       allowWard={false}
-      allowSchoolId={false}
+      allowSchoolId={true}
       allowSurname={false}
       allowFirstname={false}
       allowMiddlename={false}

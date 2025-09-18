@@ -7,6 +7,7 @@ import {
   Typography,
   Box,
   CircularProgress,
+  Autocomplete,
 } from '@mui/material'
 // import { useTheme } from '@mui/material/styles';
 import axios from 'axios'
@@ -24,6 +25,7 @@ import { TextField as ComponentTextField } from './InputFields/TextField.jsx'
 import { UploadField } from './InputFields/upload.jsx'
 import { DateField } from './InputFields/DateField.jsx'
 import { DropdownField } from './InputFields/DropdownField.jsx'
+import { AutoCompleteField } from './InputFields/AutoCompleteField.jsx'
 
 axios.defaults.withCredentials = true
 
@@ -294,6 +296,9 @@ export const FormComponent = ({
     setSuccess('')
   }, 10000)
 
+
+  console.log(formData)
+
   return (
     <>
       <Container
@@ -404,16 +409,7 @@ export const FormComponent = ({
 
               {allowSchoolId && (
                 <Grid item xs={12}>
-                  <ComponentTextField
-                    label="School"
-                    name="schoolId"
-                    value={storedSchool?.schoolName || 'No school found'}
-                    required={true}
-                    InputLabelProps={{ shrink: true }}
-                    InputProps={{
-                      readOnly: true, // Make it readonly
-                    }}
-                  />
+                 <AutoCompleteField filters = {formData} setFilters = {setFormData}/>
                 </Grid>
               )}
 
@@ -586,10 +582,12 @@ export const FormComponent = ({
                     options={[
                       { id: 1, value: 'Primary 6', name: 'Primary 6' },
                       { id: 2, value: 'JSS 1', name: 'JSS 1' },
-                      { id: 3, value: 'JSS 3', name: 'JSS 3' },
-                      { id: 4, value: 'SSS 1', name: 'SSS 1' },
+                      { id: 3, value: 'JSS 2', name: 'JSS 2' },
+                      { id: 4, value: 'JSS 3', name: 'JSS 3' },
+                      { id: 5, value: 'SSS 1', name: 'SSS 1' },
+                      { id: 5, value: 'SSS 2', name: 'SSS 2' },
                     ]}
-                    required={true}
+                  
                   />
                 </Grid>
               )}

@@ -878,7 +878,7 @@ export const AdminViewAllStudentsDataNoExport = () => {
     })
   }
 
-  console.log(studentsData)
+  // console.log(studentsData)
 
   return (
     <>
@@ -930,7 +930,7 @@ export const AdminViewAllStudentsDataNoExport = () => {
             textAlign="center"
             sx={{ fontWeight: 'bold' }}
           >
-            Manage All Students
+            View All Students
           </Typography>
           {/* Promotion section */}
 
