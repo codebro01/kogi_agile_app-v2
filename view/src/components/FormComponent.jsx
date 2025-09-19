@@ -283,7 +283,7 @@ export const FormComponent = ({
         setFormSubmissionLoading(false)
         if (err.response?.data?.status === 401) return navigate('/sign-in')
         setError(true)
-        setValidationError(err.response?.data?.message || 'An error occurred, please try again')
+        setValidationError(err.response?.data?.message)
         setTimeout(() => setValidationError(''), 20000)
       }
     })()

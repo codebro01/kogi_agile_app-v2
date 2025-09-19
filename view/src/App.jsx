@@ -1,67 +1,74 @@
-import { useEffect, useState } from "react";
-import { Routes, Route, useLocation, Navigate } from "react-router-dom";
-import Topbar from "./scenes/global/Topbar";
-import Sidebar from "./scenes/global/Sidebar";
-import Dashboard from "./scenes/dashboard";
-import { CssBaseline, ThemeProvider } from "@mui/material";
-import { ColorModeContext, useMode } from "./theme";
-import BrandingSignUpPage from "./scenes/auth/register";
-import { SignInForm, EnumeratorSignInForm, PayrollSpecialistSignInForm, EnumeratorSignInFormWebView, VerifierSignInForm } from "./scenes/auth/signIn";
-import CreateEnumerator from "./scenes/manage-accounts/createEnumeratorForm";
-import RegistrationSelector from './scenes/manage-accounts/registrationSelector';
-import { ViewAllStudentsData } from './scenes/manage-accounts/viewAllStudentsData';
-import { CreateStudent } from "./scenes/manage-accounts/createStudent";
-import { CreateAdmin } from "./scenes/manage-accounts/createAdmin";
-import { UpdateStudent } from './scenes/manage-accounts/updateStudent';
-import { DataProvider } from './components/dataContext.jsx';
-import { RoleSelector } from "./components/roleSelector.jsx"
-import { AdminViewAllStudentsData } from "./scenes/manage-accounts/adminViewAllStudentsData.jsx";
-import { ExportAttendanceSheet } from "./scenes/manage-accounts/exportAttendanceSheet.jsx";
-import { CreatePayrollSpecialist } from "./scenes/manage-accounts/createPayrollSpecialist.jsx";
-import { ManageAdmins } from "./scenes/manage-accounts/manageAdmins.jsx";
-import { EditUserForm } from "./components/editUserForm.jsx";
-import { EditAdmin } from "./scenes/manage-accounts/editAdminData.jsx";
-import { ManageEnumerators } from "./scenes/manage-accounts/manageEnumerators.jsx";
-import { ManagePayrollSpecialists } from "./scenes/manage-accounts/managePayrollSpecialists.jsx";
-import { EditEnumerator } from "./scenes/manage-accounts/editEnumeratorData.jsx";
-import { EditPayrollSpecialists } from "./scenes/manage-accounts/editPayrollSpecialists.jsx";
-import { ImportAttendanceSheet } from "./scenes/manage-accounts/importAttendanceSheet.jsx";
-import { ViewAttendance } from "./components/viewAttendance .jsx";
-import { ViewSchoolsInfo } from "./components/viewSchoolsInfo.jsx";
-import { ExportAttendanceSheetPayroll } from "./scenes/manage-accounts/exportAttendanceSheetScore.jsx";
-import { AdminViewAllStudentsDataNoExport } from "./scenes/manage-accounts/adminViewAllStudentsData_noExport.jsx";
-import axios from 'axios';
-import { ImportPaymentSheet } from "./scenes/manage-accounts/importPayment.jsx";
-import { Provider } from 'react-redux';
-import { store } from './components/store.js';
-import { CreateSchool } from "./scenes/manage-accounts/createSchool.jsx";
-import { ManageSchools } from "./scenes/manage-accounts/manageSchools.jsx";
-import { ViewPaymentsRecords } from "./components/viewPaymentsRecords.jsx";
-import { ManageDuplicateRecords } from "./scenes/manage-accounts/manageDuplicateRecords.jsx";
-import { PrintIdCard } from "./scenes/manage-accounts/printIDCards.jsx";
-import { PreselectForm } from "./components/preSelectform.jsx";
-import { UpdateBankAccountInfo } from "./scenes/manage-accounts/updateBankAccountInfo.jsx";
-import { UpdateSchool } from "./scenes/manage-accounts/updateSchool.jsx";
+import { useState } from 'react'
+import { Routes, Route, useLocation, Navigate } from 'react-router-dom'
+import Topbar from './scenes/global/Topbar'
+import Sidebar from './scenes/global/Sidebar'
+import Dashboard from './scenes/dashboard'
+import { CssBaseline, ThemeProvider } from '@mui/material'
+import { ColorModeContext, useMode } from './theme'
+// import BrandingSignUpPage from "./scenes/auth/register";
+import {
+  SignInForm,
+  EnumeratorSignInForm,
+  PayrollSpecialistSignInForm,
+  EnumeratorSignInFormWebView,
+  VerifierSignInForm,
+} from './scenes/auth/signIn'
+import CreateEnumerator from './scenes/manage-accounts/createEnumeratorForm'
+import RegistrationSelector from './scenes/manage-accounts/registrationSelector'
+import { ViewAllStudentsData } from './scenes/manage-accounts/viewAllStudentsData'
+import { CreateStudent } from './scenes/manage-accounts/createStudent'
+import { CreateAdmin } from './scenes/manage-accounts/createAdmin'
+import { UpdateStudent } from './scenes/manage-accounts/updateStudent'
+// import { DataProvider } from './components/dataContext.jsx';
+import { RoleSelector } from './components/roleSelector.jsx'
+import { AdminViewAllStudentsData } from './scenes/manage-accounts/adminViewAllStudentsData.jsx'
+import { ExportAttendanceSheet } from './scenes/manage-accounts/exportAttendanceSheet.jsx'
+import { CreatePayrollSpecialist } from './scenes/manage-accounts/createPayrollSpecialist.jsx'
+import { ManageAdmins } from './scenes/manage-accounts/manageAdmins.jsx'
+// import { EditUserForm } from "./components/editUserForm.jsx";
+import { EditAdmin } from './scenes/manage-accounts/editAdminData.jsx'
+import { ManageEnumerators } from './scenes/manage-accounts/manageEnumerators.jsx'
+import { ManagePayrollSpecialists } from './scenes/manage-accounts/managePayrollSpecialists.jsx'
+import { EditEnumerator } from './scenes/manage-accounts/editEnumeratorData.jsx'
+import { EditPayrollSpecialists } from './scenes/manage-accounts/editPayrollSpecialists.jsx'
+import { ImportAttendanceSheet } from './scenes/manage-accounts/importAttendanceSheet.jsx'
+import { ViewAttendance } from './components/viewAttendance .jsx'
+import { ViewSchoolsInfo } from './components/viewSchoolsInfo.jsx'
+import { ExportAttendanceSheetPayroll } from './scenes/manage-accounts/exportAttendanceSheetScore.jsx'
+import { AdminViewAllStudentsDataNoExport } from './scenes/manage-accounts/adminViewAllStudentsData_noExport.jsx'
+// import axios from 'axios';
+import { ImportPaymentSheet } from './scenes/manage-accounts/importPayment.jsx'
+import { Provider } from 'react-redux'
+import { store } from './components/store.js'
+import { CreateSchool } from './scenes/manage-accounts/createSchool.jsx'
+import { ManageSchools } from './scenes/manage-accounts/manageSchools.jsx'
+import { ViewPaymentsRecords } from './components/viewPaymentsRecords.jsx'
+import { ManageDuplicateRecords } from './scenes/manage-accounts/manageDuplicateRecords.jsx'
+import { PrintIdCard } from './scenes/manage-accounts/printIDCards.jsx'
+import { PreselectForm } from './components/preSelectform.jsx'
+import { UpdateBankAccountInfo } from './scenes/manage-accounts/updateBankAccountInfo.jsx'
+import { UpdateSchool } from './scenes/manage-accounts/updateSchool.jsx'
 // import { FormComponent } from "./components/FormComponent.jsx";
-import { EditManyStudents } from "./scenes/manage-accounts/EditManyStudents.jsx";
-import { AttendanceSheet } from "./scenes/manage-accounts/attendanceSheet.jsx";
-import { UpdateAttendanceSheet } from "./scenes/manage-accounts/updateAttendanceSheet.jsx";
-import {VerifyStudent, Preselect} from "./scenes/manage-accounts/verifyStudent.jsx";
-import CreateVerifier from "./scenes/manage-accounts/createVerifier.jsx";
-
+import { EditManyStudents } from './scenes/manage-accounts/EditManyStudents.jsx'
+import { AttendanceSheet } from './scenes/manage-accounts/attendanceSheet.jsx'
+import { UpdateAttendanceSheet } from './scenes/manage-accounts/updateAttendanceSheet.jsx'
+import {
+  VerifyStudent,
+  Preselect,
+} from './scenes/manage-accounts/verifyStudent.jsx'
+import CreateVerifier from './scenes/manage-accounts/createVerifier.jsx'
+import PhotoCard from './scenes/manage-accounts/photoCard.jsx'
 
 function App() {
-  const [theme, colorMode] = useMode();
-  const [isSidebar, setIsSidebar] = useState(true);
-  const location = useLocation();
-  const subdomain = getSubdomain();
-  const API_URL = `${import.meta.env.VITE_API_URL}/api/v1`;
+  const [theme, colorMode] = useMode()
+  const [isSidebar, setIsSidebar] = useState(true)
+  const location = useLocation()
+  const subdomain = getSubdomain()
+  // const API_URL = `${import.meta.env.VITE_API_URL}/api/v1`;
   // const [allschools, setAllSchools] = useState([]);
   // const [primarySchoolsData, setPrimarySchoolsData] = useState([]);
   // const [secondarySchoolsData, setSecondarySchoolsData] = useState([]);
   // const [vocationalData, setVocationalData] = useState([]);
-
-
 
   // useEffect(() => {
 
@@ -70,15 +77,12 @@ function App() {
   //         const response = await axios.get(`${API_URL}/all-schools`)
   //         setAllSchools(response.data.allSchools);
 
-
   //       }
   //       catch(err) {
   //         console.log(err)
   //       }
   //   })()
   // }, []);
-
-
 
   // console.log(allschools);
 
@@ -169,6 +173,10 @@ function App() {
                           element={<AdminViewAllStudentsDataNoExport />}
                         />
                         <Route
+                          path="/admin-dashboard/generate-photocard"
+                          element={<PhotoCard />}
+                        />
+                        <Route
                           path="/view-all-schools-info"
                           element={<ViewSchoolsInfo />}
                         />
@@ -255,34 +263,80 @@ function App() {
         <ThemeProvider theme={theme}>
           <CssBaseline />
           <div className="app">
-            {location.pathname !== "/dashboard/sign-in" && location.pathname !== "/" && location.pathname !== "/sign-in" && <Sidebar isSidebar={isSidebar} />}
+            {location.pathname !== '/dashboard/sign-in' &&
+              location.pathname !== '/' &&
+              location.pathname !== '/sign-in' && (
+                <Sidebar isSidebar={isSidebar} />
+              )}
 
-            <main className={`content ${isSidebar ? "" : "collapsed"}`}>
-              {location.pathname !== "/sign-in" && location.pathname !== "/" && location.pathname !== "/dashboard/sign-in" && <Topbar setIsSidebar={setIsSidebar} />}
+            <main className={`content ${isSidebar ? '' : 'collapsed'}`}>
+              {location.pathname !== '/sign-in' &&
+                location.pathname !== '/' &&
+                location.pathname !== '/dashboard/sign-in' && (
+                  <Topbar setIsSidebar={setIsSidebar} />
+                )}
 
               <Routes>
                 <Route path="/sign-in" element={<EnumeratorSignInForm />} />
                 <Route path="/" element={<EnumeratorSignInForm />} />
-                <Route path="/webview" element={<EnumeratorSignInFormWebView />} />
+                <Route
+                  path="/webview"
+                  element={<EnumeratorSignInFormWebView />}
+                />
 
                 <Route
                   path="/*"
                   element={
                     <Provider store={store}>
                       <Routes>
-                        <Route path="/enumerator-dashboard" element={<Dashboard />} />
-                        <Route path="/enumerator-dashboard/webview" element={<Dashboard />} />
-                        <Route path="/enumerator-dashboard/view-all-students-data" element={<ViewAllStudentsData />} />
-                        <Route path="/export-attendance-sheet" element={<ExportAttendanceSheet />} />
-                        <Route path="/import-attendance-sheet" element={<ImportAttendanceSheet />} />
-                        <Route path="/enumerator-dashboard/create-student-preselect" element={<PreselectForm />} />
-                        <Route path="/enumerator-dashboard/create-student-school-selector" element={<RegistrationSelector />} />
-                        <Route path="/enumerator-dashboard/create-accounts/register-student" element={<CreateStudent />} />
-                        <Route path="/enumerator-dashboard/update-student/:id" element={<UpdateStudent />} />
-                        <Route path="/view-attendance-sheet" element={<ViewAttendance />} />
-                        <Route path="/index.html" element={<Navigate to="/" />} />
-                        <Route path="*" element={<Navigate to="/enumerator-dashboard" />} />
-
+                        <Route
+                          path="/enumerator-dashboard"
+                          element={<Dashboard />}
+                        />
+                        <Route
+                          path="/enumerator-dashboard/webview"
+                          element={<Dashboard />}
+                        />
+                        <Route
+                          path="/enumerator-dashboard/view-all-students-data"
+                          element={<ViewAllStudentsData />}
+                        />
+                        <Route
+                          path="/export-attendance-sheet"
+                          element={<ExportAttendanceSheet />}
+                        />
+                        <Route
+                          path="/import-attendance-sheet"
+                          element={<ImportAttendanceSheet />}
+                        />
+                        <Route
+                          path="/enumerator-dashboard/create-student-preselect"
+                          element={<PreselectForm />}
+                        />
+                        <Route
+                          path="/enumerator-dashboard/create-student-school-selector"
+                          element={<RegistrationSelector />}
+                        />
+                        <Route
+                          path="/enumerator-dashboard/create-accounts/register-student"
+                          element={<CreateStudent />}
+                        />
+                        <Route
+                          path="/enumerator-dashboard/update-student/:id"
+                          element={<UpdateStudent />}
+                        />
+                        <Route
+                          path="/view-attendance-sheet"
+                          element={<ViewAttendance />}
+                        />
+                        <Route
+                          path="/index.html"
+                          element={<Navigate to="/" />}
+                        />
+                        <Route
+                          path="*"
+                          element={<Navigate to="/enumerator-dashboard" />}
+                        />
                       </Routes>
                     </Provider>
                   }
@@ -416,7 +470,7 @@ function App() {
                           path="/export-attendance-sheet/"
                           element={<ExportAttendanceSheetPayroll />}
                         /> */}
-           
+
                         <Route
                           path="/verifier-dashboard/preselect-info"
                           element={<Preselect />}
@@ -425,7 +479,7 @@ function App() {
                           path="/verifier-dashboard/verify-student"
                           element={<VerifyStudent />}
                         />
-             
+
                         <Route
                           path="/index.html"
                           element={<Navigate to="/" />}
@@ -433,9 +487,7 @@ function App() {
 
                         <Route
                           path="*"
-                          element={
-                            <Navigate to="/verifier-dashboard" />
-                          }
+                          element={<Navigate to="/verifier-dashboard" />}
                         />
                       </Routes>
                     </Provider>
@@ -450,17 +502,15 @@ function App() {
   }
 }
 
-export default App;
-
-
+export default App
 
 const getSubdomain = () => {
-  const hostname = window.location.hostname; // e.g., 'www.subdomain.something.org'
-  const parts = hostname.split('.');
+  const hostname = window.location.hostname // e.g., 'www.subdomain.something.org'
+  const parts = hostname.split('.')
 
   return parts.length >= 2
     ? parts[0].toLowerCase() === 'www'
       ? parts[1] // Subdomain after 'www'
       : parts[0] // Direct subdomain
-    : 'default'; // No subdomain
+    : 'default' // No subdomain
 }

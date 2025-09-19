@@ -424,6 +424,13 @@ const Sidebar = ({ isSidebar }) => {
                     selected={selected}
                     setSelected={setSelected}
                   />
+                  <Item
+                    title="Generate Photocard"
+                    to={'/admin-dashboard/generate-photocard'}
+                    icon={<PrintIcon />}
+                    selected={selected}
+                    setSelected={setSelected}
+                  />
                 </>
               </>
             )}

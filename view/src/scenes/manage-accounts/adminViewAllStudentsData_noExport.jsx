@@ -1,24 +1,11 @@
-import React, {
-  useState,
-  useContext,
-  useEffect,
-  useCallback,
-  memo,
-} from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import {
   Container,
   useTheme,
   Typography,
-  Table,
   Button,
-  TableBody,
-  TableCell,
   Select,
   MenuItem,
-  TableContainer,
-  IconButton,
-  TableHead,
-  TableRow,
   Paper,
   Box,
   TextField,
@@ -27,12 +14,14 @@ import {
   Autocomplete,
   Fade,
   CircularProgress,
+  IconButton
 } from '@mui/material'
 
 // import { StudentsContext } from '../../components/dataContext'
 import axios from 'axios'
-import { resolvePath, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import EditIcon from '@mui/icons-material/Edit'
+import CloseIcon from '@mui/icons-material/Close'
 import { tokens } from '../../theme'
 // import { PersonLoader } from '../../components/personLoader'
 import { getNigeriaStates } from 'geo-ng'
@@ -45,13 +34,9 @@ import {
   deleteStudent,
   fetchStudents,
   fetchStudentsFromComponent,
-  filterStudents,
-  resetStudentsData,
   setRowsPerPage,
-  setPage,
   setCurrentPage,
   setSearchQuery,
-  setStudents,
 } from '../../components/studentsSlice.js'
 import { fetchSchools } from '../../components/schoolsSlice.js'
 import { SpinnerLoader } from '../../components/spinnerLoader.jsx'
@@ -73,7 +58,7 @@ export const AdminViewAllStudentsDataNoExport = () => {
   const theme = useTheme()
   const colors = tokens(theme.palette.mode)
   // const [currentPage, setCurrentPage] = useState(1);
-  const [perPage, setPerPage] = useState(100) // Number of students per page
+  // const [perPage, setPerPage] = useState(100) // Number of students per page
   const navigate = useNavigate()
   const dispatch = useDispatch()
   const schoolsState = useSelector((state) => state.schools)
@@ -87,7 +72,7 @@ export const AdminViewAllStudentsDataNoExport = () => {
     currentPage,
     totalRows,
     rowsPerPage,
-    data,
+    // data,
     filteredStudents,
     loading: studentsLoading,
     error: studentsError,
@@ -113,40 +98,45 @@ export const AdminViewAllStudentsDataNoExport = () => {
     cohort: '',
     verified: null,
   })
-  const params = {
-    status: filters.status,
-    stateOfOrigin: filters.stateOfOrigin,
-    ward: filters.ward,
-    presentClass: filters.presentClass,
-    lga: filters.lga,
-    schoolId: filters.schoolId,
-    nationality: filters.nationality,
-    state: filters.state,
-    enumerator: filters.enumerator,
-    dateFrom: filters.dateFrom,
-    dateTo: filters.dateTo,
-    yearOfEnrollment: filters.yearOfEnrollment,
-    yearOfAdmission: filters.yearOfAdmission,
-    classAtEnrollment: filters.classAtEnrollment,
-    disabilitystatus: filters.disabilitystatus,
-    cohort: filters.cohort,
-    verified: filters.verified,
-  }
-  const filteredParams = Object.entries(params)
-    .filter(([_, value]) => value != null && value !== '') // Filter out empty values
-    .reduce((acc, [key, value]) => {
-      acc[key] = value // Directly add each key-value pair to the accumulator
-      return acc
-    }, {})
+  const filteredParams = useMemo(() => {
+    const params = {
+      status: filters.status,
+      stateOfOrigin: filters.stateOfOrigin,
+      ward: filters.ward,
+      presentClass: filters.presentClass,
+      lga: filters.lga,
+      schoolId: filters.schoolId,
+      nationality: filters.nationality,
+      state: filters.state,
+      enumerator: filters.enumerator,
+      dateFrom: filters.dateFrom,
+      dateTo: filters.dateTo,
+      yearOfEnrollment: filters.yearOfEnrollment,
+      yearOfAdmission: filters.yearOfAdmission,
+      classAtEnrollment: filters.classAtEnrollment,
+      disabilitystatus: filters.disabilitystatus,
+      cohort: filters.cohort,
+      verified: filters.verified,
+    }
+    return Object.entries(params)
+      .filter(([, value]) => value != null && value !== '')
+      .reduce((acc, [key, value]) => {
+        acc[key] = value
+        return acc
+      }, {})
+  }, [filters])
 
-  const sortParam = {
-    sortBy: filters.sortBy,
-    sortOrder: filters.sortOrder,
-  }
+  const sortParam = useMemo(
+    () => ({ sortBy: filters.sortBy, sortOrder: filters.sortOrder }),
+    [filters.sortBy, filters.sortOrder]
+  )
 
   useEffect(() => {
     dispatch(fetchSchools({ schoolType: '', lgaOfEnrollment: '' }))
   }, [dispatch])
+
+    const [message, setMessage] = useState('')
+
 
   useEffect(() => {
     dispatch(
@@ -157,31 +147,22 @@ export const AdminViewAllStudentsDataNoExport = () => {
         limit: rowsPerPage,
       })
     )
-  }, [dispatch, currentPage, rowsPerPage])
+  }, [dispatch, currentPage, rowsPerPage, filteredParams, sortParam, message])
 
   // const [filterLoading, setFilterLoading] = useState(false);
   const schools = schoolsData
   const [schoolOptions, setSchoolOptions] = useState([]) // Start with an empty array
-  const [hasMore, setHasMore] = useState(true) // To check if more data is available
-  const [loadingSchools, setLoadingSchools] = useState(false) // Loading state for schools
-  const [page, setPage] = useState(1) // Kee
-  const [filterError, setFilterError] = useState(null)
+  // removed unused local pagination state for schools
+  const [filterError] = useState(null)
   const [statesData, setStatesData] = useState([])
-  const [lgasData, setLgasData] = useState([])
   const [enumeratorsData, setEnumeratorsData] = useState([])
-  const [enumeratorsLoading, setEnumeratorsLoading] = useState(false)
+  // removed unused enumeratorsLoading
   // const [fetchLoading, setFetchLoading] = useState(false)
   const [selectedItem, setSelectedItem] = useState(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   // const [filteredData, setFilteredData] = useState([]); // State for filtered data
   const [checked, setChecked] = useState(false)
   const [demotionChecked, setDemotionChecked] = useState(false)
-  const [bulkPromotionMessage, setBulkPromotionMessage] = useState('')
-  const [bulkPromotionLoading, setBulkPromotionLoading] = useState(false)
-  const [singlePromotionMessage, setSinglePromotionMessage] = useState('')
-  const [singlePromotionLoading, setSinglePromotionLoading] = useState(false)
-  const [bulkDemotionMessage, setBulkDemotionMessage] = useState('')
-  const [bulkdemotionLoading, setBulkDemotionLoading] = useState(false)
   // const [allStudentsData, setAllStudentsData] = useState([]); // State for filtered data
   // const [snackbarOpen, setSnackbarOpen] = useState(true); // State to control visibility
   const [singleSnackbarOpen, setSingleSnackbarOpen] = useState(false)
@@ -195,56 +176,20 @@ export const AdminViewAllStudentsDataNoExport = () => {
   const API_URL = `${import.meta.env.VITE_API_URL}/api/v1`
   const token = localStorage.getItem('token') || ''
   useEffect(() => {
-    if (singlePromotionMessage) setSingleSnackbarOpen(true)
-    if (bulkPromotionMessage) setBulkSnackbarOpen(true)
-    if (bulkDemotionMessage) setBulkDemotionSnackbarOpen(true)
-  }, [singlePromotionMessage, bulkPromotionMessage, bulkDemotionMessage])
+  
+    if (message) setBulkDemotionSnackbarOpen(true)
+  }, [message])
+console.log(message)
 
   useEffect(() => {
     if (schools && schools.length > 0) {
       setSchoolOptions(schools) // Set schools if available
     }
   }, [schools]) // Re-run whenever schools change
-  const loadMoreSchools = async () => {
-    if (loadingSchools || !hasMore) return
-
-    setLoadingSchools(true)
-
-    // Fetch the next batch of schools here (this is just a mock-up)
-    const nextSchools = await fetchMoreSchools(page)
-
-    if (nextSchools.length > 0) {
-      setSchoolOptions((prev) => [...prev, ...nextSchools]) // Append new schools to the list
-      setPage((prev) => prev + 1) // Increment the page
-    } else {
-      setHasMore(false) // No more schools to load
-    }
-
-    setLoadingSchools(false)
-  }
 
   useEffect(() => {
     setStudentsData(filteredStudents)
   }, [filteredStudents])
-
-  const fetchMoreSchools = async (page) => {
-    // Simulate network request to fetch schools for the current page
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const startIndex = (page - 1) * 20
-        resolve(schools.slice(startIndex, startIndex + 20)) // Return a slice of the schools array
-      }, 1000)
-    })
-  }
-
-  const yearOfAdmissionOptions = [
-    { year: '2020' },
-    { year: '2021' },
-    { year: '2022' },
-    { year: '2023' },
-    { year: '2024' },
-    { year: '2025' },
-  ]
 
   const registrationYearOptions = [
     { year: '2024' },
@@ -259,7 +204,6 @@ export const AdminViewAllStudentsDataNoExport = () => {
     ;(async () => {
       try {
         const token = localStorage.getItem('token')
-        setEnumeratorsLoading(true)
         const response = await axios.get(`${API_URL}/admin-enumerator`, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -272,16 +216,13 @@ export const AdminViewAllStudentsDataNoExport = () => {
         console.log(err)
       }
     })()
-  }, [])
+  }, [API_URL])
   // ! Nationality state and local government data set up
   const nationalityOptions = [
     { value: 'Nigeria', label: 'Nigeria' },
     { value: 'Others', label: 'Others' },
   ]
-  const getLGAs = (stateName) => {
-    const state = getNigeriaStates().find((s) => s.name === stateName)
-    return state ? state.lgas : []
-  }
+  // removed unused getLGAs
 
   useEffect(() => {
     if (filters.nationality === 'Nigeria') {
@@ -290,16 +231,14 @@ export const AdminViewAllStudentsDataNoExport = () => {
       setStatesData(newStates)
     } else {
       setStatesData([])
-      setLgasData([])
     }
   }, [filters.nationality])
 
   useEffect(() => {
     if (filters.state && filters.nationality === 'Nigeria') {
-      const lgas = getLGAs(filters.state)
-      setLgasData(lgas)
+      // lga list available via lgasAndWards; dynamic state->lga mapping not needed here
     } else {
-      setLgasData([])
+      // no-op
     }
   }, [filters.state, filters.nationality])
 
@@ -336,18 +275,15 @@ export const AdminViewAllStudentsDataNoExport = () => {
   const handleInputChange = useCallback((e) => {
     const { name, value, type, files } = e.target
     if (type === 'file') {
-      setFilters({
-        ...filters,
-        [name]: files[0] || null, // Store the first selected file or null if no file
-      })
+      setFilters((prev) => ({
+        ...prev,
+        [name]: files[0] || null,
+      }))
     } else {
-      setFilters((prevFilters) => {
-        const updatedFilters = {
-          ...prevFilters,
-          [name]: value,
-        }
-        return updatedFilters
-      })
+      setFilters((prevFilters) => ({
+        ...prevFilters,
+        [name]: value,
+      }))
     }
   }, [])
 
@@ -384,22 +320,22 @@ export const AdminViewAllStudentsDataNoExport = () => {
     )
   }
 
-  if (schoolsLoading || studentsLoading) {
-    return (
-      <Box
-        sx={{
-          display: 'flex', // Corrected from 'dispflex'
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '50vh',
-          width: '90vw',
-        }}
-      >
-        <SpinnerLoader />
-      </Box>
-    )
-  }
+  // if (schoolsLoading || studentsLoading) {
+  //   return (
+  //     <Box
+  //       sx={{
+  //         display: 'flex', // Corrected from 'dispflex'
+  //         flexDirection: 'column',
+  //         justifyContent: 'center',
+  //         alignItems: 'center',
+  //         height: '50vh',
+  //         width: '90vw',
+  //       }}
+  //     >
+  //       <SpinnerLoader />
+  //     </Box>
+  //   )
+  // }
 
   if (schoolsError || studentsError) {
     return (
@@ -562,7 +498,8 @@ export const AdminViewAllStudentsDataNoExport = () => {
       sortable: true,
     },
 
-    userPermissions.includes('handle_admins', 'handle_registrars') && {
+    (userPermissions.includes('handle_admins') ||
+      userPermissions.includes('handle_registrars')) && {
       name: 'Promote',
       cell: (row) => (
         <button
@@ -582,7 +519,8 @@ export const AdminViewAllStudentsDataNoExport = () => {
         </button>
       ),
     },
-    userPermissions.includes('handle_admins', 'handle_registrars') && {
+    (userPermissions.includes('handle_admins') ||
+      userPermissions.includes('handle_registrars')) && {
       name: 'Demote',
       cell: (row) => (
         <button
@@ -622,7 +560,7 @@ export const AdminViewAllStudentsDataNoExport = () => {
         </button>
       ),
     },
-  ]
+  ].filter(Boolean)
 
   const handleViewItem = (item) => {
     setSelectedItem(item)
@@ -649,7 +587,6 @@ export const AdminViewAllStudentsDataNoExport = () => {
         `This action will promote ${row.surname} ${row.firstname} to the ${nextClass}.`
       )
       if (!confirmUpdate) return
-      setSinglePromotionLoading(true)
       const token = localStorage.getItem('token')
       const response = await axios.patch(
         `${API_URL}/student/promote/single/student`,
@@ -658,16 +595,16 @@ export const AdminViewAllStudentsDataNoExport = () => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-          // params: {...studentRandomId},
           withCredentials: true,
         }
       )
-      setSinglePromotionLoading(false)
-      setSinglePromotionMessage(response.data.message)
+      setMessage(response.data.message);
+      setTimeout(() => setMessage(''), 10000)
     } catch (err) {
       console.error(err)
-      setSinglePromotionLoading(false)
-      setSinglePromotionMessage(err?.response?.data?.message)
+      setMessage(err?.response?.data?.message)
+            setTimeout(() => setMessage(''), 10000)
+
     }
   }
   const handleSingleDemotion = async (row) => {
@@ -685,7 +622,6 @@ export const AdminViewAllStudentsDataNoExport = () => {
         `This action will demote ${row.surname} ${row.firstname} from ${currentClass} to ${prevClass}.`
       )
       if (!confirmUpdate) return
-      setSinglePromotionLoading(true)
       const token = localStorage.getItem('token')
       const response = await axios.patch(
         `${API_URL}/student/demote/single/student`,
@@ -694,16 +630,17 @@ export const AdminViewAllStudentsDataNoExport = () => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-          // params: {...studentRandomId},
           withCredentials: true,
         }
       )
-      setSinglePromotionLoading(false)
-      setSinglePromotionMessage(response.data.message)
+      setMessage(response.data.message)
+            setTimeout(() => setMessage(''), 10000)
+
     } catch (err) {
       console.error(err)
-      setSinglePromotionLoading(false)
-      setSinglePromotionMessage(err?.response?.data?.message)
+      setMessage(err?.response?.data?.message)
+            setTimeout(() => setMessage(''), 10000)
+
     }
   }
   const handleBulkdemotion = async (presentClass) => {
@@ -714,8 +651,7 @@ export const AdminViewAllStudentsDataNoExport = () => {
         `This action will demote all students in ${presentClass} to the previous class.`
       )
       if (!confirmUpdate) return
-      setBulkDemotionLoading(true)
-      const response = await axios.patch(
+      const resp = await axios.patch(
         `${API_URL}/student/demote/plenty/students`,
         { presentClass },
         {
@@ -725,12 +661,15 @@ export const AdminViewAllStudentsDataNoExport = () => {
           withCredentials: true,
         }
       )
-      setBulkDemotionLoading(false)
-      setBulkDemotionMessage(response.data.message)
+      setMessage(resp.data.message)
+            setTimeout(() => setMessage(''), 10000)
+
+      // console.log(resp.data.message)
     } catch (err) {
       console.error(err)
-      setBulkDemotionLoading(false)
-      setBulkDemotionMessage(response?.data?.message)
+      setMessage(err?.response?.data?.message)
+            setTimeout(() => setMessage(''), 10000)
+
     }
   }
   const handleBulkPromotion = async (presentClass) => {
@@ -742,8 +681,7 @@ export const AdminViewAllStudentsDataNoExport = () => {
       )
       if (!confirmUpdate) return
 
-      setBulkPromotionLoading(true)
-      const response = await axios.patch(
+      const resp2 = await axios.patch(
         `${API_URL}/student/promote/plenty/students`,
         { presentClass },
         {
@@ -753,12 +691,16 @@ export const AdminViewAllStudentsDataNoExport = () => {
           withCredentials: true,
         }
       )
-      setBulkPromotionLoading(false)
-      setBulkPromotionMessage(response.data.message)
+      setMessage(resp2.data.message)
+            setTimeout(() => setMessage(''), 10000)
+
+            // console.log(resp2.data.message)
+
     } catch (err) {
       console.error(err)
-      setBulkPromotionLoading(false)
-      setBulkPromotionMessage(response?.data?.message)
+      setMessage(err?.response?.data?.message)
+            setTimeout(() => setMessage(''), 10000)
+
     }
   }
 
@@ -779,7 +721,7 @@ export const AdminViewAllStudentsDataNoExport = () => {
       // const ids = selectedStudents.join(',');
       const joinedIds = ids.join(',')
 
-      const response = await axios.delete(
+      await axios.delete(
         `${API_URL}/student/delete/delete-many/?ids=${joinedIds}`,
         {
           headers: {
@@ -824,7 +766,7 @@ export const AdminViewAllStudentsDataNoExport = () => {
       setUpdateAccountLoading(true)
       setUpdateAccountMessage('...Please wait while the update completes.')
 
-      const response = await axios.patch(
+      await axios.patch(
         `${API_URL}/student/update/bank-account-details`,
         formData,
         {
@@ -986,7 +928,7 @@ export const AdminViewAllStudentsDataNoExport = () => {
                 {checked && (
                   <Fade in={checked}>
                     <Grid container spacing={2}>
-                      {classPromotionOptions.map((presentClass, index) => (
+                      {classPromotionOptions.map((presentClass) => (
                         <Grid
                           key={presentClass.id}
                           item
@@ -1043,7 +985,7 @@ export const AdminViewAllStudentsDataNoExport = () => {
                 {demotionChecked && (
                   <Fade in={demotionChecked}>
                     <Grid container spacing={2}>
-                      {classPromotionOptions.map((presentClass, index) => (
+                      {classPromotionOptions.map((presentClass) => (
                         <Grid
                           key={presentClass.id}
                           item
@@ -1148,7 +1090,6 @@ export const AdminViewAllStudentsDataNoExport = () => {
                         }}
                       />
                     )}
-                    loading={loadingSchools}
                     noOptionsText="No schools found"
                     getOptionKey={(option, index) =>
                       option?._id || `${option.schoolName}-${index}`
@@ -1208,8 +1149,8 @@ export const AdminViewAllStudentsDataNoExport = () => {
                   {lgasAndWards
                     ?.flatMap((lga) => lga.wards) // Flatten all wards into a single array
                     .sort((a, b) => a.localeCompare(b)) // Sort the array alphabetically
-                    .map((ward, index) => (
-                      <MenuItem key={index} value={ward}>
+                    .map((ward) => (
+                      <MenuItem key={ward} value={ward}>
                         {ward}
                       </MenuItem>
                     ))}
@@ -1660,46 +1601,59 @@ export const AdminViewAllStudentsDataNoExport = () => {
             </div>
           </div>
 
-          <DataTable
-            title="View Registered Students Information"
-            columns={columns}
-            data={studentsData}
-            selectableRows // Enable checkboxes
-            onSelectedRowsChange={handleSelectedStudentsChange} // Handle selected rows
-            progressPending={studentsLoading} // Show loading spinner
-            pagination
-            paginationServer
-            highlightOnHover
-            paginationPerPage={rowsPerPage} // Override default rows per page
-            paginationRowsPerPageOptions={[100, 200, 500, 1000]} // Custom options
-            paginationTotalRows={totalRows} // Total rows from API
-            paginationDefaultPage={currentPage} // Use current page from Redux
-            onChangePage={(page) => {
-              dispatch(setCurrentPage(page)) // Update Redux state for current page
-              dispatch(
-                fetchStudentsFromComponent({
-                  filteredParams,
-                  sortParam,
-                  page,
-                  limit: rowsPerPage,
-                })
-              ) // Fetch data for the selected page
-            }}
-            onChangeRowsPerPage={(newLimit) => {
-              // Update rowsPerPage in Redux state and fetch new data
+          {studentsLoading ? (
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItem: 'center',
+                p: 4,
+              }}
+            >
+              <CircularProgress />
+            </Box>
+          ) : (
+            <DataTable
+              title="View Registered Students Information"
+              columns={columns}
+              data={studentsData}
+              selectableRows // Enable checkboxes
+              onSelectedRowsChange={handleSelectedStudentsChange} // Handle selected rows
+              progressPending={studentsLoading} // Show loading spinner
+              pagination
+              paginationServer
+              highlightOnHover
+              paginationPerPage={rowsPerPage} // Override default rows per page
+              paginationRowsPerPageOptions={[100, 200, 500, 1000]} // Custom options
+              paginationTotalRows={totalRows} // Total rows from API
+              paginationDefaultPage={currentPage} // Use current page from Redux
+              onChangePage={(page) => {
+                dispatch(setCurrentPage(page)) // Update Redux state for current page
+                dispatch(
+                  fetchStudentsFromComponent({
+                    filteredParams,
+                    sortParam,
+                    page,
+                    limit: rowsPerPage,
+                  })
+                ) // Fetch data for the selected page
+              }}
+              onChangeRowsPerPage={(newLimit) => {
+                // Update rowsPerPage in Redux state and fetch new data
 
-              dispatch(setRowsPerPage(newLimit)) // Update rowsPerPage in Redux
-              dispatch(
-                fetchStudents({
-                  filteredParams,
-                  sortParam,
-                  page: 1,
-                  limit: newLimit,
-                })
-              ) // Fetch new data with updated limit
-            }}
-            customStyles={customStyles} // Applying the custom styles
-          />
+                dispatch(setRowsPerPage(newLimit)) // Update rowsPerPage in Redux
+                dispatch(
+                  fetchStudents({
+                    filteredParams,
+                    sortParam,
+                    page: 1,
+                    limit: newLimit,
+                  })
+                ) // Fetch new data with updated limit
+              }}
+              customStyles={customStyles} // Applying the custom styles
+            />
+          )}
 
           {isModalOpen && (
             <div
@@ -1754,9 +1708,9 @@ export const AdminViewAllStudentsDataNoExport = () => {
                       fontSize: '25px',
                       color: '#196b57',
                       textAlign: 'center',
-                      display: "flex", 
-                      justifyContent:"center", 
-                      width: "100%"
+                      display: 'flex',
+                      justifyContent: 'center',
+                      width: '100%',
                     }}
                   >
                     Student Details
@@ -1847,7 +1801,7 @@ export const AdminViewAllStudentsDataNoExport = () => {
                         alt="Not Verified!!!"
                         style={{
                           width: '140px',
-                          
+
                           minHeight: '120px',
                         }}
                       />
@@ -1934,31 +1888,37 @@ export const AdminViewAllStudentsDataNoExport = () => {
             </div>
           )}
 
-          {singlePromotionMessage && (
-            <AlertSnackbars
-              severityType="success"
-              message={singlePromotionMessage}
-              open={singleSnackbarOpen}
-              onClose={() => setSingleSnackbarOpen(false)}
-            />
-          )}
-
-          {bulkPromotionMessage && (
-            <AlertSnackbars
-              severityType="success"
-              message={bulkPromotionMessage}
-              open={bulkSnackbarOpen}
-              onClose={() => setBulkSnackbarOpen(false)}
-            />
-          )}
-
-          {bulkDemotionMessage && (
-            <AlertSnackbars
-              severityType="success"
-              message={bulkDemotionMessage}
-              open={bulkDemotionSnackbarOpen}
-              onClose={() => setBulkDemotionSnackbarOpen(false)}
-            />
+          {message && (
+            <Box
+              sx={{
+                position: 'fixed',
+                bottom: '20px',
+                left: {
+                  xs: "120px", 
+                  md: '240px'
+                },
+                background: '#196b57',
+                color: '#fff',
+                padding: '5px',
+                zIndex: '99',
+                display: 'flex',
+                gap: '12px',
+                alignItems: 'center',
+              }}
+            >
+              <Typography
+                sx={{
+                  fontSize: '11px',
+                }}
+              >
+                {message}
+              </Typography>
+              <IconButton onClick={() => setMessage('')} sx = {{
+                color: "#fff"
+              }}>
+                <CloseIcon  />
+              </IconButton>
+            </Box>
           )}
         </Container>
       ) : (
