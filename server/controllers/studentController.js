@@ -426,15 +426,19 @@ export const filterAndDownload = async (req, res, next) => {
       .collation({ locale: 'en', strength: 2 })
       .lean()
 
-    if (verified === 'true') students = students.filter(student => student.verificationStatus === true)
-    if (verified === 'false') students = students.filter(
-      (student) => student.verificationStatus !== true
-    )
-            
+    if (verified === 'true')
+      students = students.filter(
+        (student) => student.verificationStatus === true
+      )
+    if (verified === 'false')
+      students = students.filter(
+        (student) => student.verificationStatus !== true
+      )
+
     students = students.map((student) => {
       const verification = student.verificationInfo || {}
-      if(!student.verificationStatus) verification.verified === false
-      return {  
+      if (!student.verificationStatus) verification.verified === false
+      return {
         ...student,
         verified: verification.verified || false,
         // cardNo: verification.cardNo || null,
@@ -2000,65 +2004,64 @@ export const updateStudent = async (req, res, next) => {
 
 export const getDuplicateRecord = async (req, res, next) => {
   try {
-    const duplicates = await Student.aggregate([
-      // Step 1: Lookup school details from the allschools collection
+    const pipeline = [
       {
         $addFields: {
-          schoolId: { $toObjectId: '$schoolId' }, // Convert string to ObjectId
+          schoolId: { $toObjectId: '$schoolId' },
+          surnameLower: { $toLower: '$surname' },
+          firstnameLower: { $toLower: '$firstname' },
+          lgaLower: { $toLower: '$lgaofEnrollment' },
         },
       },
       {
         $lookup: {
-          from: 'allschools', // Collection name of allschools
-          localField: 'schoolId', // Field in the Student collection
-          foreignField: '_id', // Field in the allschools collection
-          as: 'schoolDetails', // Name of the resulting field
+          from: 'allschools',
+          localField: 'schoolId',
+          foreignField: '_id',
+          as: 'schoolDetails',
         },
       },
-      // Step 2: Extract the schoolName from the schoolDetails
       {
         $addFields: {
-          schoolName: { $arrayElemAt: ['$schoolDetails.schoolName', 0] }, // Add schoolName
+          schoolName: { $arrayElemAt: ['$schoolDetails.schoolName', 0] },
         },
       },
-      // Step 3: Group by student fields
       {
         $group: {
           _id: {
-            surname: '$surname',
-            firstname: '$firstname',
-            lgaofEnrollment: '$lgaofEnrollment',
+            surname: '$surnameLower',
+            firstname: '$firstnameLower',
+            lgaofEnrollment: '$lgaLower',
             schoolId: '$schoolId',
           },
           similarRecords: {
             $push: {
               randomId: '$randomId',
-              surname: '$surname',
+              surname: '$surname', // original case
+              firstname: '$firstname',
               middlename: '$middlename',
               parentPhone: '$parentPhone',
               presentClass: '$presentClass',
-              firstname: '$firstname',
-              schoolId: '$schoolId', // Preserve schoolId here
-              schoolName: '$schoolName', // Add schoolName to the group
-              lgaOfEnrollment: '$lgaOfEnrollment',
+              schoolId: '$schoolId',
+              schoolName: '$schoolName',
+              lgaOfEnrollment: '$lgaofEnrollment', // original case
               passport: '$passport',
             },
-          }, // Collect relevant fields only
-          count: { $sum: 1 }, // Count duplicates
+          },
+          count: { $sum: 1 },
         },
       },
-      // Step 4: Match groups with duplicates
       {
         $match: { count: { $gt: 1 } },
       },
-      // Step 5: Final clean-up (optional)
       {
         $project: {
-          'similarRecords.schoolDetails': 0, // Exclude schoolDetails array if accidentally carried over
+          'similarRecords.schoolDetails': 0,
         },
       },
-    ])
+    ]
 
+    const duplicates = await Student.aggregate(pipeline)
     const students = duplicates
 
     return res.status(200).json({ students })
@@ -2241,7 +2244,7 @@ export const promotePlentyStudents = async (req, res, next) => {
     if (!presentClass) {
       return next(new BadRequestError('Invalid class selected for promotion'))
     }
-
+    // console.log(presentClass)
     let promotedClass = null
 
     switch (presentClass.toUpperCase()) {
@@ -2328,7 +2331,7 @@ export const promotePlentyStudents = async (req, res, next) => {
 export const demotePlentyStudents = async (req, res, next) => {
   try {
     const { presentClass } = req.body
-
+    // console.log(presentClass)
     if (!presentClass) {
       return next(new BadRequestError('Invalid class selected for promotion'))
     }
@@ -2506,7 +2509,18 @@ export const EditManyStudents = async (req, res, next) => {
       return next(new BadRequestError('Bad reqest, please select students'))
     const selectedStudents = ids.split(',') // Convert to array
     const { presentClass } = req.body.formData
-    // console.log(presentClass)
+    const basket = {}
+    if (!req.body.formData.presentClass && !req.body.formData.schoolId)
+      return next(
+        new BadRequestError('Please select at least one field to update')
+      )
+    if (req.body.formData.schoolId) {
+      basket.schoolId = req.body.formData.schoolId
+    }
+    if (req.body.formData.presentClass) {
+      basket.presentClass = req.body.formData.presentClass
+    }
+    // console.log(basket, selectedStudents);
 
     if (!selectedStudents || !selectedStudents.length) {
       return res
@@ -2519,7 +2533,7 @@ export const EditManyStudents = async (req, res, next) => {
         randomId: { $in: selectedStudents },
       },
       {
-        $set: { presentClass },
+        $set: basket,
       }
     )
 
@@ -2528,7 +2542,7 @@ export const EditManyStudents = async (req, res, next) => {
     if (updateManyStudents.modifiedCount === 0) {
       return next(new NotFoundError('No student updated.'))
     }
-
+    // console.log(updateManyStudents);
     res.status(StatusCodes.OK).json({
       message: `${updateManyStudents.modifiedCount} students updated successfully.`,
     })
