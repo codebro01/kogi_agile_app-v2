@@ -1,9 +1,0 @@
-/* @page { size: A4; margin: 10mm; }
-.row { 
-    height: 74.25mm; 
-    display: flex; 
-    justify-content: center; 
-    align-items: center; 
-    page-break-inside: avoid; 
-}
-.spacer { width: 10mm; } */

@@ -245,7 +245,7 @@ const PhotoCard = () => {
 //   const [showFront, setShowFront] = useState(true)
   const [verifiedOnly, setVerifiedOnly] = useState(true)
   const [page, setPage] = useState(1)
-  const limit = 30 // 🔹 how many students per page
+  const limit = 300 // 🔹 how many students per page
 
   const contentRef = useRef(null)
   const reactToPrintFn = useReactToPrint({ contentRef })
@@ -400,6 +400,10 @@ const PhotoCard = () => {
           showFirstButton
           showLastButton
         />
+        <Typography sx = {{
+          fontWeight: "700", 
+          fontSize: "17px"
+        }}>Total Verified Students: {total}</Typography>
       </Stack>
     </Container>
   )
