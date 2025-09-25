@@ -37,6 +37,7 @@ import sanitizeHtml from 'sanitize-html'
 import { wards } from './routes/index.js'
 const app = express()
 import { KogiLga } from './models/LgaSchema.js'
+import { Verification } from './models/verificationSchema.js'
 // import { Student } from './models/studentsSchema.js'
 
 // Rate Limiting
@@ -188,11 +189,17 @@ const startDB = async () => {
     //      console.error(error)
     //     }
     //  }
+    const studentsWithVerification = await Verification.find({});
+    const studentsIdWithVerification = studentsWithVerification.map(student => student.studentId);
 
-
-
-
-console.log(resp)
+    const updateStudent = await Student.updateMany({
+      _id: {$in: studentsIdWithVerification}
+    }, {
+      $set: {
+        verificationStatus: true
+      }
+    });
+    console.log(updateStudent)
 
   } catch (err) {
     console.error('An error occured connecting to the DB')
