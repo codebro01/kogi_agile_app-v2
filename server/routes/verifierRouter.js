@@ -78,7 +78,11 @@ router.patch(
   authorizePermission(['handle_verifications', 'handle_registrars']),
   upload.single('image'),
   (req, res, next) =>
-    cloudinaryImageUploader(req, res, next, 'verifications_image'),
+    {
+      if(!req.file) return next();
+      return cloudinaryImageUploader(req, res, next, 'verifications_image')
+        
+    },
   verifyStudent
 )
 

@@ -380,7 +380,7 @@ export const VerifyStudent = () => {
   }, [])
 
   const handleSelectStudent = React.useCallback((e) => {
-    console.log(e._id)
+    // console.log(e._id)
     setFormData({
       studentId: e._id,
       cardNo: formData.cardNo,
@@ -394,7 +394,7 @@ export const VerifyStudent = () => {
 
    const handleSearch = (event) => {
      const query = event.target.value;
-     console.log(query)
+    //  console.log(query)
      dispatch(setSearchQuery(query))
    }
 
@@ -533,7 +533,7 @@ export const VerifyStudent = () => {
     },
   ]
 
-  // console.log(studentsData)
+  // console.log(studentsData, location.state)
 
   return (
     <Box
@@ -675,7 +675,7 @@ export const VerifyStudent = () => {
               fontSize: '16px',
               color: '#333',
               backgroundColor: '#efefef',
-              border: "none",
+              border: 'none',
               borderRadius: '8px',
               // boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
               outline: 'none',
@@ -860,22 +860,24 @@ export const VerifyStudent = () => {
                 }
               />
             </Box>
-            <MyTextField
-              handleInputChange={handleInputChange}
-              value={formData.cardNo}
-              name={'cardNo'}
-              required={true}
-              label={'Enter card NO'}
-              inputProps={{
-                maxLength: 16, // Stops further input after 11 characters
-                pattern: '\\d{16}', // Requires exactly 11 digits
-                title: 'Card NO must be exactly 16 digits', // Shows this message on invalid input
-              }}
-              onInput={(e) => {
-                // This ensures that only digits make it through
-                e.target.value = e.target.value.replace(/\D/g, '')
-              }}
-            />
+            {formData.verified && (
+              <MyTextField
+                handleInputChange={handleInputChange}
+                value={formData.cardNo}
+                name={'cardNo'}
+                required={true}
+                label={'Enter card NO'}
+                inputProps={{
+                  maxLength: 16, // Stops further input after 11 characters
+                  pattern: '\\d{16}', // Requires exactly 11 digits
+                  title: 'Card NO must be exactly 16 digits', // Shows this message on invalid input
+                }}
+                onInput={(e) => {
+                  // This ensures that only digits make it through
+                  e.target.value = e.target.value.replace(/\D/g, '')
+                }}
+              />
+            )}
 
             {!formData.verified && (
               <Box>
@@ -897,11 +899,13 @@ export const VerifyStudent = () => {
                 </Typography>
               </Box>
             )}
-            <UploadField
-              handleInputChange={handleInputChange}
-              accept={'image/*'}
-              name={'image'}
-            />
+            {formData.verified && (
+              <UploadField
+                handleInputChange={handleInputChange}
+                accept={'image/*'}
+                name={'image'}
+              />
+            )}
 
             <Button
               sx={{

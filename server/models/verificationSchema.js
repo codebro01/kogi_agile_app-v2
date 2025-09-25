@@ -16,7 +16,7 @@ const VerificationSchema = new Schema(
     },
     cardNo: {
       type: String,
-      unique: true
+      // unique: true
     },
     reasonNotVerified: {
       type: String,

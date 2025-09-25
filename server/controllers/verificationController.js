@@ -5,12 +5,21 @@ import { Types } from 'mongoose'
 
 export const verifyStudent = async (req, res, next) => {
   try {
-    console.log(req.body)
+    // console.log(req.body)
     const verificationImage = req.uploadedImage
+// await Verification.collection.dropIndex('cardNo_1')
 
-    let { studentId, verified, cardNo, reasonNotVerified } = req.body
-    if ((!studentId, !verified, !cardNo))
-      return next(new BadRequestError('Fill all necessary fields'))
+    let { studentId, verified, cardNo, reasonNotVerified } = req.body;
+    if(verified === 'true'){
+      if ((!studentId, !cardNo))
+        return next(new BadRequestError('Fill all necessary fields'))
+      
+    }
+    if(verified === 'false') {
+      
+      if ((!reasonNotVerified))
+        return next(new BadRequestError('Fill all necessary fields'))
+    }
 
     studentId = new Types.ObjectId(studentId)
     // console.log(req.uploadedImage)
@@ -25,9 +34,9 @@ export const verifyStudent = async (req, res, next) => {
       {
         $set: {
           verified,
-          cardNo,
+          cardNo: cardNo || "",
           reasonNotVerified,
-          verificationImage: verificationImage.secure_url,
+          verificationImage: verificationImage?.secure_url || "",
         },
       },
       {
