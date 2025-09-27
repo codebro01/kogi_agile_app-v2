@@ -879,7 +879,7 @@ export const VerifyStudent = () => {
               />
             )}
 
-            {!formData.verified && (
+            {(
               <Box>
                 <MyTextField
                   handleInputChange={handleInputChange}

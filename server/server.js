@@ -189,17 +189,17 @@ const startDB = async () => {
     //      console.error(error)
     //     }
     //  }
-    // const studentsWithVerification = await Verification.find({});
-    // const studentsIdWithVerification = studentsWithVerification.map(student => student.studentId);
+    const studentsWithVerification = await Verification.find({});
+    const studentsIdWithVerification = studentsWithVerification.map(student => student.studentId);
 
-    // const updateStudent = await Student.updateMany({
-    //   _id: {$in: studentsIdWithVerification}
-    // }, {
-    //   $set: {
-    //     verificationStatus: true
-    //   }
-    // });
-    // console.log(updateStudent)
+    const updateStudent = await Student.updateMany({
+      _id: {$in: studentsIdWithVerification}
+    }, {
+      $set: {
+        verificationStatus: true
+      }
+    });
+    console.log(updateStudent)
 
   } catch (err) {
     console.error('An error occured connecting to the DB')
