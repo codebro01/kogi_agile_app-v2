@@ -14,6 +14,7 @@ import {
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchStudentsFromComponent } from '../../components/studentsSlice.js'
 import { useReactToPrint } from 'react-to-print'
+import axios from 'axios'
 
 // Utility: chunk an array into pages of 4 (2x2 layout per A4 page)
 
@@ -237,13 +238,19 @@ export const PhotoCardFront = ({ student }) => {
 
 // Container: fetch verified students and render printable A4 pages
 const PhotoCard = () => {
+  const API_URL = `${import.meta.env.VITE_API_URL}/api/v1`
+
   const dispatch = useDispatch()
   const studentsState = useSelector((state) => state.students)
   const { filteredStudents, loading, error, total } = studentsState
   // ⬆️ Make sure your backend returns `totalCount` (total students, not just current page)
-    console.log('totalCount', total)
-//   const [showFront, setShowFront] = useState(true)
+  // console.log('totalCount', total)
+  //   const [showFront, setShowFront] = useState(true)
   const [verifiedOnly, setVerifiedOnly] = useState(true)
+  const [verificationDataReady, setVerificationDataReady] = useState(false)
+  const [syncLoading, setSyncLoading] = useState(false)
+  const [message, setMessage] = useState('')
+
   const [page, setPage] = useState(1)
   const limit = 300 // 🔹 how many students per page
 
@@ -256,15 +263,17 @@ const PhotoCard = () => {
       status: 'active',
     }
     const sortParam = { sortBy: '', sortOrder: '' }
-    dispatch(
-      fetchStudentsFromComponent({
-        filteredParams,
-        sortParam,
-        page,
-        limit,
-      })
-    )
-  }, [dispatch, verifiedOnly, page, limit])
+    if (verificationDataReady) {
+      dispatch(
+        fetchStudentsFromComponent({
+          filteredParams,
+          sortParam,
+          page,
+          limit,
+        })
+      )
+    }
+  }, [dispatch, verifiedOnly, page, limit, verificationDataReady])
 
   const studentsToRender = useMemo(() => {
     if (!filteredStudents || filteredStudents.length === 0) return []
@@ -277,6 +286,38 @@ const PhotoCard = () => {
 
   const handlePageChange = (event, value) => {
     setPage(value)
+  }
+
+  //  handle sync verification data
+
+  const handleSyncVerificationData = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      // console.log(token)
+      // console.log(token)
+      setSyncLoading(true)
+      const res = await axios.patch(
+        `${API_URL}/student/sync/verifications`,
+        null,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          credentials: true,
+        }
+      )
+      // console.log('res', res)
+      setSyncLoading(false)
+      setMessage(res?.data?.message)
+
+      setVerificationDataReady(true)
+    } catch (error) {
+      setVerificationDataReady(false)
+
+      setSyncLoading(false)
+      setMessage('An Error occured, Please sync again')
+      console.log(error)
+    }
   }
 
   return (
@@ -295,6 +336,54 @@ const PhotoCard = () => {
       </style>
 
       {/* Top Bar */}
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '20px',
+        }}
+      >
+        <Button
+          onClick={handleSyncVerificationData}
+          variant="contained"
+          sx={{
+            width: '100%',
+          }}
+        >
+          {syncLoading ? (
+            <>
+              Sync Verification Data{' '}
+              <CircularProgress
+                size={20}
+                sx={{
+                  color: '#fff',
+                  marginLeft: '30px',
+                }}
+              />
+            </>
+          ) : (
+            'Sync Verification Data'
+          )}
+        </Button>
+        {message && (
+          <Typography
+            sx={{
+              textAlign: 'center',
+              color: '#196b57',
+            }}
+          >
+            {message}
+          </Typography>
+        )}
+        {/* <Button
+          variant="contained"
+          sx={{
+            width: '100%',
+          }}
+        >
+          Generate Photo Card
+        </Button> */}
+      </Box>
       <Box
         className="no-print"
         sx={{
@@ -400,10 +489,14 @@ const PhotoCard = () => {
           showFirstButton
           showLastButton
         />
-        <Typography sx = {{
-          fontWeight: "700", 
-          fontSize: "17px"
-        }}>Total Verified Students: {total}</Typography>
+        <Typography
+          sx={{
+            fontWeight: '700',
+            fontSize: '17px',
+          }}
+        >
+          Total Verified Students: {total}
+        </Typography>
       </Stack>
     </Container>
   )

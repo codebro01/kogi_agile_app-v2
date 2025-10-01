@@ -55,6 +55,7 @@ import {
   adminDeleteAttendances,
   updateStudentsBankAccountDetails,
   EditManyStudents,
+  SyncStudentsVerification,
 } from './studentController.js'
 import {
   getSinglePayrollSpecialist,
@@ -165,4 +166,5 @@ export {
   resetVerifierPassword,
   updateVerifier,
   verifyStudent,
+  SyncStudentsVerification,
 }

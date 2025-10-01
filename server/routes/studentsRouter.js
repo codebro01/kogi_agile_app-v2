@@ -25,6 +25,7 @@ import {
   adminDeleteAttendances,
   updateStudentsBankAccountDetails,
   EditManyStudents,
+  SyncStudentsVerification,
 } from '../controllers/index.js'
 import {
   authMiddleware,
@@ -202,4 +203,11 @@ router.patch(
   authorizePermission(['handle_admins', 'handle_registrars']),
   demotePlentyStudents
 )
+router.patch(
+  '/sync/verifications',
+  authMiddleware,
+  authorizePermission(['handle_registrars']),
+  SyncStudentsVerification
+)
+
 export default router

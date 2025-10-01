@@ -17,15 +17,16 @@ export const authMiddleware = async (req, res, next) => {
   if (!token) {
     token = req.query.token // Extract token from query string
   }
-  if (!token) {
-    res.redirect('/')
-    return next(
-      new NotAuthenticatedError(
-        'Invalid Token Not authorized to access this route'
-      )
-    )
-  }
-    
+  // if (!token) {
+  //   res.redirect('/')
+  //   return next(
+  //     new NotAuthenticatedError(
+  //       'Invalid Token Not authorized to access this route'
+  //     )
+  //   )
+  // }
+  // console.log(token)
+
   try {
     const decoded = verifyJWT({ token })
     const { userID } = decoded

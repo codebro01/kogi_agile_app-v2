@@ -1,1 +1,4 @@
-export const notFound = (req, res) => res.status(404).json("Route does not Exist")
+export const notFound = (req, res) => {
+    console.log(req.url)
+    return res.status(404).json('Route does not Exist')
+}

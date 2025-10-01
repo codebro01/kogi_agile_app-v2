@@ -4,9 +4,10 @@ import {
   Registrar,
   PayrollSpecialist,
   Attendance,
+  Verification,
   Payment,
 } from '../models/index.js'
-import { PROCESSING, StatusCodes } from 'http-status-codes'
+import { StatusCodes } from 'http-status-codes'
 import {
   BadRequestError,
   NotFoundError,
@@ -2546,6 +2547,33 @@ export const EditManyStudents = async (req, res, next) => {
     res.status(StatusCodes.OK).json({
       message: `${updateManyStudents.modifiedCount} students updated successfully.`,
     })
+  } catch (error) {
+    return next(error)
+  }
+}
+
+export const SyncStudentsVerification = async (req, res, next) => {
+  // console.log('got in here')
+  try {
+    const studentsWithVerification = await Verification.find({})
+    const studentsIdWithVerification = studentsWithVerification.map(
+      (student) => student.studentId
+    )
+
+    await Student.updateMany(
+      {
+        _id: { $in: studentsIdWithVerification },
+      },
+      {
+        $set: {
+          verificationStatus: true,
+        },
+      }
+    )
+
+    res
+      .status(200)
+      .json({ message: 'Student Verification synced successfully' })
   } catch (error) {
     return next(error)
   }
