@@ -252,7 +252,7 @@ const PhotoCard = () => {
   const [message, setMessage] = useState('')
 
   const [page, setPage] = useState(1)
-  const limit = 300 // 🔹 how many students per page
+  const limit = 60 // 🔹 how many students per page
 
   const contentRef = useRef(null)
   const reactToPrintFn = useReactToPrint({ contentRef })
