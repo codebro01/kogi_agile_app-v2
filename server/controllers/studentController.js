@@ -614,7 +614,6 @@ export const filterAndView = async (req, res, next) => {
       disabilitystatus,
       cohort,
       verified,
-      sortAsc
     } = req.query.filteredParams || {}
     const { page, limit } = req.query
     const { sortBy, sortOrder } = req.query.sortParam
@@ -2061,6 +2060,7 @@ export const getDuplicateRecord = async (req, res, next) => {
               schoolName: '$schoolName',
               lgaOfEnrollment: '$lgaofEnrollment', // original case
               passport: '$passport',
+              verificationStatus: '$verificationStatus'
             },
           },
           count: { $sum: 1 },

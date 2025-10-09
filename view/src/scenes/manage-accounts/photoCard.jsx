@@ -261,7 +261,6 @@ const PhotoCard = () => {
     const filteredParams = {
       verified: verifiedOnly ? 'true' : '',
       status: 'active',
-      sortAsc: true,
     }
     const sortParam = { sortBy: '', sortOrder: '' }
     if (verificationDataReady) {

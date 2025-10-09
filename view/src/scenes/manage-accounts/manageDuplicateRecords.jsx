@@ -224,6 +224,7 @@ export const ManageDuplicateRecords = () => {
       )
 
       setStudents(response.data.students)
+      // console.log(response.data.students)
       setDataFetchLoading(false)
       if (response.data.students.length < 1)
         return setMessage('No Similar students Found')
@@ -350,6 +351,9 @@ export const ManageDuplicateRecords = () => {
                       Middlename
                     </TableCell>
                     <TableCell style={{ fontWeight: 'bold' }}>
+                      Verification Status
+                    </TableCell>
+                    <TableCell style={{ fontWeight: 'bold' }}>
                       School Name
                     </TableCell>
                     <TableCell style={{ fontWeight: 'bold' }}>
@@ -410,6 +414,7 @@ export const ManageDuplicateRecords = () => {
                         <TableCell>{similarStudent.surname}</TableCell>
                         <TableCell>{similarStudent.firstname}</TableCell>
                         <TableCell>{similarStudent.middlename}</TableCell>
+                        <TableCell>{similarStudent.verificationStatus ? 'True' : 'False'}</TableCell>
                         <TableCell>
                           {similarStudent.schoolName || 'N/A'}
                         </TableCell>{' '}
