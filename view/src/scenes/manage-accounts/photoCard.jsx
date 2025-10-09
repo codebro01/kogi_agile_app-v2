@@ -252,7 +252,7 @@ const PhotoCard = () => {
   const [message, setMessage] = useState('')
 
   const [page, setPage] = useState(1)
-  const limit = 60 // 🔹 how many students per page
+  const limit = 40 // 🔹 how many students per page
 
   const contentRef = useRef(null)
   const reactToPrintFn = useReactToPrint({ contentRef })
@@ -261,6 +261,7 @@ const PhotoCard = () => {
     const filteredParams = {
       verified: verifiedOnly ? 'true' : '',
       status: 'active',
+      sortAsc: true,
     }
     const sortParam = { sortBy: '', sortOrder: '' }
     if (verificationDataReady) {

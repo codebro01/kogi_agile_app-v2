@@ -593,9 +593,11 @@ export const filterAndDownload = async (req, res, next) => {
 }
 
 export const filterAndView = async (req, res, next) => {
+
   try {
     await Student.syncIndexes()
-
+    // console.log(req.url.split('?'))
+    // console.log(req.query)
     const { userID, permissions } = req.user
     const {
       ward,
@@ -612,6 +614,7 @@ export const filterAndView = async (req, res, next) => {
       disabilitystatus,
       cohort,
       verified,
+      sortAsc
     } = req.query.filteredParams || {}
     const { page, limit } = req.query
     const { sortBy, sortOrder } = req.query.sortParam
@@ -708,9 +711,20 @@ export const filterAndView = async (req, res, next) => {
         cardNo: verification.cardNo || null,
         verificationImage: verification.verificationImage || null,
         reasonNotVerified: verification.reasonNotVerified || null,
+        verificationCreatedAt: verification.createdAt || null, // add this
       }
     })
 
+
+    // sort students with verification by created At
+
+    studentsWithVerification.sort((a, b) => {
+      const dateA = new Date(a.verificationCreatedAt)
+      const dateB = new Date(b.verificationCreatedAt)
+      return dateA - dateB // Ascending order
+    })
+    
+    // console.log(studentsWithVerification.map(student => student.verificationInfo.createdAt))
     // console.log(students)
     // console.log(students.length)
 
