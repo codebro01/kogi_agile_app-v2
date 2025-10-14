@@ -1748,7 +1748,10 @@ export const importPaymentSheet = async (req, res, next) => {
         updateOne: {
           filter: {
             // studentRandomId: row.StudentID,
-            accountNumber: Number(row['Cust ID']),
+            accountNumber:
+              String(row['Cust ID']).length === 8
+                ? `00${row['Cust ID']}`
+                : row['Cust ID'] || '',
             month: month,
             year: Number(year),
           },

@@ -296,7 +296,7 @@ export const getTotalStudentsPaidMonthly = async (req, res, next) => {
 export const getPaymentsByLGA = async (req, res, next) => {
   try {
     const pipeline = [
-        // { $limit: 10 },
+      // { $limit: 10 },
       {
         $lookup: {
           from: 'students',
@@ -341,12 +341,9 @@ export const getPaymentsByLGA = async (req, res, next) => {
       },
     ]
 
-
-      const paymentByLGA = await Payment.aggregate(pipeline)
+    const paymentByLGA = await Payment.aggregate(pipeline)
     //   console.log('done aggregation:', paymentByLGA)
-      res.status(200).json({ paymentByLGA })
-     
-    
+    res.status(200).json({ paymentByLGA })
   } catch (error) {
     console.error('Error fetching payments by LGA:', error)
     return next(error)
