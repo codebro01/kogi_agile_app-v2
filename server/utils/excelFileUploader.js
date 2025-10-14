@@ -159,7 +159,7 @@ export const XLSXUploaderPaymentInformation = (req, res, next) => {
       }, {})
     })
 
-    console.log('data', data)
+    // console.log('data', data)
     req.parsedData = data
 
     next()

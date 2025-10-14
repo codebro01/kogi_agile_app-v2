@@ -1720,7 +1720,7 @@ export const importPaymentSheet = async (req, res, next) => {
         parseInt(row.TotalAttendanceScore) < 0 ||
         parseInt(row.TotalAttendanceScore) > 100
       ) {
-        console.log(`Invalid score for Student ID: ${row.StudentID}`)
+        // console.log(`Invalid score for Student ID: ${row.StudentID}`)
         continue
       }
 
