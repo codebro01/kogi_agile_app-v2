@@ -75,16 +75,17 @@ const Dashboard = () => {
   } = dashboardStat
 
   const token = localStorage.getItem('token')
-console.log(!userPermissions.includes('handle_verifications'))
+  console.log(lgaWithTotalPayments)
   useEffect(() => {
     if (
       userPermissions.includes('handle_students') &&
-      userPermissions.length === 1 && !userPermissions.includes('handle_verifications')
+      userPermissions.length === 1 &&
+      !userPermissions.includes('handle_verifications')
     ) {
       dispatch(fetchAllStudents())
       return
     }
-    if(!userPermissions.includes('handle_verifications')) {
+    if (!userPermissions.includes('handle_verifications')) {
       dispatch(fetchDashboardStat())
     }
   }, [dispatch])
@@ -109,6 +110,10 @@ console.log(!userPermissions.includes('handle_verifications'))
                 withCredentials: true,
               }),
             ])
+          // console.log(
+          //   'payment by LGA',
+          //   getLGAWithTotalPaymentsRes.data.paymentByLGA
+          // )
           setLgaWithTotalPayments(getLGAWithTotalPaymentsRes.data.paymentByLGA)
           setTotalStudentsPaid(getTotalStudentsPaid.data.totalStudentPaid)
         } catch (err) {
@@ -122,7 +127,7 @@ console.log(!userPermissions.includes('handle_verifications'))
 
   useEffect(() => {
     if (userPermissions.includes('handle_verifications')) {
-      console.log('its goint to try verifications')
+      // console.log('its goint to try verifications')
       const fetchData = async () => {
         try {
           const res = await axios.get(
@@ -134,7 +139,7 @@ console.log(!userPermissions.includes('handle_verifications'))
               withCredentials: true,
             }
           )
-          console.log(res, 'login response');
+          // console.log(res, 'login response')
           setVerifierDashboardData(res.data.verifierDashboardData)
         } catch (err) {
           console.error('Error fetching data:', err)
@@ -272,7 +277,6 @@ console.log(!userPermissions.includes('handle_verifications'))
   const capitalize = (str) =>
     str.charAt(0).toUpperCase() + str.slice(1).toLowerCase()
 
-
   function formatWithCommas(number = 0) {
     return number.toLocaleString()
   }
@@ -286,7 +290,12 @@ console.log(!userPermissions.includes('handle_verifications'))
       mergedResults = lgasAndWards.map((lga) => {
         // Convert both LGA and payment._id to uppercase for a case-insensitive match
         const payment = lgaWithTotalPayments.find(
-          (payment) => payment._id.toUpperCase() === lga.name.toUpperCase()
+
+          (payment) => {
+            // console.log(payment)
+            return payment.LGA.toUpperCase() === lga.name.toUpperCase()
+
+          }
         )
 
         // Return the LGA and its total amount (or 0 if not found) as a plain object
@@ -567,12 +576,9 @@ console.log(!userPermissions.includes('handle_verifications'))
     )
   }
 
-
   // ! verifiers dashboard
 
   if (userPermissions.includes('handle_verifications')) {
-
-
     return (
       <>
         {verifierDashboardData && (

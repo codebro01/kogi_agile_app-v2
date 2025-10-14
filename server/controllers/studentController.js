@@ -1680,90 +1680,6 @@ export const getStudentsAttendance = async (req, res, next) => {
 }
 
 export const importPaymentSheet = async (req, res, next) => {
-  // try {
-
-  //     const existingData = await fetchExistingData();
-  //     const { userID } = req.user;
-  //     const { month, year } = req.body;
-
-  //     let payment;
-  //     // console.log(req.parsedData)
-
-  //     for (const existingRecord of req.parsedData) {
-
-  //         payment = await Payment.find({ studentRandomId: existingRecord.StudentID, month: existingRecord.Month, year: existingRecord.Year, amount: existingRecord.amount});
-
-  //     }
-
-  //     const paymentRecords = [];
-  //     let insertionCount = 0;
-  //     for (const row of req.parsedData) {
-  //         const isExist = await Attendance.findOne({
-  //             studentRandomId: row.StudentId,
-  //             month: month,
-  //             year: year,
-  //         });
-
-  //         if (isExist) {
-  //             // If attendance exists, skip this record
-  //             console.log(`Attendance already exists for Student ID: ${row.StudentId}`);
-  //             continue;
-  //         }
-  //         if (row.Month !== parseInt(month)) return next(new BadRequestError("Month on record is different from the month selected"));
-  //         try {
-  //             if (row.TotalAttendanceScore >= 0 || row.TotalAttendanceScore <= 100  ) {
-  //                 paymentRecords.push({
-
-  //                     studentRandomId: row.StudentID, // First column
-  //                     class: row.Class, // Class
-  //                     totalAttendanceScore: row.TotalAttendanceScore || 0, // Week 1
-  //                     enumeratorId: userID, // From function arguments
-  //                     month: parseInt(row.Month), // From function arguments
-  //                     year: year, // From function arguments
-  //                     amount: row.amount || 0,
-  //                     firstname : row.Firstname,
-  //                     middlename : row.Middlename,
-  //                     surname : row.Surname,
-  //                     bankName: row.BankName,
-  //                     accountNumber: Number(row.AccountNumber),
-  //                     schoolName: row.SchoolName,
-  //                     ward: row.Ward,
-  //                     LGA: row.LGA,
-  //                     paymentStatus:  row.status || 'Not paid'
-  //                 });
-
-  //             }
-
-  //             else {
-  //                 console.log(`'value bigger than 100  or smaller than 0' for : ${row.StudentID}`);
-
-  //             }
-  //         }
-  //         catch (err) {
-  //             return next(err)
-  //         }
-
-  //     }
-
-  //     console.log('payment', payment)
-  //     if (paymentRecords.length > 0 && !payment.length) {
-  //         // Insert all new records into MongoDB
-  //         await Payment.insertMany(paymentRecords);
-  //     } else if (paymentRecords.length > 0 && payment.length) {
-  //         const updateCount = payment.length;
-  //         await Payment.updateMany({ studentRandomId: req.parsedData.StudentID, month, year }, { ...paymentRecords }, { new: true, runValidators: true });
-  //         return res.status(200).json({ message: `Payment sheet updated  for ${updateCount} persons`, totalInserted: payment.length });
-
-  //     }
-  //     else {
-  //         return res.status(400).json({ message: 'No new payment records to upload.' });
-  //     }
-  //     const count = paymentRecords.length;
-
-  //     res.status(200).json({ message: `Payment record uploaded  for ${count} persons`, totalInserted: paymentRecords.length });
-  // } catch (error) {
-  //     return next(error);
-  // }
 
   try {
     const { userID } = req.user
@@ -1771,6 +1687,7 @@ export const importPaymentSheet = async (req, res, next) => {
 
     const paymentRecords = []
     const bulkOperations = []
+
 
     for (const row of req.parsedData) {
       const monthOptions = [
@@ -1807,50 +1724,56 @@ export const importPaymentSheet = async (req, res, next) => {
         continue
       }
 
-      paymentRecords.push({
-        studentRandomId: row.StudentID,
-        class: row.Class,
-        totalAttendanceScore: parseInt(row.TotalAttendanceScore) || 0,
-        enumeratorId: userID,
-        month: parseInt(row.Month),
-        year,
-        amount: row.amount || 0,
-        firstname: row.Firstname,
-        middlename: row.Middlename,
-        surname: row.Surname,
-        bankName: row.BankName,
-        accountNumber: Number(row.AccountNumber),
-        schoolName: row.SchoolName,
-        ward: row.Ward,
-        LGA: row.LGA,
-        paymentStatus: row.status || 'not paid',
-      })
+      // paymentRecords.push({
+      //   studentRandomId: row.StudentID,
+      //   class: row.Class,
+      //   totalAttendanceScore: parseInt(row.TotalAttendanceScore) || 0,
+      //   enumeratorId: userID,
+      //   month: parseInt(row.Month),
+      //   year,
+      //   amount: row.amount || 0,
+      //   firstname: row.Firstname,
+      //   middlename: row.Middlename,
+      //   surname: row.Surname,
+      //   bankName: row.BankName,
+      //   accountNumber: Number(row.AccountNumber),
+      //   schoolName: row.SchoolName,
+      //   ward: row.Ward,
+      //   LGA: row.LGA,
+      //   paymentStatus: row.status || 'not paid',
+      // })
 
       // Prepare bulk update operations
       bulkOperations.push({
         updateOne: {
           filter: {
-            studentRandomId: row.StudentID,
+            // studentRandomId: row.StudentID,
+            accountNumber: Number(row['Cust ID']),
             month: month,
-            year: parseInt(row.Year),
+            year: Number(year),
           },
           update: {
             $set: {
-              class: row.Class,
-              totalAttendanceScore: parseInt(row.TotalAttendanceScore) || 0,
-              amount: row.amount || 0,
-              firstname: row.Firstname,
-              middlename: row.Middlename,
-              surname: row.Surname,
-              bankName: row.BankName,
-              accountNumber: Number(row.AccountNumber),
-              schoolName: row.SchoolName,
-              ward: row.Ward,
-              LGA: row.LGA,
+              fullName: row.Customer || '',
+              amount: Number(row.Amount) || 0,
+              paymentDate: row['Date'],
               paymentType: paymentType,
-              paymentStatus: row.status || 'Not paid',
-              totalAttendanceScore: parseInt(row.TotalAttendanceScore),
-              attendancePercentage: row.AttendancePercentage,
+              paymentStatus: row.Status || 'Not paid',
+              bankName: row.BankName || '',
+              accountNumber:
+                String(row['Cust ID']).length === 8
+                  ? `00${row['Cust ID']}`
+                  : row['Cust ID'] || '',
+              // firstname: row.Firstname || '',
+              // middlename: row.Middlename || '',
+              // surname: row.Surname || '',
+              schoolName: row.SchoolName || '',
+              ward: row.Ward || '',
+              totalAttendanceScore: parseInt(row.TotalAttendanceScore) || 0,
+              LGA: row.LGA || '',
+              class: row.Class || '',
+              totalAttendanceScore: parseInt(row.TotalAttendanceScore) || 0,
+              attendancePercentage: row.AttendancePercentage || '',
             },
           },
           upsert: true, // Insert if no matching document

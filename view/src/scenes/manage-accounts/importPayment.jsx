@@ -267,7 +267,7 @@ export const ImportPaymentSheet = () => {
                     type="file"
                     id="file"
                     name="file"
-                    accept=".xlsx, .xls" // Restricts to Excel files
+                    accept=".xlsx, .xls, .csv" // Restricts to Excel files
                     required
                     onChange={handleInputChange} // Function to handle the selected file
                     style={{ display: 'block', marginTop: '8px', width: '100%' }}

@@ -20,12 +20,17 @@ export const upload = multer({
 
 const xlsxFileFilter = (req, file, cb) => {
     if (
-        file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
-        file.mimetype === 'application/vnd.ms-excel'
+      file.mimetype ===
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+      file.mimetype === 'application/vnd.ms-excel' ||
+      file.mimetype === 'text/csv' // .csv
     ) {
-        cb(null, true);
+      cb(null, true)
     } else {
-        cb(new Error('Unsupported file format, please upload an excel file'), false);
+      cb(
+        new Error('Unsupported file format, please upload an excel file'),
+        false
+      )
     }
 };
 

@@ -1,91 +1,98 @@
 import { Schema, model } from "mongoose";
 
 
-const PaymentSchema = new Schema({
+const PaymentSchema = new Schema(
+  {
     studentRandomId: {
-        type: String,
-        required: true,
+      type: String,
+      required: false,
     },
-    firstname: {
+
+    fullName: {
         type: String,
+        required:true
     },
-    surname: {
-        type: String,
-    },
-    middlename: {
-        type: String,
-    },
+
+    // firstname: {
+    //     type: String,
+    // },
+    // surname: {
+    //     type: String,
+    // },
+    // middlename: {
+    //     type: String,
+    // },
     paymentType: {
-        type: String,
+      type: String,
     },
     totalAttendanceScore: {
-        type: Number,
+      type: Number,
     },
     attendancePercentage: {
-        type: String,
+      type: String,
     },
-    
+
     enumeratorId: {
-        type: String,
-        required: true,
+      type: String,
+      required: false,
     },
     attdWeek: {
-        type: Number
+      type: Number,
     },
 
     class: { type: String },
     month: {
-        type: Number,
-        requireed: true,
+      type: Number,
+      requireed: true,
     },
     year: {
-        type: Number,
-        required: true,
+      type: Number,
+      required: true,
     },
     totalAttendanceScore: {
-        type: Number,
-
+      type: Number,
     },
     bankName: {
-        type: String,
-
+      type: String,
     },
     accountNumber: {
-        type: Number,
+      type: String,
+      ref: 'Student'
 
     },
     schoolName: {
-        type: String,
-
+      type: String,
     },
     ward: {
-        type: String,
-
+      type: String,
     },
     LGA: {
-        type: String,
-
+      type: String,
     },
     date: {
-        type: Date,
-        default: Date.now,
+      type: Date,
+      default: Date.now,
     },
     weekNumber: {
-        type: Number
+      type: Number,
     },
     amount: {
-        type: Number,
+      type: Number,
+      required: true,
     },
     paymentStatus: {
-        type: String
+      type: String,
     },
     lockStatus: {
-        type: Boolean,
-        default: false
-    }
-
-
-}, { timestamps: true });
+      type: Boolean,
+      default: false,
+    },
+    paymentDate: {
+      type: String,
+    },
+  },
+  { timestamps: true }
+)
 
 PaymentSchema.index({ date: 1 });
 

@@ -189,6 +189,8 @@ const startDB = async () => {
     //      console.error(error)
     //     }
     //  }
+
+
  
   } catch (err) {
     console.error('An error occured connecting to the DB')

@@ -36,6 +36,7 @@ import { cloudinaryImageUploader } from '../utils/cloudinaryImageUploader.js'
 import {
   XLSXUploader,
   XLSXUploaderAccountDetails,
+  XLSXUploaderPaymentInformation,
 } from '../utils/excelFileUploader.js'
 
 const router = express.Router()
@@ -132,7 +133,7 @@ router.post(
 router.post(
   '/upload-payment-sheet',
   uploadXLSX.single('file'),
-  XLSXUploader,
+  XLSXUploaderPaymentInformation,
   authorizePermission('handle_payments'),
   importPaymentSheet
 )
