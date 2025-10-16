@@ -8,7 +8,9 @@ import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined'
 import PeopleOutlinedIcon from '@mui/icons-material/PeopleOutlined'
 import DescriptionIcon from '@mui/icons-material/Description' // Sheet icon
 import ContactsOutlinedIcon from '@mui/icons-material/ContactsOutlined'
-import SchoolIcon from '@mui/icons-material/School'
+// import SchoolIcon from '@mui/icons-material/School'
+import InsertChartOutlinedIcon from '@mui/icons-material/InsertChartOutlined'
+
 // import ReceiptOutlinedIcon from "@mui/icons-material/ReceiptOutlined";
 import PaymentIcon from '@mui/icons-material/Payment'
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings'
@@ -402,13 +404,13 @@ const Sidebar = ({ isSidebar }) => {
                   />
 
                   <Item
-                    title="Manage School"
+                    title="School / LGA"
                     to={
                       userPermissions.includes('handle_registrars')
                         ? 'admin-dashboard/manage-accounts/schools'
                         : 'enumerator-dashboard/view-all-students-data'
                     }
-                    icon={<SchoolIcon />}
+                    icon={<InsertChartOutlinedIcon />}
                     selected={selected}
                     setSelected={setSelected}
                   />

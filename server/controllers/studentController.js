@@ -2533,3 +2533,21 @@ export const getSchoolsByStudentsRegistered = async (req, res, next) => {
     return next(error)
   }
 }
+export const getLgasByStudentsRegistered = async (req, res, next) => {
+  try {
+    const lgasByStudents = await Student.aggregate([
+      {
+        $group: {
+          _id: '$lgaOfEnrollment',
+          lgaByStudentCount: {
+            $sum: 1,
+          },
+        },
+      },
+    ])
+
+    res.status(200).json({ data: lgasByStudents })
+  } catch (error) {
+    return next(error)
+  }
+}

@@ -1,32 +1,33 @@
-import React, { useEffect , useRef} from 'react'
+import React, { useEffect, useRef } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchSchools, deleteSchool } from '../../components/schoolsSlice.js'
 import { SpinnerLoader } from '../../components/spinnerLoader.jsx'
 import DataTable from 'react-data-table-component'
 import DeleteIcon from '@mui/icons-material/Delete'
 import { Box, Typography, Button, CircularProgress } from '@mui/material'
-import EditIcon from '@mui/icons-material/edit'
+import EditIcon from '@mui/icons-material/Edit'
 import { Link } from 'react-router-dom'
 import axios from 'axios'
 import { useReactToPrint } from 'react-to-print'
-
 
 export const ManageSchools = () => {
   const API_URL = `${import.meta.env.VITE_API_URL}/api/v1`
   const [schoolsByStudentsRegistered, setSchoolsByStudentsRegistered] =
     React.useState([])
-    const [currentPage, setCurrentPage] = React.useState(1)
-    const [rowsPerPage, setRowsPerPage] = React.useState(200)
+  const [lgasByStudentsRegistered, setLgasByStudentsRegistered] =
+    React.useState([])
+  const [currentPage, setCurrentPage] = React.useState(1)
+  const [rowsPerPage, setRowsPerPage] = React.useState(200)
+  const [viewSchoolDetails, setViewSchoolDetails] = React.useState(true)
 
-    const handlePageChange = (page) => {
-      setCurrentPage(page)
-    }
+  const handlePageChange = (page) => {
+    setCurrentPage(page)
+  }
 
-    const handlePerRowsChange = (newPerPage, page) => {
-      setRowsPerPage(newPerPage)
-      setCurrentPage(page)
-    }
-
+  const handlePerRowsChange = (newPerPage, page) => {
+    setRowsPerPage(newPerPage)
+    setCurrentPage(page)
+  }
 
   const dispatch = useDispatch()
   const schoolsState = useSelector((state) => state.schools)
@@ -41,52 +42,55 @@ export const ManageSchools = () => {
   }, [dispatch])
 
   useEffect(() => {
-    ;(async (id) => {
+    ;(async () => {
+      const token = localStorage.getItem('token')
       try {
-        const token = localStorage.getItem('token')
-        // console.log('token: ', token)
-        const response = await axios.get(
-          `${API_URL}/student/admin/schools-by-students-registered`,
-          {
+        const [schoolsRes, lgasRes] = await Promise.all([
+          axios.get(`${API_URL}/student/admin/schools-by-students-registered`, {
             headers: {
               Authorization: `Bearer ${token}`,
               'Content-Type': 'application/json',
             },
-            params: { id },
             withCredentials: true,
-          }
-        )
-        setSchoolsByStudentsRegistered(response.data.data)
+          }),
+          axios.get(`${API_URL}/student/admin/lgas-by-students-registered`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+            withCredentials: true,
+          }),
+        ])
 
-        // console.log(response.data.data)
+        setSchoolsByStudentsRegistered(schoolsRes.data.data)
+        setLgasByStudentsRegistered(lgasRes.data.data)
       } catch (error) {
         console.error(
-          'Error Fetching school Data:',
+          'Error fetching data:',
           error.response?.data || error.message
         )
       }
     })()
-  })
+  }, [])
 
   // 1️⃣ Create a map of schoolId -> totalStudents
-const studentCountMap = new Map(
-  schoolsByStudentsRegistered.map((school) => [
-    school._id,
-    school.schoolByStudentCount,
-  ])
-)
+  const studentCountMap = new Map(
+    schoolsByStudentsRegistered.map((school) => [
+      school._id,
+      school.schoolByStudentCount,
+    ])
+  )
 
-// Merge the count into the full schools list
-const allSchoolsData = schoolsData
-  .map((school) => ({
-    ...school,
-    totalStudents: studentCountMap.get(school._id) || 0,
-  }))
-  // Sort by totalStudents in descending order
-  .sort((a, b) => b.totalStudents - a.totalStudents)
+  // Merge the count into the full schools list
+  const allSchoolsData = schoolsData
+    .map((school) => ({
+      ...school,
+      totalStudents: studentCountMap.get(school._id) || 0,
+    }))
+    // Sort by totalStudents in descending order
+    .sort((a, b) => b.totalStudents - a.totalStudents)
 
-// console.log('allSchoolsData', allSchoolsData)
-
+  // console.log('allSchoolsData', allSchoolsData)
 
   // console.log(schoolsState)
   const handleDelete = (row) => {
@@ -111,10 +115,10 @@ const allSchoolsData = schoolsData
     }
   }
 
-  const columns = [
+  const schoolColumns = [
     {
       name: 'S/N',
-selector: (row, index) => (currentPage - 1) * rowsPerPage + index + 1,
+      selector: (row, index) => (currentPage - 1) * rowsPerPage + index + 1,
       sortable: true,
     },
 
@@ -164,9 +168,29 @@ selector: (row, index) => (currentPage - 1) * rowsPerPage + index + 1,
       ),
     },
   ]
+  const lgaColumns = [
+    {
+      name: 'S/N',
+      selector: (row, index) => (currentPage - 1) * rowsPerPage + index + 1,
+      sortable: true,
+    },
 
-    const contentRef = useRef(null)
-    const reactToPrintFn = useReactToPrint({ contentRef })
+    {
+      name: 'LGA Name',
+      selector: (row) => row._id,
+      sortable: true,
+    },
+    {
+      name: 'Total Students',
+      selector: (row) => row.lgaByStudentCount,
+      sortable: true,
+    },
+   
+  ]
+
+  const contentRef = useRef(null)
+  const reactToPrintFn = useReactToPrint({ contentRef })
+
 
   return (
     <Box
@@ -187,11 +211,13 @@ selector: (row, index) => (currentPage - 1) * rowsPerPage + index + 1,
         {' '}
         <Typography variant="h3">All Registered School</Typography>
       </Box>
-      <Box sx = {{
-        display: "flex", 
-        gap: 5, 
-        alignItems: "center"
-      }}>
+      <Box
+        sx={{
+          display: 'flex',
+          gap: 5,
+          alignItems: 'center',
+        }}
+      >
         <Link
           to={'/admin-dashboard/create-accounts/update-school-information'}
           style={{
@@ -202,14 +228,25 @@ selector: (row, index) => (currentPage - 1) * rowsPerPage + index + 1,
             textDecoration: 'none',
           }}
         >
-          <EditIcon/>
+          <EditIcon />
         </Link>
         <Button
           variant="contained"
           onClick={() => reactToPrintFn()}
           sx={{ backgroundColor: '#196b57' }}
         >
-          Print School Details
+          {viewSchoolDetails
+            ? 'Print School Statistics'
+            : 'Print LGA Statistics'}
+        </Button>
+        <Button
+          variant="contained"
+          onClick={() => setViewSchoolDetails(!viewSchoolDetails)}
+          sx={{ backgroundColor: '#196b57' }}
+        >
+          {viewSchoolDetails
+            ? 'Switch to View LGA Statistics'
+            : 'Switch to View School Statistics Statistics'}
         </Button>
       </Box>
       {schoolsLoading ? (
@@ -218,20 +255,33 @@ selector: (row, index) => (currentPage - 1) * rowsPerPage + index + 1,
         <p>{schoolsError}</p>
       ) : (
         <Box className="printable-area" ref={contentRef}>
-          
-          <DataTable
-            columns={columns}
-            data={allSchoolsData || []}
-            pagination
-            highlightOnHover
-            pointerOnHover
-            paginationPerPage={200} // Set the default number of rows to 200
-            paginationRowsPerPageOptions={[100, 200, 500, 1000]} // Customize options for rows per page
-            responsive
-            onChangePage={handlePageChange}
-            onChangeRowsPerPage={handlePerRowsChange}
-          />
-          
+          {viewSchoolDetails ? (
+            <DataTable
+              columns={schoolColumns}
+              data={allSchoolsData || []}
+              pagination
+              highlightOnHover
+              pointerOnHover
+              paginationPerPage={200} // Set the default number of rows to 200
+              paginationRowsPerPageOptions={[100, 200, 500, 1000]} // Customize options for rows per page
+              responsive
+              onChangePage={handlePageChange}
+              onChangeRowsPerPage={handlePerRowsChange}
+            />
+          ) : (
+            <DataTable
+              columns={lgaColumns}
+              data={lgasByStudentsRegistered || []}
+              pagination
+              highlightOnHover
+              pointerOnHover
+              paginationPerPage={200} // Set the default number of rows to 200
+              paginationRowsPerPageOptions={[100, 200, 500, 1000]} // Customize options for rows per page
+              responsive
+              onChangePage={handlePageChange}
+              onChangeRowsPerPage={handlePerRowsChange}
+            />
+          )}
         </Box>
       )}
     </Box>

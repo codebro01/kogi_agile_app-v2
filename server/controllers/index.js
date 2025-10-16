@@ -57,6 +57,7 @@ import {
   EditManyStudents,
   SyncStudentsVerification,
   getSchoolsByStudentsRegistered,
+  getLgasByStudentsRegistered,
 } from './studentController.js'
 import {
   getSinglePayrollSpecialist,
@@ -169,4 +170,5 @@ export {
   verifyStudent,
   SyncStudentsVerification,
   getSchoolsByStudentsRegistered,
+  getLgasByStudentsRegistered,
 }

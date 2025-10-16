@@ -27,6 +27,7 @@ import {
   EditManyStudents,
   SyncStudentsVerification,
   getSchoolsByStudentsRegistered,
+  getLgasByStudentsRegistered,
 } from '../controllers/index.js'
 import {
   authMiddleware,
@@ -216,6 +217,12 @@ router.get(
   authMiddleware,
   authorizePermission(['handle_registrars']),
   getSchoolsByStudentsRegistered
+)
+router.get(
+  '/admin/lgas-by-students-registered',
+  authMiddleware,
+  authorizePermission(['handle_registrars']),
+  getLgasByStudentsRegistered
 )
 
 export default router
