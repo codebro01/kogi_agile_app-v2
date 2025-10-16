@@ -2544,6 +2544,13 @@ export const getLgasByStudentsRegistered = async (req, res, next) => {
           },
         },
       },
+      {
+        $project: {
+          _id: 0, // remove the ugly _id field
+          lgaOfEnrollment: '$_id',
+          lgaByStudentCount: '$lgaByStudentCount',
+        },
+      },
     ])
 
     res.status(200).json({ data: lgasByStudents })

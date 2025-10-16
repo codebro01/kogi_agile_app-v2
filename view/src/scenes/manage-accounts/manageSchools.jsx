@@ -188,7 +188,7 @@ export const ManageSchools = () => {
 
     {
       name: 'LGA Name',
-      selector: (row) => row._id,
+      selector: (row) => row?.lgaOfEnrollment,
       sortable: true,
     },
     {
@@ -196,13 +196,12 @@ export const ManageSchools = () => {
       selector: (row) => row.lgaByStudentCount,
       sortable: true,
     },
-   
   ]
 
   const contentRef = useRef(null)
   const reactToPrintFn = useReactToPrint({ contentRef })
 
-
+console.log(lgasByStudentsRegistered)
   return (
     <Box
       sx={{
