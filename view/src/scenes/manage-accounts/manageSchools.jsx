@@ -9,6 +9,7 @@ import EditIcon from '@mui/icons-material/Edit'
 import { Link } from 'react-router-dom'
 import axios from 'axios'
 import { useReactToPrint } from 'react-to-print'
+import { exportToExcel } from '../../helpers/exportToExcel.js'
 
 export const ManageSchools = () => {
   const API_URL = `${import.meta.env.VITE_API_URL}/api/v1`
@@ -115,6 +116,15 @@ export const ManageSchools = () => {
     }
   }
 
+
+    const handleExport = () => {
+      const exportData = viewSchoolDetails
+        ? allSchoolsData
+        : lgasByStudentsRegistered
+
+      exportToExcel(exportData, viewSchoolDetails ? 'SchoolsData' : 'LGAData')
+    }
+
   const schoolColumns = [
     {
       name: 'S/N',
@@ -127,11 +137,7 @@ export const ManageSchools = () => {
       selector: (row) => row.schoolName,
       sortable: true,
     },
-    {
-      name: 'Total Students',
-      selector: (row) => row.totalStudents,
-      sortable: true,
-    },
+
     {
       name: 'School Code',
       selector: (row) => row.schoolCode,
@@ -145,6 +151,11 @@ export const ManageSchools = () => {
     {
       name: 'LGA',
       selector: (row) => row.LGA,
+      sortable: true,
+    },
+    {
+      name: 'Total Students',
+      selector: (row) => row.totalStudents,
       sortable: true,
     },
     {
@@ -209,7 +220,7 @@ export const ManageSchools = () => {
         }}
       >
         {' '}
-        <Typography variant="h3">All Registered School</Typography>
+        <Typography variant="h3">{viewSchoolDetails ? "School Statistics" : "LGA Statistics"}</Typography>
       </Box>
       <Box
         sx={{
@@ -232,12 +243,12 @@ export const ManageSchools = () => {
         </Link>
         <Button
           variant="contained"
-          onClick={() => reactToPrintFn()}
+          onClick={handleExport}
           sx={{ backgroundColor: '#196b57' }}
         >
           {viewSchoolDetails
-            ? 'Print School Statistics'
-            : 'Print LGA Statistics'}
+            ? 'Export School Statistics'
+            : 'Export LGA Statistics'}
         </Button>
         <Button
           variant="contained"
