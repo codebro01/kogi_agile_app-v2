@@ -26,6 +26,7 @@ import {
   updateStudentsBankAccountDetails,
   EditManyStudents,
   SyncStudentsVerification,
+  getSchoolsByStudentsRegistered,
 } from '../controllers/index.js'
 import {
   authMiddleware,
@@ -209,6 +210,12 @@ router.patch(
   authMiddleware,
   authorizePermission(['handle_registrars']),
   SyncStudentsVerification
+)
+router.get(
+  '/admin/schools-by-students-registered',
+  authMiddleware,
+  authorizePermission(['handle_registrars']),
+  getSchoolsByStudentsRegistered
 )
 
 export default router

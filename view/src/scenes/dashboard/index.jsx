@@ -319,6 +319,7 @@ const Dashboard = () => {
     let sumTotalAmount = 0
 
     for (const payment of lgaWithTotalPayments) {
+      // console.log('payment', payment)
       sumTotalAmount += parseInt(payment.totalAmount, 10) // Ensure `amount` is parsed as an integer
     }
 

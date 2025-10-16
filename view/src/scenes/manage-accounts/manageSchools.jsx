@@ -1,177 +1,239 @@
-import React, {useEffect} from 'react'
+import React, { useEffect , useRef} from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { fetchSchools, deleteSchool} from '../../components/schoolsSlice.js';
-import { SpinnerLoader } from '../../components/spinnerLoader.jsx';
-import DataTable from 'react-data-table-component';
-import DeleteIcon from '@mui/icons-material/Delete';
-import { Box, Typography, Button } from '@mui/material';
-import { Link } from 'react-router-dom';
+import { fetchSchools, deleteSchool } from '../../components/schoolsSlice.js'
+import { SpinnerLoader } from '../../components/spinnerLoader.jsx'
+import DataTable from 'react-data-table-component'
+import DeleteIcon from '@mui/icons-material/Delete'
+import { Box, Typography, Button, CircularProgress } from '@mui/material'
+import EditIcon from '@mui/icons-material/edit'
+import { Link } from 'react-router-dom'
+import axios from 'axios'
+import { useReactToPrint } from 'react-to-print'
+
+
 export const ManageSchools = () => {
-    const dispatch = useDispatch();
-    const schoolsState = useSelector((state) => state.schools);
-    const { data: schoolsData, loading: schoolsLoading, error: schoolsError } = schoolsState;
+  const API_URL = `${import.meta.env.VITE_API_URL}/api/v1`
+  const [schoolsByStudentsRegistered, setSchoolsByStudentsRegistered] =
+    React.useState([])
+    const [currentPage, setCurrentPage] = React.useState(1)
+    const [rowsPerPage, setRowsPerPage] = React.useState(200)
 
-        useEffect(() => {
-            dispatch(fetchSchools({ schoolType: '', lgaOfEnrollment: '' }))
-        }, [dispatch]);
+    const handlePageChange = (page) => {
+      setCurrentPage(page)
+    }
+
+    const handlePerRowsChange = (newPerPage, page) => {
+      setRowsPerPage(newPerPage)
+      setCurrentPage(page)
+    }
 
 
+  const dispatch = useDispatch()
+  const schoolsState = useSelector((state) => state.schools)
+  const {
+    data: schoolsData,
+    loading: schoolsLoading,
+    error: schoolsError,
+  } = schoolsState
+
+  useEffect(() => {
+    dispatch(fetchSchools({ schoolType: '', lgaOfEnrollment: '' }))
+  }, [dispatch])
+
+  useEffect(() => {
+    ;(async (id) => {
+      try {
+        const token = localStorage.getItem('token')
+        // console.log('token: ', token)
+        const response = await axios.get(
+          `${API_URL}/student/admin/schools-by-students-registered`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+            params: { id },
+            withCredentials: true,
+          }
+        )
+        setSchoolsByStudentsRegistered(response.data.data)
+
+        // console.log(response.data.data)
+      } catch (error) {
+        console.error(
+          'Error Fetching school Data:',
+          error.response?.data || error.message
+        )
+      }
+    })()
+  })
+
+  // 1️⃣ Create a map of schoolId -> totalStudents
+const studentCountMap = new Map(
+  schoolsByStudentsRegistered.map((school) => [
+    school._id,
+    school.schoolByStudentCount,
+  ])
+)
+
+// Merge the count into the full schools list
+const allSchoolsData = schoolsData
+  .map((school) => ({
+    ...school,
+    totalStudents: studentCountMap.get(school._id) || 0,
+  }))
+  // Sort by totalStudents in descending order
+  .sort((a, b) => b.totalStudents - a.totalStudents)
+
+// console.log('allSchoolsData', allSchoolsData)
 
 
-if(schoolsLoading) {
-    return (
-        <Box
-            sx={{
-                display: "flex", // Corrected from 'dispflex'
-                flexDirection: "column",
-                justifyContent: "center",
-                alignItems: "center",
-                height: "50vh",
-                width: "90vw"
-            }}
-        >
-            <SpinnerLoader />
-        </Box>
+  // console.log(schoolsState)
+  const handleDelete = (row) => {
+    const confirmDelete = window.confirm(
+      `Are you sure you want to delete ${row.schoolName}?`
     )
-}
 
-if(schoolsError) {
-    return (
-        <Box
-                    sx={{
-                        display: "flex", // Corrected from 'dispflex'
-                        flexDirection: "column",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        height: "50vh",
-                        width: "90vw"
-                    }}
-                >
-                    Error: An error occured getting schools info, please reload the page
-                </Box>
-    )
-}
+    if (confirmDelete) {
+      try {
+        ;(async () => {
+          try {
+            dispatch(deleteSchool(row._id)).unwrap()
+          } catch (err) {
+            console.log(err)
+          }
+        })()
 
-// console.log(schoolsState)
- const handleDelete = (row) => {
+        // Optionally, you can refresh or re-fetch the data here
+      } catch (error) {
+        console.error('Error deleting student:', error)
+      }
+    }
+  }
 
-        const confirmDelete = window.confirm(`Are you sure you want to delete ${row.schoolName}?`);
+  const columns = [
+    {
+      name: 'S/N',
+selector: (row, index) => (currentPage - 1) * rowsPerPage + index + 1,
+      sortable: true,
+    },
 
-        if (confirmDelete) {
-            try {
-                (async () => {
-                    try {
-                        dispatch(deleteSchool(row._id)).unwrap();
-                    }
-                    catch (err) {
-                        console.log(err)
-                    }
-
-                })()
-
-                // Optionally, you can refresh or re-fetch the data here
-            } catch (error) {
-                console.error("Error deleting student:", error);
-            }
-        }
-    };
-
-    const columns = [
-        {
-            name: 'S/N',
-            selector: (row, index) => index + 1, // Calculate serial number (starting from 1)
-            sortable: true,
-        },
-
-        {
-            name: 'School Name',
-            selector: row => row.schoolName,
-            sortable: true,
-        },
-        {
-            name: 'School Code',
-            selector: row => row.schoolCode,
-            sortable: true,
-        },
-        {
-            name: 'School Category',
-            selector: row => row.schoolCategory,
-            sortable: true,
-        },
-        {
-            name: 'LGA',
-            selector: row => row.LGA,
-            sortable: true,
-        },
-        {
-            name: 'Delete School',
-            cell: (row) => (
-                <button
-                    onClick={() => handleDelete(row)}
-                    style={{
-                        padding: '5px 10px',
-                        backgroundColor: 'transparent', // Optional: color for the delete button
-                        color: '#fff',
-                        border: 'none',
-                        borderRadius: '5px',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                    }}
-                >
-                    <DeleteIcon style={{ marginRight: '8px', color: "red" }} />
-                </button>
-            ),
-        },
-    ];
-
-
-
-
-
-    return (
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 2,
-          padding: 2,
-        }}
-      >
-        <Box
-          sx={{
+    {
+      name: 'School Name',
+      selector: (row) => row.schoolName,
+      sortable: true,
+    },
+    {
+      name: 'Total Students',
+      selector: (row) => row.totalStudents,
+      sortable: true,
+    },
+    {
+      name: 'School Code',
+      selector: (row) => row.schoolCode,
+      sortable: true,
+    },
+    {
+      name: 'School Category',
+      selector: (row) => row.schoolCategory,
+      sortable: true,
+    },
+    {
+      name: 'LGA',
+      selector: (row) => row.LGA,
+      sortable: true,
+    },
+    {
+      name: 'Delete School',
+      cell: (row) => (
+        <button
+          onClick={() => handleDelete(row)}
+          style={{
+            padding: '5px 10px',
+            backgroundColor: 'transparent', // Optional: color for the delete button
+            color: '#fff',
+            border: 'none',
+            borderRadius: '5px',
+            cursor: 'pointer',
             display: 'flex',
-            justifyContent: 'center',
             alignItems: 'center',
           }}
         >
-          {' '}
-          <Typography variant="h3">All Registered School</Typography>
-        </Box>
-        <Box>
-          <Link
-            to={'/admin-dashboard/create-accounts/update-school-information'}
-            style={{
-              backgroundColor: '#196b57',
-              color: '#fff',
-              padding: '10px 20px',
-              borderRadius: '5px',
-              textDecoration: 'none',
-            }}
-          >
-            Update School Information
-          </Link>
-        </Box>
-        <DataTable
-          columns={columns}
-          data={schoolsData || []}
-          pagination
-          highlightOnHover
-          pointerOnHover
-          paginationPerPage={200} // Set the default number of rows to 200
-          paginationRowsPerPageOptions={[100, 200, 500, 1000]} // Customize options for rows per page
-          responsive
-        />
+          <DeleteIcon style={{ marginRight: '8px', color: 'red' }} />
+        </button>
+      ),
+    },
+  ]
+
+    const contentRef = useRef(null)
+    const reactToPrintFn = useReactToPrint({ contentRef })
+
+  return (
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 2,
+        padding: 2,
+      }}
+    >
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
+        {' '}
+        <Typography variant="h3">All Registered School</Typography>
       </Box>
-    )
+      <Box sx = {{
+        display: "flex", 
+        gap: 5, 
+        alignItems: "center"
+      }}>
+        <Link
+          to={'/admin-dashboard/create-accounts/update-school-information'}
+          style={{
+            backgroundColor: '#196b57',
+            color: '#fff',
+            padding: '10px 20px',
+            borderRadius: '5px',
+            textDecoration: 'none',
+          }}
+        >
+          <EditIcon/>
+        </Link>
+        <Button
+          variant="contained"
+          onClick={() => reactToPrintFn()}
+          sx={{ backgroundColor: '#196b57' }}
+        >
+          Print School Details
+        </Button>
+      </Box>
+      {schoolsLoading ? (
+        <CircularProgress />
+      ) : schoolsError ? (
+        <p>{schoolsError}</p>
+      ) : (
+        <Box className="printable-area" ref={contentRef}>
+          
+          <DataTable
+            columns={columns}
+            data={allSchoolsData || []}
+            pagination
+            highlightOnHover
+            pointerOnHover
+            paginationPerPage={200} // Set the default number of rows to 200
+            paginationRowsPerPageOptions={[100, 200, 500, 1000]} // Customize options for rows per page
+            responsive
+            onChangePage={handlePageChange}
+            onChangeRowsPerPage={handlePerRowsChange}
+          />
+          
+        </Box>
+      )}
+    </Box>
+  )
 }

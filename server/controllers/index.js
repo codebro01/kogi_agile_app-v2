@@ -56,6 +56,7 @@ import {
   updateStudentsBankAccountDetails,
   EditManyStudents,
   SyncStudentsVerification,
+  getSchoolsByStudentsRegistered,
 } from './studentController.js'
 import {
   getSinglePayrollSpecialist,
@@ -167,4 +168,5 @@ export {
   updateVerifier,
   verifyStudent,
   SyncStudentsVerification,
+  getSchoolsByStudentsRegistered,
 }

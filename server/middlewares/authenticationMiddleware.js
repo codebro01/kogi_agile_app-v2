@@ -12,8 +12,7 @@ export const authMiddleware = async (req, res, next) => {
   const authHeader = req.headers['authorization']
   //   console.log(req.url)
   let token = authHeader && authHeader.split(' ')[1]
-  //   console.log(token)
-
+  // console.log(token)
   if (!token) {
     token = req.query.token // Extract token from query string
   }

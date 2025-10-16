@@ -593,7 +593,6 @@ export const filterAndDownload = async (req, res, next) => {
 }
 
 export const filterAndView = async (req, res, next) => {
-
   try {
     await Student.syncIndexes()
     // console.log(req.url.split('?'))
@@ -714,7 +713,6 @@ export const filterAndView = async (req, res, next) => {
       }
     })
 
-
     // sort students with verification by created At
 
     studentsWithVerification.sort((a, b) => {
@@ -722,7 +720,7 @@ export const filterAndView = async (req, res, next) => {
       const dateB = new Date(b.verificationCreatedAt)
       return dateA - dateB // Ascending order
     })
-    
+
     // console.log(studentsWithVerification.map(student => student.verificationInfo.createdAt))
     // console.log(students)
     // console.log(students.length)
@@ -1680,14 +1678,12 @@ export const getStudentsAttendance = async (req, res, next) => {
 }
 
 export const importPaymentSheet = async (req, res, next) => {
-
   try {
     const { userID } = req.user
     const { month, year, paymentType } = req.body
 
     const paymentRecords = []
     const bulkOperations = []
-
 
     for (const row of req.parsedData) {
       const monthOptions = [
@@ -1986,7 +1982,7 @@ export const getDuplicateRecord = async (req, res, next) => {
               schoolName: '$schoolName',
               lgaOfEnrollment: '$lgaofEnrollment', // original case
               passport: '$passport',
-              verificationStatus: '$verificationStatus'
+              verificationStatus: '$verificationStatus',
             },
           },
           count: { $sum: 1 },
@@ -2519,76 +2515,21 @@ export const SyncStudentsVerification = async (req, res, next) => {
   }
 }
 
-// export const deletedStudents = async (req, res, next) => {
+export const getSchoolsByStudentsRegistered = async (req, res, next) => {
+  try {
+    const schoolsByStudents = await Student.aggregate([
+      {
+        $group: {
+          _id: '$schoolId',
+          schoolByStudentCount: {
+            $sum: 1,
+          },
+        },
+      },
+    ])
 
-//     try {
-
-//         const duplicates = await Student.aggregate([
-//             // Step 1: Lookup school details from the allschools collection
-//             {
-//                 $addFields: {
-//                     schoolId: { $toObjectId: "$schoolId" } // Convert string to ObjectId
-//                 }
-//             },
-//             {
-//                 $lookup: {
-//                     from: "allschools", // Collection name of allschools
-//                     localField: "schoolId", // Field in the Student collection
-//                     foreignField: "_id", // Field in the allschools collection
-//                     as: "schoolDetails", // Name of the resulting field
-//                 },
-//             },
-//             // Step 2: Extract the schoolName from the schoolDetails
-//             {
-//                 $addFields: {
-//                     schoolName: { $arrayElemAt: ["$schoolDetails.schoolName", 0] }, // Add schoolName
-//                 },
-//             },
-//             // Step 3: Group by student fields
-//             {
-//                 $group: {
-//                     _id: {
-//                         surname: "$surname",
-//                         firstname: "$firstname",
-//                         lgaofEnrollment: "$lgaofEnrollment",
-//                         schoolId: "$schoolId",
-//                     },
-//                     similarRecords: {
-//                         $push: {
-//                             randomId: "$randomId",
-//                             surname: "$surname",
-//                             middlename: "$middlename",
-//                             parentPhone: "$parentPhone",
-//                             presentClass: "$presentClass",
-//                             firstname: "$firstname",
-//                             schoolId: "$schoolId", // Preserve schoolId here
-//                             schoolName: "$schoolName", // Add schoolName to the group
-//                             lgaOfEnrollment: "$lgaOfEnrollment",
-//                             passport: "$passport"
-//                         },
-//                     }, // Collect relevant fields only
-//                     count: { $sum: 1 }, // Count duplicates
-//                 },
-//             },
-//             // Step 4: Match groups with duplicates
-//             {
-//                 $match: { count: { $gt: 1 } },
-//             },
-//             // Step 5: Final clean-up (optional)
-//             {
-//                 $project: {
-//                     "similarRecords.schoolDetails": 0, // Exclude schoolDetails array if accidentally carried over
-//                 },
-//             },
-//         ]);
-
-//         const students = duplicates;
-
-//         return res.status(200).json({ students });
-//     }
-//     catch (err) {
-//         console.log(err)
-//         return next(err)
-//     }
-
-// }
+    res.status(200).json({ data: schoolsByStudents })
+  } catch (error) {
+    return next(error)
+  }
+}
