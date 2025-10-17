@@ -55,6 +55,7 @@ const Dashboard = () => {
   const [shouldFetch, setShouldFetch] = useState(true) // Condition for fetchi
   const API_URL = `${import.meta.env.VITE_API_URL}/api/v1`
   const [totalStudentsPaid, setTotalStudentsPaid] = useState([])
+  const [sumTotalAmount, setSumTotalAmount] = useState(0)
   const [verifierDashboardData, setVerifierDashboardData] = useState([])
 
   // ! Redux toolkit consumption
@@ -92,30 +93,43 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (userPermissions.includes('handle_payments')) {
+    console.log(token)
       const fetchData = async () => {
         try {
-          const [getLGAWithTotalPaymentsRes, getTotalStudentsPaid] =
-            await Promise.all([
-              axios.get(`${API_URL}/payments/view-payments-by-lga`, {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-                withCredentials: true,
-              }),
+          const [
+            getLGAWithTotalPaymentsRes,
+            getTotalStudentsPaid,
+            getTotalAmountDisbursed,
+          ] = await Promise.all([
+            axios.get(`${API_URL}/payments/view-payments-by-lga`, {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+              withCredentials: true,
+            }),
 
-              axios.get(`${API_URL}/payments/get-total-student-paid`, {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-                withCredentials: true,
-              }),
-            ])
-          // console.log(
-          //   'payment by LGA',
-          //   getLGAWithTotalPaymentsRes.data.paymentByLGA
-          // )
+            axios.get(`${API_URL}/payments/get-total-student-paid`, {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+              withCredentials: true,
+            }),
+            axios.get(`${API_URL}/payments/get-total-amount-paid`, {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+              withCredentials: true,
+            }),
+          ])
+          console.log(
+            'getTotalAmountDisbursed.data.totalAmountDisbursed',
+            getTotalAmountDisbursed
+          )
+
+        
           setLgaWithTotalPayments(getLGAWithTotalPaymentsRes.data.paymentByLGA)
           setTotalStudentsPaid(getTotalStudentsPaid.data.totalStudentPaid)
+          setSumTotalAmount(getTotalAmountDisbursed.data.totalAmountDisbursed)
         } catch (err) {
           console.error('Error fetching data:', err)
         }
@@ -316,12 +330,12 @@ const Dashboard = () => {
     // Log or return the mergedResults
     // console.log(mergedResults);
 
-    let sumTotalAmount = 0
+  
 
-    for (const payment of lgaWithTotalPayments) {
-      // console.log('payment', payment)
-      sumTotalAmount += parseInt(payment.totalAmount, 10) // Ensure `amount` is parsed as an integer
-    }
+    // for (const payment of lgaWithTotalPayments) {
+    //   // console.log('payment', payment)
+    //   sumTotalAmount += parseInt(payment.totalAmount, 10) // Ensure `amount` is parsed as an integer
+    // }
 
     function formatWithCommas(number = 0) {
       return number.toLocaleString()
@@ -444,7 +458,7 @@ const Dashboard = () => {
                 }}
               >
                 <StatBox
-                  title={`${formatWithCommas(totalStudentsPaid.length)}`}
+                  title={`${formatWithCommas(totalStudentsPaid)}`}
                   subtitle="Total Students Paid"
                   progress="0.75"
                   borderRadius="5px"

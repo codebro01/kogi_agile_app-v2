@@ -38,7 +38,7 @@ import { wards } from './routes/index.js'
 const app = express()
 import { KogiLga } from './models/LgaSchema.js'
 import { Verification } from './models/verificationSchema.js'
-// import { Student } from './models/studentsSchema.js'
+import { Payment } from './models/paymentSchema.js'
 
 // Rate Limiting
 const limiter = rateLimit({
@@ -146,10 +146,10 @@ app.use('/api/v1/student', authMiddleware, studentsRouter)
 app.use('/api/v1/all-schools', allSchoolsRouter)
 app.use('/api/v1/schools', schoolsRouter)
 app.use('/api/v1/wards', wards)
-app.use('/api/v1/payments', paymentRouter)
 app.use('/api/v1/attendance', attendanceRouter)
 app.use('/api/v1/verifier', verifierRouter)
 
+app.use('/api/v1/payments', paymentRouter)
 // app.get("*", (req, res) => {
 //     res.sendFile(path.join(__dirname, "client/build", "index.html"));
 // });
@@ -173,23 +173,36 @@ const startDB = async () => {
       console.log('app connected to port:' + PORT)
     })
 
-    // const updateLGAs = async () => {
-    //     try {
-    //      await Student.updateMany({lgaOfEnrollment: "YAGBAWEST"}, {
-    //          $set: {
-    //              lgaOfEnrollment: "YAGBA-WEST"
-    //          }
-    //      })
+   async function mergeStudentsDataIntoPayments(req, res, next) {
+     console.log('🔥Payment Started')
 
-    //      const check = await Student.find({lgaOfEnrollment: "YAGBAWEST"})
+     try {
+       const students = await Student.find()
 
-    //      console.log(check,'successful')
-    //     }
-    //     catch(error) {
-    //      console.error(error)
-    //     }
-    //  }
+       const bulkOps = students.map((student) => ({
+         updateOne: {
+           filter: { accountNumber: student.accountNumber },
+           update: {
+             $set: {
+               firstname: student.firstname,
+               surname: student.surname,
+               middlename: student.middleName,
+               presentClass: student.presentClass,
+               LGA: student.lgaOfEnrollment,
+               ward: student.ward,
+               schoolId: student.schoolId,
+             },
+           },
+         },
+       }))
 
+       const bulkWrite = await Payment.bulkWrite(bulkOps)
+       console.log('🔥 Payment schema updated with student data!', bulkWrite)
+     } catch (error) {
+       return next(error)
+     }
+   }
+mergeStudentsDataIntoPayments()
 
  
   } catch (err) {

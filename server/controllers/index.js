@@ -80,6 +80,7 @@ import {
   viewPayments,
   getPaymentsByLGA,
   getTotalStudentPaid,
+  mergeStudentsDataIntoPayments,
 } from './paymentController.js'
 import {
   updateSchool,
@@ -171,4 +172,5 @@ export {
   SyncStudentsVerification,
   getSchoolsByStudentsRegistered,
   getLgasByStudentsRegistered,
+  mergeStudentsDataIntoPayments,
 }

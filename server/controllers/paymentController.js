@@ -1,5 +1,6 @@
+import { getDefaultResultOrder } from 'dns'
 import { Attendance } from '../models/attendanceSchema.js'
-import { Payment } from '../models/paymentSchema.js'
+import { Payment, Student} from '../models/index.js';
 
 export const getTotalAmountPaid = async (req, res, next) => {
   try {
@@ -7,33 +8,34 @@ export const getTotalAmountPaid = async (req, res, next) => {
     const startOfYear = new Date(`${currentYear}-01-01T00:00:00Z`)
     const endOfYear = new Date(`${currentYear}-12-31T23:59:59Z`)
 
+    // console.log('entered here')
     const totalAmount = await Payment.aggregate([
-      {
-        $match: {
-          paymentStatus: 'Completed', // Filtering only completed payments
-          paymentDate: {
-            $gte: startOfYear,
-            $lte: endOfYear,
-          }, // Filtering payments within the current year
-        },
-      },
+      // {
+      //   $match: {
+      //     paymentStatus: 'Complete', // Filtering only completed payments
+      //     paymentDate: {
+      //       $gte: startOfYear,
+      //       $lte: endOfYear,
+      //     }, // Filtering payments within the current year
+      //   },
+      // },
       {
         $group: {
           _id: null, // Grouping by no specific field to get the total sum
-          totalAmountPaid: { $sum: '$amount' }, // Summing up the amounts
+          totalAmountDisbursed: { $sum: '$amount' }, // Summing up the amounts
         },
       },
       {
         $project: {
           _id: 0, // Remove _id field from the output
-          totalAmountPaid: 1, // Returning the total amount
+          totalAmountDisbursed: 1, // Returning the total amount
         },
       },
-    ])
+    ]);
 
     res
       .status(200)
-      .json({ totalAmountPaid: totalAmount[0]?.totalAmountPaid || 0 })
+      .json({totalAmountDisbursed: totalAmount[0].totalAmountDisbursed})
   } catch (error) {
     console.error('Error fetching total amount paid:', error)
     res.status(500).json({ message: 'Error fetching total amount paid' })
@@ -76,180 +78,119 @@ export const getLGAWithTotalPayments = async (req, res, next) => {
   }
 }
 
-// export const viewPayments = async (req, res, next) => {
-//     try {
-//         const { page, limit, year, month, paymentStatus, LGA, ward, schoolName, totalAttendanceScore, bankName, presentClass, amount, paymentType, dateFrom, dateTo } = req.query;
-
-//         // Build the aggregation pipeline with filters
-//         const basket = {};
-//         if (year) basket.year = parseInt(year);  // Filter by year
-//         if (month) basket.month = parseInt(month);  // Filter by month
-//         if (paymentStatus) basket.paymentStatus = paymentStatus;  // Filter by payment status
-//         if (totalAttendanceScore) basket.totalAttendanceScore = totalAttendanceScore;  // Filter by payment status
-//         if (bankName) basket.bankName = bankName;  // Filter by payment status
-//         if (paymentType) basket.paymentType = paymentType;  // Filter by payment status
-//         if (LGA) basket.LGA = LGA;  // Filter by payment status
-//         if (ward) basket.ward = ward;  // Filter by payment status
-//         if (schoolName) basket.schoolName = schoolName;  // Filter by payment status
-//         if (presentClass) basket.class = presentClass;  // Filter by payment status
-//         if (amount) basket.amount = parseInt(amount);  // Filter by payment status
-//      if (dateFrom || dateTo) {
-//                basket.createdAt = {};
-
-//                // Handle dateFrom
-//                if (dateFrom) {
-//                    const fromDate = new Date(dateFrom);
-//                    if (isNaN(fromDate)) {
-//                        return next(new BadRequestError('Invalid dateFrom format'));
-//                    }
-//                    basket.createdAt.$gte = fromDate;
-//                }
-
-//                // Handle dateTo
-//                if (dateTo) {
-//                    const toDate = new Date(new Date(dateTo).setHours(23, 59, 59, 999));
-//                    if (isNaN(toDate)) {
-//                        return next(new BadRequestError('Invalid dateTo format'));
-//                    }
-//                    basket.createdAt.$lte = toDate;
-//                }
-
-//                // Clean up empty `createdAt` filter
-//                if (Object.keys(basket.createdAt).length === 0) {
-//                    delete basket.createdAt;
-//                }
-//            }
-//         const pageNumber = parseInt(page, 10) || 1;
-//         const limitNumber = parseInt(limit, 10) || 200;
-
-//         // console.log(basket, req.query)
-
-//         const totalPayments = await Payment.countDocuments();
-
-//         // console.log(totalPayments)
-//         const getAllPaymentsRecords = await Payment.find(basket).skip((pageNumber - 1) * limitNumber).limit(limitNumber).select('-__v -_id -lockStatus -date -updatedAt').collation({ locale: "en", strength: 2 }).lean();
-
-//         return res.status(200).json({
-//             getAllPaymentsRecords, totalPayments
-//         });
-//     } catch (error) {
-//         console.error('Error fetching payments:', error);
-//         return res.status(500).json({ message: 'An error occurred while fetching payments' });
-//     }
-// };
 
 export const viewPayments = async (req, res, next) => {
-  try {
-    const {
-      page,
-      limit,
-      year,
-      month,
-      paymentStatus,
-      LGA,
-      ward,
-      schoolName,
-      totalAttendanceScore,
-      bankName,
-      presentClass,
-      amount,
-      paymentType,
-      dateFrom,
-      dateTo,
-    } = req.query
+   try {
+     const {
+       page,
+       limit,
+       year,
+       month,
+       paymentStatus,
+       LGA,
+       ward,
+       schoolName,
+       totalAttendanceScore,
+       bankName,
+       presentClass,
+       amount,
+       paymentType,
+       dateFrom,
+       dateTo,
+     } = req.query
 
-    // Build the match stage with filters
-    const matchStage = {}
-    if (year) matchStage.year = parseInt(year) // Filter by year
-    if (month) matchStage.month = parseInt(month) // Filter by month
-    if (paymentStatus) matchStage.paymentStatus = paymentStatus // Filter by payment status
-    if (totalAttendanceScore)
-      matchStage.totalAttendanceScore = parseInt(totalAttendanceScore) // Filter by total attendance score
-    if (bankName) matchStage.bankName = bankName // Filter by bank name
-    if (paymentType) matchStage.paymentType = paymentType // Filter by payment type
-    if (LGA) matchStage.LGA = LGA // Filter by LGA
-    if (ward) matchStage.ward = ward // Filter by ward
-    if (schoolName) matchStage.schoolName = schoolName // Filter by school name
-    if (presentClass) matchStage.class = presentClass // Filter by class
-    if (amount) matchStage.amount = parseInt(amount) // Filter by amount
-    // Handle date range filters
-    if (dateFrom || dateTo) {
-      matchStage.createdAt = {}
-      if (dateFrom) {
-        const fromDate = new Date(dateFrom)
-        if (isNaN(fromDate)) {
-          return next(new BadRequestError('Invalid dateFrom format'))
-        }
-        matchStage.createdAt.$gte = fromDate
-      }
-      if (dateTo) {
-        const toDate = new Date(new Date(dateTo).setHours(23, 59, 59, 999))
-        if (isNaN(toDate)) {
-          return next(new BadRequestError('Invalid dateTo format'))
-        }
-        matchStage.createdAt.$lte = toDate
-      }
-    }
+     // Build the match stage with filters
+     const matchStage = {}
+     if (year) matchStage.year = parseInt(year) // Filter by year
+     if (month) matchStage.month = parseInt(month) // Filter by month
+     if (paymentStatus) matchStage.paymentStatus = paymentStatus // Filter by payment status
+     if (totalAttendanceScore)
+       matchStage.totalAttendanceScore = parseInt(totalAttendanceScore) // Filter by total attendance score
+     if (bankName) matchStage.bankName = bankName // Filter by bank name
+     if (paymentType) matchStage.paymentType = paymentType // Filter by payment type
+     if (LGA) matchStage.LGA = LGA // Filter by LGA
+     if (ward) matchStage.ward = ward // Filter by ward
+     if (schoolName) matchStage.schoolName = schoolName // Filter by school name
+     if (presentClass) matchStage.class = presentClass // Filter by class
+     if (amount) matchStage.amount = parseInt(amount) // Filter by amount
+     // Handle date range filters
+     if (dateFrom || dateTo) {
+       matchStage.createdAt = {}
+       if (dateFrom) {
+         const fromDate = new Date(dateFrom)
+         if (isNaN(fromDate)) {
+           return next(new BadRequestError('Invalid dateFrom format'))
+         }
+         matchStage.createdAt.$gte = fromDate
+       }
+       if (dateTo) {
+         const toDate = new Date(new Date(dateTo).setHours(23, 59, 59, 999))
+         if (isNaN(toDate)) {
+           return next(new BadRequestError('Invalid dateTo format'))
+         }
+         matchStage.createdAt.$lte = toDate
+       }
+     }
 
-    const pageNumber = parseInt(page, 10) || 1
-    const limitNumber = parseInt(limit, 10) || 200
+     const pageNumber = parseInt(page, 10) || 1
+     const limitNumber = parseInt(limit, 10) || 200
 
-    // Build the aggregation pipeline
-    const pipeline = [
-      { $match: matchStage }, // Match stage
-      {
-        $project: {
-          __v: 0, // Exclude __v
-          _id: 0, // Exclude _id
-          lockStatus: 0, // Exclude lockStatus
-          date: 0, // Exclude date
-          updatedAt: 0, // Exclude updatedAt
-        },
-      },
-      {
-        $sort: { createdAt: -1 }, // Sort by createdAt in descending order (optional)
-      },
-      {
-        $facet: {
-          totalAmount: [
-            {
-              $group: {
-                _id: null,
-                totalAmount: { $sum: { $toDouble: '$amount' } }, // Convert string to number for aggregation
-              },
-            },
-          ],
-          metadata: [
-            { $count: 'totalPayments' }, // Count total records
-          ],
-          data: [
-            { $skip: (pageNumber - 1) * limitNumber }, // Skip for pagination
-            { $limit: limitNumber }, // Limit for pagination
-          ],
-        },
-      },
-    ]
+     // Build the aggregation pipeline
+     const pipeline = [
+       { $match: matchStage }, // Match stage
+       {
+         $project: {
+           __v: 0, // Exclude __v
+           _id: 0, // Exclude _id
+           lockStatus: 0, // Exclude lockStatus
+           date: 0, // Exclude date
+           updatedAt: 0, // Exclude updatedAt
+         },
+       },
+       {
+         $sort: { createdAt: -1 }, // Sort by createdAt in descending order (optional)
+       },
+       {
+         $facet: {
+           totalAmount: [
+             {
+               $group: {
+                 _id: null,
+                 totalAmount: { $sum: { $toDouble: '$amount' } }, // Convert string to number for aggregation
+               },
+             },
+           ],
+           metadata: [
+             { $count: 'totalPayments' }, // Count total records
+           ],
+           data: [
+             { $skip: (pageNumber - 1) * limitNumber }, // Skip for pagination
+             { $limit: limitNumber }, // Limit for pagination
+           ],
+         },
+       },
+     ]
 
-    const result = await Payment.aggregate(pipeline).collation({
-      locale: 'en',
-      strength: 2,
-    })
+     const result = await Payment.aggregate(pipeline).collation({
+       locale: 'en',
+       strength: 2,
+     })
 
-    const metadata = result[0]?.metadata[0] || { totalPayments: 0 }
-    const data = result[0]?.data || []
-    const amountSum = result[0]?.totalAmount || 0
+     const metadata = result[0]?.metadata[0] || { totalPayments: 0 }
+     const data = result[0]?.data || []
+     const amountSum = result[0]?.totalAmount || 0
 
-    return res.status(200).json({
-      getAllPaymentsRecords: data,
-      totalPayments: metadata.totalPayments,
-      amountSum,
-    })
-  } catch (error) {
-    console.error('Error fetching payments:', error)
-    return res
-      .status(500)
-      .json({ message: 'An error occurred while fetching payments' })
-  }
+     return res.status(200).json({
+       getAllPaymentsRecords: data,
+       totalPayments: metadata.totalPayments,
+       amountSum,
+     })
+   } catch (error) {
+     console.error('Error fetching payments:', error)
+     return res
+       .status(500)
+       .json({ message: 'An error occurred while fetching payments' })
+   }
 }
 
 export const getTotalStudentsPaidMonthly = async (req, res, next) => {
@@ -294,6 +235,7 @@ export const getTotalStudentsPaidMonthly = async (req, res, next) => {
 }
 
 export const getPaymentsByLGA = async (req, res, next) => {
+  // console.log('got in here')
   try {
     const pipeline = [
       // { $limit: 10 },
@@ -342,7 +284,7 @@ export const getPaymentsByLGA = async (req, res, next) => {
     ]
 
     const paymentByLGA = await Payment.aggregate(pipeline)
-    //   console.log('done aggregation:', paymentByLGA)
+      // console.log('done aggregation:', paymentByLGA)
     res.status(200).json({ paymentByLGA })
   } catch (error) {
     console.error('Error fetching payments by LGA:', error)
@@ -351,33 +293,77 @@ export const getPaymentsByLGA = async (req, res, next) => {
 }
 export const getTotalStudentPaid = async (req, res, next) => {
   try {
+    // const pipeline = [
+    //   {
+    //     $lookup: {
+    //       from: 'students', // collection name
+    //       localField: 'accountNumber',
+    //       foreignField: 'accountNumber',
+    //       as: 'studentDetails',
+    //     },
+    //   },
+    //   {
+    //     $unwind: {
+    //       path: '$studentDetails',
+    //       preserveNullAndEmptyArrays: true,
+    //     },
+    //   },
+    //   {
+    //     $group: {
+    //       _id: '$studentDetails._id', // Group by LGA
+    //     },
+    //   },
+    // ]
+
+
     const pipeline = [
       {
-        $lookup: {
-          from: 'students', // collection name
-          localField: 'accountNumber',
-          foreignField: 'accountNumber',
-          as: 'studentDetails',
-        },
-      },
-      {
-        $unwind: {
-          path: '$studentDetails',
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
         $group: {
-          _id: '$studentDetails._id', // Group by LGA
+          _id: '$accountNumber',
+          totalStudentPaid: {
+            $sum:1
+          }
         },
       },
     ]
 
     const totalStudentPaid = await Payment.aggregate(pipeline)
+    // console.log(totalStudentPaid.length)
     // console.log('totalStudentPaid', totalStudentPaid)
-    res.status(200).json({ totalStudentPaid })
+    res.status(200).json({ totalStudentPaid: totalStudentPaid.length })
   } catch (error) {
     console.error('Error fetching payments by LGA:', error)
+    return next(error)
+  }
+}
+
+
+export const mergeStudentsDataIntoPayments = async (req, res, next) => {
+  // console.log('🔥Payment Started')
+
+  try {
+    const students = await Student.find();
+
+const bulkOps = students.map(student => ({
+  updateOne: {
+    filter: { accountNumber: student.accountNumber },
+    update: {
+      $set: {
+        firstname: student.firstname,
+        surname: student.surname,
+        middlename: student.middleName,
+        presentClass: student.presentClass,
+        LGA: student.lgaOfEnrollment,
+        ward: student.ward,
+        schoolId: student.schoolId
+      },
+    },
+  },
+}));
+
+const bulkWrite = await Payment.bulkWrite(bulkOps);
+// console.log('🔥 Payment schema updated with student data!', bulkWrite)
+  } catch (error) {
     return next(error)
   }
 }

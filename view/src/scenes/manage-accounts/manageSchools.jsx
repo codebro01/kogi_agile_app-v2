@@ -201,7 +201,7 @@ export const ManageSchools = () => {
   const contentRef = useRef(null)
   const reactToPrintFn = useReactToPrint({ contentRef })
 
-console.log(lgasByStudentsRegistered)
+// console.log(lgasByStudentsRegistered)
   return (
     <Box
       sx={{

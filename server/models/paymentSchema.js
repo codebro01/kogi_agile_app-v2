@@ -13,15 +13,18 @@ const PaymentSchema = new Schema(
         required:true
     },
 
-    // firstname: {
-    //     type: String,
-    // },
-    // surname: {
-    //     type: String,
-    // },
-    // middlename: {
-    //     type: String,
-    // },
+    firstname: {
+        type: String,
+    },
+    surname: {
+        type: String,
+    },
+    middlename: {
+        type: String,
+    },
+    presentClass: {
+        type: String,
+    },
     paymentType: {
       type: String,
     },
@@ -40,7 +43,6 @@ const PaymentSchema = new Schema(
       type: Number,
     },
 
-    class: { type: String },
     month: {
       type: Number,
       requireed: true,
@@ -60,8 +62,9 @@ const PaymentSchema = new Schema(
       ref: 'Student'
 
     },
-    schoolName: {
-      type: String,
+    schoolId: {
+      type: Schema.Types.ObjectId,
+      ref: "Student"
     },
     ward: {
       type: String,
