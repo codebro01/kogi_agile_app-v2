@@ -1750,6 +1750,9 @@ export const importPaymentSheet = async (req, res, next) => {
                 : row['Cust ID'] || '',
             month: month,
             year: Number(year),
+            paymentType,
+            
+            amount: Number(row.Amount),
           },
           update: {
             $set: {
