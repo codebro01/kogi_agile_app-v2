@@ -76,7 +76,7 @@ const Dashboard = () => {
   } = dashboardStat
 
   const token = localStorage.getItem('token')
-  console.log(lgaWithTotalPayments)
+  // console.log(lgaWithTotalPayments)
   useEffect(() => {
     if (
       userPermissions.includes('handle_students') &&
@@ -93,7 +93,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (userPermissions.includes('handle_payments')) {
-    console.log(token)
+    // console.log(token)
       const fetchData = async () => {
         try {
           const [
@@ -121,10 +121,10 @@ const Dashboard = () => {
               withCredentials: true,
             }),
           ])
-          console.log(
-            'getTotalAmountDisbursed.data.totalAmountDisbursed',
-            getTotalAmountDisbursed
-          )
+          // console.log(
+          //   'getTotalAmountDisbursed.data.totalAmountDisbursed',
+          //   getTotalAmountDisbursed
+          // )
 
         
           setLgaWithTotalPayments(getLGAWithTotalPaymentsRes.data.paymentByLGA)
