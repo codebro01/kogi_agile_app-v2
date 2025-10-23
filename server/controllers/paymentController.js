@@ -97,6 +97,7 @@ export const viewPayments = async (req, res, next) => {
        paymentType,
        dateFrom,
        dateTo,
+       download
      } = req.query
 
      // Build the match stage with filters
@@ -135,55 +136,125 @@ export const viewPayments = async (req, res, next) => {
      const pageNumber = parseInt(page, 10) || 1
      const limitNumber = parseInt(limit, 10) || 200
 
+     let pipeline;
+
      // Build the aggregation pipeline
-     const pipeline = [
-       { $match: matchStage }, // Match stage
-       {
-         $project: {
-           __v: 0, // Exclude __v
-           _id: 0, // Exclude _id
-           lockStatus: 0, // Exclude lockStatus
-           date: 0, // Exclude date
-           updatedAt: 0, // Exclude updatedAt
-         },
-       },
-       {
-         $sort: { createdAt: -1 }, // Sort by createdAt in descending order (optional)
-       },
-       {
-         $facet: {
-           totalAmount: [
-             {
-               $group: {
-                 _id: null,
-                 totalAmount: { $sum: { $toDouble: '$amount' } }, // Convert string to number for aggregation
-               },
-             },
-           ],
-           metadata: [
-             { $count: 'totalPayments' }, // Count total records
-           ],
-           data: [
-             { $skip: (pageNumber - 1) * limitNumber }, // Skip for pagination
-             { $limit: limitNumber }, // Limit for pagination
-           ],
-         },
-       },
-     ]
+   if(download) {
+       pipeline = [
+        { $match: matchStage },
+
+        // Join school name from School collection (optional if you have that collection)
+        {
+          $lookup: {
+            from: 'allschools',
+            localField: 'schoolId',
+            foreignField: '_id',
+            as: 'schoolInfo',
+          },
+        },
+        {
+          $unwind: {
+            path: '$schoolInfo',
+            preserveNullAndEmptyArrays: true, // keep records even if no school found
+          },
+        },
+
+        // Sort before numbering
+        {
+          $sort: { createdAt: -1 },
+        },
+
+        // Add serial number
+        {
+          $setWindowFields: {
+            sortBy: { createdAt: 1 },
+            output: {
+              serialNumber: { $documentNumber: {} },
+            },
+          },
+        },
+
+        // Reorder and rename fields for export
+        {
+          $project: {
+            _id: 0,
+            'Serial No': '$serialNumber',
+            'School Name': '$schoolInfo.schoolName',
+            'Surname': '$surname',
+            'Firstname': '$firstname',
+            'Middlename': '$middlename',
+            'Present Class': '$presentClass',
+            'Account Number': '$accountNumber',
+            'Amount Paid': '$amount',
+            'Payment Type': '$paymentType',
+            'Payment Status': '$paymentStatus',
+            'Verification Status': '$verificationStatus',
+          },
+        },
+      ]
+
+   } else {
+       pipeline = [
+        { $match: matchStage }, // Match stage
+        {
+          $project: {
+            __v: 0, // Exclude __v
+            _id: 0, // Exclude _id
+            lockStatus: 0, // Exclude lockStatus
+            date: 0, // Exclude date
+            updatedAt: 0, // Exclude updatedAt
+          },
+        },
+        {
+          $sort: { createdAt: -1 }, // Sort by createdAt in descending order (optional)
+        },
+        {
+          $facet: {
+            totalAmount: [
+              {
+                $group: {
+                  _id: null,
+                  totalAmount: { $sum: { $toDouble: '$amount' } }, // Convert string to number for aggregation
+                },
+              },
+            ],
+            metadata: [
+              { $count: 'totalPayments' }, // Count total records
+            ],
+            data: [
+              { $skip: (pageNumber - 1) * limitNumber }, // Skip for pagination
+              { $limit: limitNumber }, // Limit for pagination
+            ],
+          },
+        },
+      ]
+   }
 
      const result = await Payment.aggregate(pipeline).collation({
        locale: 'en',
        strength: 2,
      })
 
-     const metadata = result[0]?.metadata[0] || { totalPayments: 0 }
-     const data = result[0]?.data || []
-     const amountSum = result[0]?.totalAmount || 0
+     console.log(result)
+
+
+
+     let metadata;
+     let data;
+     let amountSum;
+
+     if(download) {
+            data = result
+     } else {
+       metadata = result[0]?.metadata[0] || { totalPayments: 0 }
+       data = result[0]?.data || []
+       amountSum = result[0]?.totalAmount || 0
+     }
 
      return res.status(200).json({
        getAllPaymentsRecords: data,
-       totalPayments: metadata.totalPayments,
-       amountSum,
+       totalPayments:download ? null : metadata.totalPayments,
+       amountSum: download ? null : amountSum,
      })
    } catch (error) {
      console.error('Error fetching payments:', error)
@@ -341,29 +412,43 @@ export const getTotalStudentPaid = async (req, res, next) => {
 export const mergeStudentsDataIntoPayments = async (req, res, next) => {
   // console.log('🔥Payment Started')
 
-  try {
-    const students = await Student.find();
+ try {
+   const cursor = Student.find().lean().cursor()
+   const bulkOps = []
+   const batchSize = 1000
 
-const bulkOps = students.map(student => ({
-  updateOne: {
-    filter: { accountNumber: student.accountNumber },
-    update: {
-      $set: {
-        firstname: student.firstname,
-        surname: student.surname,
-        middlename: student.middleName,
-        presentClass: student.presentClass,
-        LGA: student.lgaOfEnrollment,
-        ward: student.ward,
-        schoolId: student.schoolId
-      },
-    },
-  },
-}));
+   for await (const student of cursor) {
+     bulkOps.push({
+       updateOne: {
+         filter: { accountNumber: student.accountNumber },
+         update: {
+           $set: {
+             firstname: student.firstname,
+             surname: student.surname,
+             middlename: student.middleName,
+             presentClass: student.presentClass,
+             LGA: student.lgaOfEnrollment,
+             ward: student.ward,
+             schoolId: student.schoolId,
+           },
+         },
+       },
+     })
 
-const bulkWrite = await Payment.bulkWrite(bulkOps);
-// console.log('🔥 Payment schema updated with student data!', bulkWrite)
-  } catch (error) {
-    return next(error)
-  }
+     if (bulkOps.length === batchSize) {
+       await Payment.bulkWrite(bulkOps, { ordered: false })
+       bulkOps.length = 0
+     }
+   }
+
+   if (bulkOps.length > 0) {
+     await Payment.bulkWrite(bulkOps, { ordered: false })
+   }
+
+   res
+     .status(200)
+     .json({ message: 'Students information merged successfully!' })
+ } catch (error) {
+   return next(error)
+ }
 }

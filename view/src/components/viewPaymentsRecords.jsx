@@ -25,6 +25,7 @@ import {
   Grid,
   InputLabel,
   Autocomplete,
+  CircularProgress,
 } from '@mui/material'
 import axios from 'axios'
 import { resolvePath, useNavigate } from 'react-router-dom'
@@ -50,6 +51,8 @@ import {
   setStudents,
 } from './studentsSlice.js'
 import { fetchSchools } from './schoolsSlice.js'
+import { fetchDashboardStat } from '../components/dashboardStatsSlice'
+
 import { SpinnerLoader } from './spinnerLoader.jsx'
 import { exportToCSV } from './exportToCSV.jsx'
 import { Message } from '@mui/icons-material'
@@ -66,6 +69,8 @@ export const ViewPaymentsRecords = () => {
   const dispatch = useDispatch()
   const schoolsState = useSelector((state) => state.schools)
   const studentsState = useSelector((state) => state.students)
+  const dashboardStatState = useSelector((state) => state.dashboardStat)
+
   const {
     data: schoolsData,
     loading: schoolsLoading,
@@ -80,6 +85,16 @@ export const ViewPaymentsRecords = () => {
     error: studentsError,
     searchQuery,
   } = studentsState
+
+  const {
+    data: dashboardData,
+    loading: dashboardStatLoading,
+    error: dashboardStatError,
+  } = dashboardStatState
+
+  useEffect(() => {
+    dispatch(fetchDashboardStat())
+  }, [dispatch])
   // useEffect(() => {
 
   //     dispatch(fetchSchools());
@@ -109,6 +124,10 @@ export const ViewPaymentsRecords = () => {
   const [fetchAttendanceLoading, setFetchAttendanceLoading] = useState(false)
   const [totalAmountPaid, setTotalAmountPaid] = useState(0)
   const [totalStudentsPaidByFilter, setTotalStudentsPaidByFilter] = useState(0)
+  const [mergingStudents, setMergingStudents] = useState(false)
+  const [mergedStudentsReady, setMergedStudentsReady] = useState(false)
+  const [message, setMessage] = useState('')
+  const [selectedSchoolId, setSelectedSchoolId] = useState([])
 
   const API_URL = `${import.meta.env.VITE_API_URL}/api/v1`
   const token = localStorage.getItem('token') || ''
@@ -208,29 +227,67 @@ export const ViewPaymentsRecords = () => {
       setTimeout(() => setApiResp(''), 6000)
     }
   }
+  const handleDownload = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      setEnumeratorsLoading(true)
+      setFetchAttendanceLoading(true)
+      const response = await axios.get(`${API_URL}/payments/view-payments`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        params: { ...filteredParams, download: true },
+        withCredentials: true,
+      })
+      const { getAllPaymentsRecords } = response.data
+      setFetchAttendanceLoading(false)
+      exportToCSV(getAllPaymentsRecords, 'Students Payment Record')
 
+      setTimeout(() => setApiResp(''), 6000)
+    } catch (err) {
+      console.log(err)
+      setFetchAttendanceLoading(false)
+      setApiResp(err.response?.message || err.response?.data?.message)
+      setTimeout(() => setApiResp(''), 6000)
+    }
+  }
 
   const mergeStudentsDataIntoPayments = async () => {
-      try {
-          const token = localStorage.getItem('token')
-          
-          console.log('entered the mergeStudentsDataIntoPayments')
-         const response = await axios.patch(
-           `${API_URL}/payments/merge-students-data-into-payments`, {}, 
-           {
-             headers: {
-               Authorization: `Bearer ${token}`,
-             },
-             withCredentials: true,
-           }
-         )
-         const { message } = response.data;
+    setMessage('Merging Students Payments, Please wait .........')
+    setMergingStudents(true)
+    try {
+      const token = localStorage.getItem('token')
 
-         console.log(message)
-        
-       } catch (err) {
-         console.log(err)
-       }
+      console.log('entered the mergeStudentsDataIntoPayments')
+      const response = await axios.patch(
+        `${API_URL}/payments/merge-students-data-into-payments`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          withCredentials: true,
+        }
+      )
+      const { message } = response.data
+      setMessage(message)
+      setTimeout(() => setMergingStudents(''), 10000)
+      setMergingStudents(false)
+      setMergedStudentsReady(true)
+      console.log(message)
+    } catch (err) {
+      setMergedStudentsReady(false)
+
+      setMergingStudents(false)
+      setMessage(
+        err?.response?.message ||
+          err?.response?.data?.message ||
+          'Something went wrong while merging students payments, please try again...'
+      )
+      setTimeout(() => setMergingStudents(''), 10000)
+
+      console.log(err)
+    }
   }
 
   function formatWithCommas(number = 0) {
@@ -378,6 +435,17 @@ export const ViewPaymentsRecords = () => {
       selector: (row, index) => index + 1, // Calculate serial number (starting from 1)
       sortable: true,
     },
+
+    {
+      name: 'School Name',
+      selector: (row) => {
+        const foundSchool = uniqueSchools.find(
+          (school) => school.schoolId === row.schoolId
+        )
+        return foundSchool ? foundSchool.schoolName : 'Unknown'
+      },
+      sortable: true,
+    },
     // {
     //     name: 'Image',
     //     cell: (row) => (
@@ -389,24 +457,24 @@ export const ViewPaymentsRecords = () => {
     //     ),
     //     sortable: false,
     // },
-    {
-      name: 'View',
-      cell: (row) => (
-        <Typography
-          onClick={() => handleViewItem(row)}
-          sx={{
-            padding: '5px 10px',
-            backgroundColor: '#196b57',
-            color: '#fff',
-            border: 'none',
-            cursor: 'pointer',
-            fontWeight: 700,
-          }}
-        >
-          View
-        </Typography>
-      ),
-    },
+    // {
+    //   name: 'View',
+    //   cell: (row) => (
+    //     <Typography
+    //       onClick={() => handleViewItem(row)}
+    //       sx={{
+    //         padding: '5px 10px',
+    //         backgroundColor: '#196b57',
+    //         color: '#fff',
+    //         border: 'none',
+    //         cursor: 'pointer',
+    //         fontWeight: 700,
+    //       }}
+    //     >
+    //       View
+    //     </Typography>
+    //   ),
+    // },
 
     {
       name: 'Surname',
@@ -425,12 +493,12 @@ export const ViewPaymentsRecords = () => {
     },
     {
       name: 'Present Class',
-      selector: (row) => row.class,
+      selector: (row) => row.presentClass,
       sortable: true,
     },
     {
-      name: 'Payment Status',
-      selector: (row) => row.paymentStatus,
+      name: 'Account Number',
+      selector: (row) => row.accountNumber,
       sortable: true,
     },
     {
@@ -439,35 +507,36 @@ export const ViewPaymentsRecords = () => {
       sortable: true,
     },
     {
-      name: 'Month',
-      selector: (row) => row.month,
+      name: 'Payment Type',
+      selector: (row) => row.paymentType,
       sortable: true,
     },
     {
-      name: 'Year',
-      selector: (row) => row.year,
+      name: 'Payment Status',
+      selector: (row) => row.paymentStatus,
       sortable: true,
     },
     {
-      name: 'School Name',
-      selector: (row) => row.schoolId,
+      name: 'Verification Status',
+      selector: (row) => row.verificationStatus,
       sortable: true,
     },
-    {
-      name: 'LGA of Enrollment',
-      selector: (row) => row.LGA,
-      sortable: true,
-    },
-    {
-      name: 'Ward',
-      selector: (row) => row.ward,
-      sortable: true,
-    },
-    {
-      name: 'Month Attendance Score',
-      selector: (row) => row.totalAttendanceScore,
-      sortable: true,
-    },
+    // {
+    //   name: 'Month',
+    //   selector: (row) => row.month,
+    //   sortable: true,
+    // },
+    // {
+    //   name: 'Year',
+    //   selector: (row) => row.year,
+    //   sortable: true,
+    // },
+
+    // {
+    //   name: 'LGA of Enrollment',
+    //   selector: (row) => row.LGA,
+    //   sortable: true,
+    // },
 
     // (userPermissions.includes('handle_registrars')) && {
     //     name: 'Delete',
@@ -501,22 +570,11 @@ export const ViewPaymentsRecords = () => {
     dispatch(setSearchQuery(query))
   }
 
-  const uniqueSchools = Array.from(
-    new Set(
-      studentsData.map((student) =>
-        JSON.stringify({
-          schoolName: student.schoolId?.schoolName,
-          schoolId: student.schoolId?._id,
-        })
-      )
-    )
-  ).map((item) => JSON.parse(item))
-
   const getCurrentYear = () => new Date().getFullYear()
   const currentYear = getCurrentYear()
 
-  // console.log(studentsData)
-
+  const uniqueSchools =
+    dashboardData?.results?.[0]?.distinctSchoolsDetails || []
   return (
     <>
       {userPermissions.includes('handle_registrars') ||
@@ -532,158 +590,194 @@ export const ViewPaymentsRecords = () => {
             View & Export Payments Records
           </Typography>
 
-          <Box>
-            <Button onClick={mergeStudentsDataIntoPayments}>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+          >
+            <Button
+              onClick={mergeStudentsDataIntoPayments}
+              variant="contained"
+              disabled={mergingStudents}
+              sx={{
+                display: 'flex',
+                gap: 4,
+              }}
+            >
               Click to Merge Students Information into the Payment Table{' '}
+              {mergingStudents && <CircularProgress size={20} />}
             </Button>
           </Box>
 
           {/* Filter Form */}
-          <Box
-            component="form"
-            onSubmit={handleSubmit}
-            display="flex"
-            flexDirection="column"
-            gap={2}
-            p={3}
-            sx={{
-              backgroundColor: '#f9f9f9',
-              borderRadius: 2,
-              boxShadow: 2,
-            }}
-          >
-            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-              Filter Payments
-            </Typography>
-            <Grid container spacing={2} alignItems="center">
-              {/* Existing Fields */}
+          {
+            <Box>
+              <Box
+                component="form"
+                onSubmit={handleSubmit}
+                display="flex"
+                flexDirection="column"
+                gap={2}
+                p={3}
+                sx={{
+                  backgroundColor: '#f9f9f9',
+                  borderRadius: 2,
+                  boxShadow: 2,
+                }}
+              >
+                <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                  Filter Payments
+                </Typography>
+                <Grid container spacing={2} alignItems="center">
+                  {/* Existing Fields */}
 
-              <Grid item xs={12} sm={6} md={4}>
-                <InputLabel id="lga-label" sx={{ marginBottom: 1 }}>
-                  Select a School
-                </InputLabel>
-                <Select
-                  name="schoolName"
-                  value={filters.schoolName}
-                  onChange={handleInputChange}
-                  displayEmpty
-                  fullWidth
-                  size="small"
-                  labelId="school-label"
-                >
-                  <MenuItem value="">
-                    <em>All Schools</em>
-                  </MenuItem>
-                  {uniqueSchools.map((school) => (
-                    <MenuItem key={school.schoolName} value={school.schoolName}>
-                      {school.schoolName}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </Grid>
+                  <Grid item xs={12} sm={6} md={4}>
+                    <Autocomplete
+                      sx={{
+                        width: '250px',
+                      }}
+                      id="schoolId-autocomplete"
+                      options={uniqueSchools} // Array of school objects
+                      getOptionLabel={(option) => option.schoolName} // Use schoolName as the label
+                      value={
+                        uniqueSchools.find(
+                          (school) => school.schoolId === selectedSchoolId
+                        ) || null
+                      } // Set the current value
+                      onChange={(event, newValue) =>
+                        setSelectedSchoolId(newValue ? newValue.schoolId : null)
+                      }
+                      isOptionEqualToValue={(option, value) =>
+                        option.schoolId === value.schoolId
+                      } // Ensure correct matching
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          label="Select School"
+                          placeholder="Search Schools"
+                          fullWidth
+                          size="small"
+                          sx={{
+                            width: '100%',
+                            borderRadius: 2,
+                            '& .MuiOutlinedInput-root': {
+                              '& fieldset': { borderColor: '#4caf50' },
+                              '&:hover fieldset': { borderColor: '#2e7d32' },
+                              '&.Mui-focused fieldset': {
+                                borderColor: '#1b5e20',
+                                borderWidth: 2,
+                              },
+                            },
+                          }}
+                        />
+                      )}
+                    />
+                  </Grid>
 
-              <Grid item xs={12} sm={6} md={4}>
-                <InputLabel id="lga-label" sx={{ marginBottom: 1 }}>
-                  All LGA
-                </InputLabel>
-                <Select
-                  name="LGA"
-                  value={filters.LGA}
-                  onChange={handleInputChange}
-                  displayEmpty
-                  fullWidth
-                  size="small"
-                  labelId="lga-label"
-                >
-                  <MenuItem value="">
-                    <em>All LGA</em>
-                  </MenuItem>
-                  {lgasAndWards.map((lga) => (
-                    <MenuItem key={lga.name} value={lga.name}>
-                      {lga.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </Grid>
-
-              <Grid item xs={12} sm={6} md={4}>
-                <InputLabel id="ward-label" sx={{ marginBottom: 1 }}>
-                  Select Ward
-                </InputLabel>
-                <Select
-                  name="ward"
-                  value={filters.ward}
-                  onChange={handleInputChange}
-                  displayEmpty
-                  fullWidth
-                  size="small"
-                  labelId="ward-label"
-                >
-                  <MenuItem value="">
-                    <em>All Wards</em>
-                  </MenuItem>
-                  {lgasAndWards
-                    ?.flatMap((lga) => lga.wards) // Flatten all wards into a single array
-                    .sort((a, b) => a.localeCompare(b)) // Sort the array alphabetically
-                    .map((ward, index) => (
-                      <MenuItem key={index} value={ward}>
-                        {ward}
+                  <Grid item xs={12} sm={6} md={4}>
+                    <InputLabel id="lga-label" sx={{ marginBottom: 1 }}>
+                      All LGA
+                    </InputLabel>
+                    <Select
+                      name="LGA"
+                      value={filters.LGA}
+                      onChange={handleInputChange}
+                      displayEmpty
+                      fullWidth
+                      size="small"
+                      labelId="lga-label"
+                    >
+                      <MenuItem value="">
+                        <em>All LGA</em>
                       </MenuItem>
-                    ))}
-                </Select>
-              </Grid>
+                      {lgasAndWards.map((lga) => (
+                        <MenuItem key={lga.name} value={lga.name}>
+                          {lga.name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </Grid>
 
-              <Grid item xs={12} sm={6} md={4}>
-                <InputLabel id="class-label" sx={{ marginBottom: 1 }}>
-                  Present Class
-                </InputLabel>
-                <Select
-                  name="presentClass"
-                  value={filters.presentClass}
-                  onChange={handleInputChange}
-                  displayEmpty
-                  fullWidth
-                  size="small"
-                  labelId="class-label"
-                >
-                  <MenuItem value="">
-                    <em>All Class</em>
-                  </MenuItem>
-                  {classOptions?.map((option) => (
-                    <MenuItem key={option.id} value={option.class}>
-                      {option.class}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </Grid>
+                  <Grid item xs={12} sm={6} md={4}>
+                    <InputLabel id="ward-label" sx={{ marginBottom: 1 }}>
+                      Select Ward
+                    </InputLabel>
+                    <Select
+                      name="ward"
+                      value={filters.ward}
+                      onChange={handleInputChange}
+                      displayEmpty
+                      fullWidth
+                      size="small"
+                      labelId="ward-label"
+                    >
+                      <MenuItem value="">
+                        <em>All Wards</em>
+                      </MenuItem>
+                      {lgasAndWards
+                        ?.flatMap((lga) => lga.wards) // Flatten all wards into a single array
+                        .sort((a, b) => a.localeCompare(b)) // Sort the array alphabetically
+                        .map((ward, index) => (
+                          <MenuItem key={index} value={ward}>
+                            {ward}
+                          </MenuItem>
+                        ))}
+                    </Select>
+                  </Grid>
 
-              <Grid item xs={12} sm={6} md={4}>
-                <InputLabel id="year-label" sx={{ marginBottom: 1 }}>
-                  Select month
-                </InputLabel>
-                <Select
-                  name="month"
-                  value={filters.month || ''}
-                  onChange={handleInputChange}
-                  displayEmpty
-                  fullWidth
-                  size="small"
-                  labelId="month-label"
-                >
-                  <MenuItem value="">
-                    <em>All Months</em>
-                  </MenuItem>
-                  {monthOptions?.map((month, index) => (
-                    <MenuItem key={index} value={month.value}>
-                      {month.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </Grid>
+                  <Grid item xs={12} sm={6} md={4}>
+                    <InputLabel id="class-label" sx={{ marginBottom: 1 }}>
+                      Present Class
+                    </InputLabel>
+                    <Select
+                      name="presentClass"
+                      value={filters.presentClass}
+                      onChange={handleInputChange}
+                      displayEmpty
+                      fullWidth
+                      size="small"
+                      labelId="class-label"
+                    >
+                      <MenuItem value="">
+                        <em>All Class</em>
+                      </MenuItem>
+                      {classOptions?.map((option) => (
+                        <MenuItem key={option.id} value={option.class}>
+                          {option.class}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </Grid>
 
-              {/* New Fields */}
+                  <Grid item xs={12} sm={6} md={4}>
+                    <InputLabel id="year-label" sx={{ marginBottom: 1 }}>
+                      Select month
+                    </InputLabel>
+                    <Select
+                      name="month"
+                      value={filters.month || ''}
+                      onChange={handleInputChange}
+                      displayEmpty
+                      fullWidth
+                      size="small"
+                      labelId="month-label"
+                    >
+                      <MenuItem value="">
+                        <em>All Months</em>
+                      </MenuItem>
+                      {monthOptions?.map((month, index) => (
+                        <MenuItem key={index} value={month.value}>
+                          {month.name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </Grid>
 
-              {/* <Grid item xs={12} sm={6} md={4}>
+                  {/* New Fields */}
+
+                  {/* <Grid item xs={12} sm={6} md={4}>
                                 <InputLabel id="enumerator-label" sx={{ marginBottom: 1 }}>All Enumerator</InputLabel>
                                 <Select
                                     name="enumerator"
@@ -705,44 +799,49 @@ export const ViewPaymentsRecords = () => {
                                 </Select>
                             </Grid> */}
 
-              <Grid item xs={12} sm={6} md={4}>
-                <InputLabel id="year-label" sx={{ marginBottom: 1 }}>
-                  Year
-                </InputLabel>
-                <Select
-                  name="year"
-                  value={filters.year}
-                  onChange={handleInputChange}
-                  displayEmpty
-                  fullWidth
-                  size="small"
-                  labelId="year-label"
-                >
-                  <MenuItem value={currentYear}>{getCurrentYear()}</MenuItem>
-                </Select>
-              </Grid>
+                  <Grid item xs={12} sm={6} md={4}>
+                    <InputLabel id="year-label" sx={{ marginBottom: 1 }}>
+                      Year
+                    </InputLabel>
+                    <Select
+                      name="year"
+                      value={filters.year}
+                      onChange={handleInputChange}
+                      displayEmpty
+                      fullWidth
+                      size="small"
+                      labelId="year-label"
+                    >
+                      <MenuItem value={currentYear}>
+                        {getCurrentYear()}
+                      </MenuItem>
+                    </Select>
+                  </Grid>
 
-              <Grid item xs={12} sm={6} md={4}>
-                <InputLabel id="paymentStatus-label" sx={{ marginBottom: 1 }}>
-                  All Banks
-                </InputLabel>
-                <Select
-                  name="bankName"
-                  value={filters.bankName}
-                  onChange={handleInputChange}
-                  displayEmpty
-                  fullWidth
-                  size="small"
-                  labelId="paymentStatus-label"
-                >
-                  <MenuItem value="">Select Bank</MenuItem>
-                  <MenuItem value="FCMB">FCMB</MenuItem>
-                  <MenuItem value="Polaris Bank">Polaris Bank</MenuItem>
-                  <MenuItem value="Zenith Bank">Zenith Bank</MenuItem>
-                </Select>
-              </Grid>
+                  <Grid item xs={12} sm={6} md={4}>
+                    <InputLabel
+                      id="paymentStatus-label"
+                      sx={{ marginBottom: 1 }}
+                    >
+                      All Banks
+                    </InputLabel>
+                    <Select
+                      name="bankName"
+                      value={filters.bankName}
+                      onChange={handleInputChange}
+                      displayEmpty
+                      fullWidth
+                      size="small"
+                      labelId="paymentStatus-label"
+                    >
+                      <MenuItem value="">Select Bank</MenuItem>
+                      <MenuItem value="FCMB">FCMB</MenuItem>
+                      <MenuItem value="Polaris Bank">Polaris Bank</MenuItem>
+                      <MenuItem value="Zenith Bank">Zenith Bank</MenuItem>
+                    </Select>
+                  </Grid>
 
-              {/* <Grid item xs={12} sm={6} md={4}>
+                  {/* <Grid item xs={12} sm={6} md={4}>
                                 <InputLabel id="paymentStatus-label" sx={{ marginBottom: 1 }}>Payment Status</InputLabel>
                                 <Select
                                     name="paymentStatus"
@@ -766,300 +865,302 @@ export const ViewPaymentsRecords = () => {
                                 </Select>
                             </Grid> */}
 
-              <Grid item xs={12} sm={6} md={4}>
-                <InputLabel id="paymentType-label" sx={{ marginBottom: 1 }}>
-                  Payment Type
-                </InputLabel>
-                <Select
-                  name="paymentType"
-                  value={filters.paymentType}
-                  onChange={handleInputChange}
-                  displayEmpty
-                  fullWidth
-                  size="small"
-                  labelId="paymentType-label"
+                  <Grid item xs={12} sm={6} md={4}>
+                    <InputLabel id="paymentType-label" sx={{ marginBottom: 1 }}>
+                      Payment Type
+                    </InputLabel>
+                    <Select
+                      name="paymentType"
+                      value={filters.paymentType}
+                      onChange={handleInputChange}
+                      displayEmpty
+                      fullWidth
+                      size="small"
+                      labelId="paymentType-label"
+                    >
+                      <MenuItem value="">All Payment Type</MenuItem>
+                      {paymentTypeOption.map((paymentType, index) => (
+                        <MenuItem value={paymentType.value} key={index + 1}>
+                          {paymentType.name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </Grid>
+
+                  <Grid item xs={12} sm={6} md={4}>
+                    <InputLabel id="paymentType-label" sx={{ marginBottom: 1 }}>
+                      Status
+                    </InputLabel>
+                    <Select
+                      name="lockStatus"
+                      value={filters.lockStatus}
+                      onChange={handleInputChange}
+                      displayEmpty
+                      fullWidth
+                      size="small"
+                      labelId="paymentType-label"
+                    >
+                      <MenuItem value={false}>Active</MenuItem>
+                      <MenuItem value={true}>InActive</MenuItem>
+                      <MenuItem value={'all'}>All</MenuItem>
+                    </Select>
+                  </Grid>
+
+                  <Grid item xs={12} sm={6} md={4}>
+                    <InputLabel id="payment-label" sx={{ marginBottom: 1 }}>
+                      Type Amount
+                    </InputLabel>
+                    <TextField
+                      name={'amount'}
+                      variant="outlined"
+                      fullWidth
+                      value={filters.amount}
+                      onChange={handleInputChange}
+                      inputProps={{
+                        pattern: '\\d*', // Allows any number of digits
+                        title: 'Only digits are allowed', // Shows this message on invalid input
+                      }}
+                      onInput={(e) => {
+                        e.target.value = e.target.value.replace(/\D/g, '') // Remove non-digit characters
+                      }}
+                      InputProps={{
+                        sx: {
+                          height: '38px', // Controls the height of the inner input field
+                        },
+                      }}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          height: '38px', // Adjusts the overall height of the input box
+                        },
+                      }}
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} sm={6} md={4}>
+                    <InputLabel id="payment-label" sx={{ marginBottom: 1 }}>
+                      Type Attendance Score
+                    </InputLabel>
+                    <TextField
+                      name={'totalAttendanceScore'}
+                      variant="outlined"
+                      fullWidth
+                      value={filters.totalAttendanceScore}
+                      onChange={handleInputChange}
+                      inputProps={{
+                        pattern: '\\d*', // Allows any number of digits
+                        title: 'Only digits are allowed', // Shows this message on invalid input
+                      }}
+                      onInput={(e) => {
+                        e.target.value = e.target.value.replace(/\D/g, '') // Remove non-digit characters
+                      }}
+                      InputProps={{
+                        sx: {
+                          height: '38px', // Controls the height of the inner input field
+                        },
+                      }}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          height: '38px', // Adjusts the overall height of the input box
+                        },
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6} md={4}>
+                    <InputLabel id="date-label" sx={{ marginBottom: 1 }}>
+                      Start Date
+                    </InputLabel>
+
+                    <TextField
+                      label="Date From"
+                      name="dateFrom"
+                      type="date"
+                      variant="outlined"
+                      fullWidth
+                      value={filters.dateFrom}
+                      onChange={handleInputChange}
+                      InputLabelProps={{ shrink: true }}
+                      InputProps={{
+                        sx: {
+                          height: '38px', // Controls the height of the inner input field
+                        },
+                      }}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          height: '38px', // Adjusts the overall height of the input box
+                        },
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6} md={4}>
+                    <InputLabel id="date-label" sx={{ marginBottom: 1 }}>
+                      End Date
+                    </InputLabel>
+
+                    <TextField
+                      label="Date To"
+                      name="dateTo"
+                      type="date"
+                      variant="outlined"
+                      fullWidth
+                      value={filters.dateTo}
+                      onChange={handleInputChange}
+                      InputLabelProps={{ shrink: true }}
+                      InputProps={{
+                        sx: {
+                          height: '38px', // Controls the height of the inner input field
+                        },
+                      }}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          height: '38px', // Adjusts the overall height of the input box
+                        },
+                      }}
+                    />
+                  </Grid>
+                </Grid>
+
+                <Box
+                  display="flex"
+                  justifyContent="space-between"
+                  gap={2}
+                  mt={2}
                 >
-                  <MenuItem value="">All Payment Type</MenuItem>
-                  {paymentTypeOption.map((paymentType, index) => (
-                    <MenuItem value={paymentType.value} key={index + 1}>
-                      {paymentType.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </Grid>
+                  <Button
+                    variant="outlined"
+                    color="secondary"
+                    size="large"
+                    sx={{ textTransform: 'none', width: '48%' }}
+                    onClick={clearFilters}
+                  >
+                    Reset Filters
+                  </Button>
+                  {!fetchAttendanceLoading ? (
+                    <Button
+                      type="submit"
+                      variant="contained"
+                      size="large"
+                      sx={{
+                        textTransform: 'none',
+                        width: '48%',
+                        color: '#fff',
+                        background: colors.main['darkGreen'],
+                        '&:hover': {
+                          backgroundColor: '#145943', // Slightly darker shade on hover
+                        },
+                      }}
+                    >
+                      Filter Payment Records
+                    </Button>
+                  ) : (
+                    <SpinnerLoader />
+                  )}
 
-              <Grid item xs={12} sm={6} md={4}>
-                <InputLabel id="paymentType-label" sx={{ marginBottom: 1 }}>
-                  Status
-                </InputLabel>
-                <Select
-                  name="lockStatus"
-                  value={filters.lockStatus}
-                  onChange={handleInputChange}
-                  displayEmpty
-                  fullWidth
-                  size="small"
-                  labelId="paymentType-label"
-                >
-                  <MenuItem value={false}>Active</MenuItem>
-                  <MenuItem value={true}>InActive</MenuItem>
-                  <MenuItem value={'all'}>All</MenuItem>
-                </Select>
-              </Grid>
+                  {paymentsData.length > 0 && (
+                    <Button
+                      onClick={handleDownload}
+                      variant="contained"
+                      size="large"
+                      sx={{
+                        textTransform: 'none',
+                        width: '48%',
+                        color: '#fff',
+                        background: colors.main['darkGreen'],
+                        '&:hover': {
+                          backgroundColor: '#145943', // Slightly darker shade on hover
+                        },
+                      }}
+                    >
+                      Export Records
+                    </Button>
+                  )}
+                </Box>
 
-              <Grid item xs={12} sm={6} md={4}>
-                <InputLabel id="payment-label" sx={{ marginBottom: 1 }}>
-                  Type Amount
-                </InputLabel>
-                <TextField
-                  name={'amount'}
-                  variant="outlined"
-                  fullWidth
-                  value={filters.amount}
-                  onChange={handleInputChange}
-                  inputProps={{
-                    pattern: '\\d*', // Allows any number of digits
-                    title: 'Only digits are allowed', // Shows this message on invalid input
-                  }}
-                  onInput={(e) => {
-                    e.target.value = e.target.value.replace(/\D/g, '') // Remove non-digit characters
-                  }}
-                  InputProps={{
-                    sx: {
-                      height: '38px', // Controls the height of the inner input field
-                    },
-                  }}
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      height: '38px', // Adjusts the overall height of the input box
-                    },
-                  }}
-                />
-              </Grid>
-
-              <Grid item xs={12} sm={6} md={4}>
-                <InputLabel id="payment-label" sx={{ marginBottom: 1 }}>
-                  Type Attendance Score
-                </InputLabel>
-                <TextField
-                  name={'totalAttendanceScore'}
-                  variant="outlined"
-                  fullWidth
-                  value={filters.totalAttendanceScore}
-                  onChange={handleInputChange}
-                  inputProps={{
-                    pattern: '\\d*', // Allows any number of digits
-                    title: 'Only digits are allowed', // Shows this message on invalid input
-                  }}
-                  onInput={(e) => {
-                    e.target.value = e.target.value.replace(/\D/g, '') // Remove non-digit characters
-                  }}
-                  InputProps={{
-                    sx: {
-                      height: '38px', // Controls the height of the inner input field
-                    },
-                  }}
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      height: '38px', // Adjusts the overall height of the input box
-                    },
-                  }}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6} md={4}>
-                <InputLabel id="date-label" sx={{ marginBottom: 1 }}>
-                  Start Date
-                </InputLabel>
-
-                <TextField
-                  label="Date From"
-                  name="dateFrom"
-                  type="date"
-                  variant="outlined"
-                  fullWidth
-                  value={filters.dateFrom}
-                  onChange={handleInputChange}
-                  InputLabelProps={{ shrink: true }}
-                  InputProps={{
-                    sx: {
-                      height: '38px', // Controls the height of the inner input field
-                    },
-                  }}
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      height: '38px', // Adjusts the overall height of the input box
-                    },
-                  }}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6} md={4}>
-                <InputLabel id="date-label" sx={{ marginBottom: 1 }}>
-                  End Date
-                </InputLabel>
-
-                <TextField
-                  label="Date To"
-                  name="dateTo"
-                  type="date"
-                  variant="outlined"
-                  fullWidth
-                  value={filters.dateTo}
-                  onChange={handleInputChange}
-                  InputLabelProps={{ shrink: true }}
-                  InputProps={{
-                    sx: {
-                      height: '38px', // Controls the height of the inner input field
-                    },
-                  }}
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      height: '38px', // Adjusts the overall height of the input box
-                    },
-                  }}
-                />
-              </Grid>
-            </Grid>
-
-            <Box display="flex" justifyContent="space-between" gap={2} mt={2}>
-              <Button
-                variant="outlined"
-                color="secondary"
-                size="large"
-                sx={{ textTransform: 'none', width: '48%' }}
-                onClick={clearFilters}
+                {filterError && <Typography>{filterError}</Typography>}
+              </Box>
+              <Grid
+                item
+                xs={12}
+                sm={6}
+                md={4}
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  marginTop: '50px',
+                  flexDirection: 'column',
+                  gap: '10px',
+                  boxShadow: '0 4px 8px rgba(25, 107, 87, 0.3)',
+                  backgroundColor: 'white',
+                  padding: '20px',
+                  borderRadius: '10px',
+                  cursor: 'pointer',
+                  transition: 'box-shadow 0.3s ease, transform 0.3s ease',
+                  '&:hover': {
+                    boxShadow: '0 6px 12px rgba(25, 107, 87, 0.4)',
+                    transform: 'translateY(-5px)',
+                  },
+                }}
               >
-                Reset Filters
-              </Button>
-              {!fetchAttendanceLoading ? (
-                <Button
-                  type="submit"
-                  variant="contained"
-                  size="large"
+                <Box
                   sx={{
-                    textTransform: 'none',
-                    width: '48%',
-                    color: '#fff',
-                    background: colors.main['darkGreen'],
-                    '&:hover': {
-                      backgroundColor: '#145943', // Slightly darker shade on hover
-                    },
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    flexDirection: 'row',
                   }}
                 >
-                  Filter Payment Records
-                </Button>
-              ) : (
-                <SpinnerLoader />
-              )}
+                  <Typography
+                    variant="h4"
+                    sx={{ fontWeight: 700, color: '#196b57' }}
+                  >
+                    Total Amount Disbursed based on Filter:
+                  </Typography>
+                  <Typography
+                    variant="h4"
+                    sx={{ fontWeight: 700, color: '#196b57' }}
+                  >
+                    {`\u20A6 ${formatWithCommas(totalAmountPaid)}`}
+                  </Typography>
+                </Box>
 
-              {paymentsData.length > 0 && (
-                <Button
-                  onClick={() =>
-                    exportToCSV(paymentsData, 'Students Payment Record')
-                  }
-                  variant="contained"
-                  size="large"
+                <Box
                   sx={{
-                    textTransform: 'none',
-                    width: '48%',
-                    color: '#fff',
-                    background: colors.main['darkGreen'],
-                    '&:hover': {
-                      backgroundColor: '#145943', // Slightly darker shade on hover
-                    },
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    flexDirection: 'row',
+                    gap: '10px',
                   }}
                 >
-                  Export Records
-                </Button>
-              )}
-            </Box>
+                  <Typography
+                    variant="h4"
+                    sx={{ fontWeight: 700, color: '#196b57' }}
+                  >
+                    Total Students:
+                  </Typography>
+                  <Typography
+                    variant="h4"
+                    sx={{ fontWeight: 700, color: '#196b57' }}
+                  >
+                    {totalStudentsPaidByFilter}
+                  </Typography>
+                </Box>
+              </Grid>
 
-            {filterError && <Typography>{filterError}</Typography>}
-          </Box>
-
-          <Grid
-            item
-            xs={12}
-            sm={6}
-            md={4}
-            sx={{
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              marginTop: '50px',
-              flexDirection: 'column',
-              gap: '10px',
-              boxShadow: '0 4px 8px rgba(25, 107, 87, 0.3)',
-              backgroundColor: 'white',
-              padding: '20px',
-              borderRadius: '10px',
-              cursor: 'pointer',
-              transition: 'box-shadow 0.3s ease, transform 0.3s ease',
-              '&:hover': {
-                boxShadow: '0 6px 12px rgba(25, 107, 87, 0.4)',
-                transform: 'translateY(-5px)',
-              },
-            }}
-          >
-            <Box
-              sx={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                flexDirection: 'row',
-              }}
-            >
               <Typography
                 variant="h4"
-                sx={{ fontWeight: 700, color: '#196b57' }}
+                sx={{
+                  marginTop: '100px',
+                  marginBottom: '30px',
+                  textAlign: 'center',
+                  fontWeight: 800,
+                }}
               >
-                Total Amount Disbursed based on Filter:
+                View Payments Record
               </Typography>
-              <Typography
-                variant="h4"
-                sx={{ fontWeight: 700, color: '#196b57' }}
-              >
-                {`\u20A6 ${formatWithCommas(totalAmountPaid)}`}
-              </Typography>
-            </Box>
-
-            <Box
-              sx={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                flexDirection: 'row',
-                gap: '10px',
-              }}
-            >
-              <Typography
-                variant="h4"
-                sx={{ fontWeight: 700, color: '#196b57' }}
-              >
-                Total Students:
-              </Typography>
-              <Typography
-                variant="h4"
-                sx={{ fontWeight: 700, color: '#196b57' }}
-              >
-                {totalStudentsPaidByFilter}
-              </Typography>
-            </Box>
-          </Grid>
-
-          <Typography
-            variant="h4"
-            sx={{
-              marginTop: '100px',
-              marginBottom: '30px',
-              textAlign: 'center',
-              fontWeight: 800,
-            }}
-          >
-            View Payments Record
-          </Typography>
-          <div>
-            {/* Search Input */}
-            {/* <div style={{ marginBottom: '20px', position: 'relative' }}>
+              <div>
+                {/* Search Input */}
+                {/* <div style={{ marginBottom: '20px', position: 'relative' }}>
                             <input
                                 type="text"
                                 placeholder="Search..."
@@ -1082,120 +1183,123 @@ export const ViewPaymentsRecords = () => {
                             />
 
                         </div> */}
-          </div>
+              </div>
 
-          <DataTable
-            title="View Registered Students Information"
-            columns={columns}
-            data={paymentsData}
-            progressPending={studentsLoading} // Show loading spinner
-            pagination
-            paginationServer
-            highlightOnHover
-            paginationDefaultPage={100}
-            paginationPerPage={rowsPerPage} // Override default rows per page
-            paginationRowsPerPageOptions={[10, 100, 200, 500]} // Custom options
-            paginationTotalRows={totalRows} // Total rows from API
-            // paginationDefaultPage={currentPage} // Use current page from Redux
-            onChangePage={(page) => {
-              setFilters((prev) => ({ ...prev, ['page']: page }))
+              <DataTable
+                title="View Registered Students Information"
+                columns={columns}
+                data={paymentsData}
+                progressPending={studentsLoading} // Show loading spinner
+                pagination
+                paginationServer
+                highlightOnHover
+                paginationDefaultPage={100}
+                paginationPerPage={rowsPerPage} // Override default rows per page
+                paginationRowsPerPageOptions={[10, 100, 200, 500]} // Custom options
+                paginationTotalRows={totalRows} // Total rows from API
+                // paginationDefaultPage={currentPage} // Use current page from Redux
+                onChangePage={(page) => {
+                  setFilters((prev) => ({ ...prev, ['page']: page }))
 
-              fetchAttendance()
-            }}
-            onChangeRowsPerPage={(newLimit) => {
-              // Update rowsPerPage in Redux state and fetch new data
-              setFilters((prev) => ({ ...prev, ['limit']: newLimit }))
-
-              fetchAttendance()
-            }}
-            customStyles={customStyles} // Applying the custom styles
-          />
-
-          {isModalOpen && (
-            <div
-              style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                width: '100vw',
-                height: '100vh',
-                backgroundColor: 'rgba(0, 0, 0, 0.52)', // Semi-transparent black overlay
-                zIndex: 9999,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <div
-                style={{
-                  position: 'relative',
-                  backgroundColor: '#fff',
-                  padding: '20px',
-                  borderRadius: '10px',
-                  boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
-                  width: '80%',
-                  maxWidth: '500px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'flex-start',
-                  justifyContent: 'flex-start',
+                  fetchAttendance()
                 }}
-              >
-                <h3>Student Payment Details</h3>
-                <p>
-                  <strong>Student ID:</strong> {selectedItem.studentRandomId}
-                </p>
-                <p>
-                  <strong>Name:</strong>{' '}
-                  {`${selectedItem.surname} ${selectedItem.firstname} ${
-                    selectedItem.middlename || ''
-                  }`}
-                </p>
-                <p>
-                  <strong>School name:</strong> {selectedItem.schoolName}
-                </p>
-                <p>
-                  <strong>Payment Status:</strong> {selectedItem.paymentStatus}
-                </p>
-                <p>
-                  <strong>Amount:</strong> {selectedItem.amount}
-                </p>
-                <p>
-                  <strong>Bank Name:</strong> {selectedItem.bankName}
-                </p>
-                <p>
-                  <strong>Ward:</strong> {selectedItem.ward}
-                </p>
-                <p>
-                  <strong>Class:</strong> {selectedItem.class}
-                </p>
-                <p>
-                  <strong>Cummulated Attendance Score:</strong>{' '}
-                  {selectedItem.totalAttendanceScore}
-                </p>
-                <p>
-                  <strong>Month:</strong> {selectedItem.month}
-                </p>
-                <p>
-                  <strong>Year:</strong> {selectedItem.year}
-                </p>
+                onChangeRowsPerPage={(newLimit) => {
+                  // Update rowsPerPage in Redux state and fetch new data
+                  setFilters((prev) => ({ ...prev, ['limit']: newLimit }))
 
-                <button
-                  onClick={() => setIsModalOpen(false)}
+                  fetchAttendance()
+                }}
+                customStyles={customStyles} // Applying the custom styles
+              />
+
+              {/* {isModalOpen && (
+                <div
                   style={{
-                    padding: '5px 10px',
-                    backgroundColor: '#dc3545',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: '5px',
-                    cursor: 'pointer',
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    width: '100vw',
+                    height: '100vh',
+                    backgroundColor: 'rgba(0, 0, 0, 0.52)', // Semi-transparent black overlay
+                    zIndex: 9999,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                   }}
                 >
-                  Close
-                </button>
-              </div>
-            </div>
-          )}
+                  <div
+                    style={{
+                      position: 'relative',
+                      backgroundColor: '#fff',
+                      padding: '20px',
+                      borderRadius: '10px',
+                      boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
+                      width: '80%',
+                      maxWidth: '500px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'flex-start',
+                      justifyContent: 'flex-start',
+                    }}
+                  >
+                    <h3>Student Payment Details</h3>
+                    <p>
+                      <strong>Student ID:</strong>{' '}
+                      {selectedItem.studentRandomId}
+                    </p>
+                    <p>
+                      <strong>Name:</strong>{' '}
+                      {`${selectedItem.surname} ${selectedItem.firstname} ${selectedItem.middlename || ''
+                        }`}
+                    </p>
+                    <p>
+                      <strong>School name:</strong> {selectedItem.schoolName}
+                    </p>
+                    <p>
+                      <strong>Payment Status:</strong>{' '}
+                      {selectedItem.paymentStatus}
+                    </p>
+                    <p>
+                      <strong>Amount:</strong> {selectedItem.amount}
+                    </p>
+                    <p>
+                      <strong>Bank Name:</strong> {selectedItem.bankName}
+                    </p>
+                    <p>
+                      <strong>Ward:</strong> {selectedItem.ward}
+                    </p>
+                    <p>
+                      <strong>Class:</strong> {selectedItem.class}
+                    </p>
+                    <p>
+                      <strong>Cummulated Attendance Score:</strong>{' '}
+                      {selectedItem.totalAttendanceScore}
+                    </p>
+                    <p>
+                      <strong>Month:</strong> {selectedItem.month}
+                    </p>
+                    <p>
+                      <strong>Year:</strong> {selectedItem.year}
+                    </p>
+
+                    <button
+                      onClick={() => setIsModalOpen(false)}
+                      style={{
+                        padding: '5px 10px',
+                        backgroundColor: '#dc3545',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '5px',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
+              )} */}
+            </Box>
+          }
         </Container>
       ) : (
         <h1>Not authorized to access this route</h1>

@@ -1,5 +1,4 @@
-import { Schema, model } from "mongoose";
-
+import { Schema, model } from 'mongoose'
 
 const PaymentSchema = new Schema(
   {
@@ -9,24 +8,27 @@ const PaymentSchema = new Schema(
     },
 
     fullName: {
-        type: String,
-        required:true
+      type: String,
+      required: true,
     },
 
     firstname: {
-        type: String,
+      type: String,
     },
     surname: {
-        type: String,
+      type: String,
     },
     middlename: {
-        type: String,
+      type: String,
     },
     presentClass: {
-        type: String,
+      type: String,
     },
     paymentType: {
       type: String,
+    },
+    verificationStatus: {
+      type: Boolean,
     },
     totalAttendanceScore: {
       type: Number,
@@ -59,12 +61,11 @@ const PaymentSchema = new Schema(
     },
     accountNumber: {
       type: String,
-      ref: 'Student'
-
+      ref: 'Student',
     },
     schoolId: {
       type: Schema.Types.ObjectId,
-      ref: "Student"
+      ref: 'Student',
     },
     ward: {
       type: String,
@@ -97,9 +98,6 @@ const PaymentSchema = new Schema(
   { timestamps: true }
 )
 
-PaymentSchema.index({ date: 1 });
+PaymentSchema.index({ accountNumber: 1 })
 
-export const Payment = model('Payment', PaymentSchema);
-
-
-
+export const Payment = model('Payment', PaymentSchema)

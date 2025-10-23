@@ -173,36 +173,36 @@ const startDB = async () => {
       console.log('app connected to port:' + PORT)
     })
 
-   async function mergeStudentsDataIntoPayments(req, res, next) {
-     console.log('🔥Payment Started')
+//    async function mergeStudentsDataIntoPayments(req, res, next) {
+//      console.log('🔥Payment Started')
 
-     try {
-       const students = await Student.find()
+//      try {
+//        const students = await Student.find()
 
-       const bulkOps = students.map((student) => ({
-         updateOne: {
-           filter: { accountNumber: student.accountNumber },
-           update: {
-             $set: {
-               firstname: student.firstname,
-               surname: student.surname,
-               middlename: student.middleName,
-               presentClass: student.presentClass,
-               LGA: student.lgaOfEnrollment,
-               ward: student.ward,
-               schoolId: student.schoolId,
-             },
-           },
-         },
-       }))
+//        const bulkOps = students.map((student) => ({
+//          updateOne: {
+//            filter: { accountNumber: student.accountNumber },
+//            update: {
+//              $set: {
+//                firstname: student.firstname,
+//                surname: student.surname,
+//                middlename: student.middleName,
+//                presentClass: student.presentClass,
+//                LGA: student.lgaOfEnrollment,
+//                ward: student.ward,
+//                schoolId: student.schoolId,
+//              },
+//            },
+//          },
+//        }))
 
-       const bulkWrite = await Payment.bulkWrite(bulkOps)
-       console.log('🔥 Payment schema updated with student data!', bulkWrite)
-     } catch (error) {
-       return next(error)
-     }
-   }
-mergeStudentsDataIntoPayments()
+//        const bulkWrite = await Payment.bulkWrite(bulkOps)
+//        console.log('🔥 Payment schema updated with student data!', bulkWrite)
+//      } catch (error) {
+//        return next(error)
+//      }
+//    }
+// mergeStudentsDataIntoPayments()
 
  
   } catch (err) {

@@ -169,7 +169,7 @@ StudentSchema.virtual('verificationInfo', {
 StudentSchema.set('toObject', { virtuals: true })
 StudentSchema.set('toJSON', { virtuals: true })
 
-StudentSchema.index({ randomId: 1, ward: 1, lga: 1, presentClass: 1 })
+StudentSchema.index({ randomId: 1, lga: 1, presentClass: 1, accountNumber: 1 })
 
 StudentSchema.pre('save', function (next) {
   if (this.isModified('lastLogged')) {
