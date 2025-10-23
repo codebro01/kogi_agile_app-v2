@@ -1678,212 +1678,213 @@ export const getStudentsAttendance = async (req, res, next) => {
 }
 
 export const importPaymentSheet = async (req, res, next) => {
-//   try {
-//     const { userID } = req.user
-//     const { month, year, paymentType } = req.body
+  //   try {
+  //     const { userID } = req.user
+  //     const { month, year, paymentType } = req.body
 
-//     const paymentRecords = []
-//     const bulkOperations = []
+  //     const paymentRecords = []
+  //     const bulkOperations = []
 
+  //           let student = await Student.find.lean();
 
-//           let student = await Student.find.lean();
+  // student = student.find(student => {
+  //   return req.parsedData.find(parsedStudent => parsedStudent.accountNumber === student.accountNumber)
+  // })
 
+  //     for (const row of req.parsedData) {
+  //       const monthOptions = [
+  //         { name: 'January', value: 1 },
+  //         { name: 'February', value: 2 },
+  //         { name: 'March', value: 3 },
+  //         { name: 'April', value: 4 },
+  //         { name: 'May', value: 5 },
+  //         { name: 'June', value: 6 },
+  //         { name: 'July', value: 7 },
+  //         { name: 'August', value: 8 },
+  //         { name: 'September', value: 9 },
+  //         { name: 'October', value: 10 },
+  //         { name: 'November', value: 11 },
+  //         { name: 'December', value: 12 },
+  //       ]
 
-// student = student.find(student => {
-//   return req.parsedData.find(parsedStudent => parsedStudent.accountNumber === student.accountNumber)
-// })
+  //       const getMonthValue = (inputedMonth) => {
+  //         const monthName = monthOptions.find(
+  //           (month) => month.name.toUpperCase() === inputedMonth
+  //         )
+  //         return monthName.value
+  //       }
 
-//     for (const row of req.parsedData) {
-//       const monthOptions = [
-//         { name: 'January', value: 1 },
-//         { name: 'February', value: 2 },
-//         { name: 'March', value: 3 },
-//         { name: 'April', value: 4 },
-//         { name: 'May', value: 5 },
-//         { name: 'June', value: 6 },
-//         { name: 'July', value: 7 },
-//         { name: 'August', value: 8 },
-//         { name: 'September', value: 9 },
-//         { name: 'October', value: 10 },
-//         { name: 'November', value: 11 },
-//         { name: 'December', value: 12 },
-//       ]
+  //       const accountNumber =
+  //         String(row['Cust ID']).length === 8
+  //           ? `00${row['Cust ID']}`
+  //           : row['Cust ID'] || ''
 
-//       const getMonthValue = (inputedMonth) => {
-//         const monthName = monthOptions.find(
-//           (month) => month.name.toUpperCase() === inputedMonth
-//         )
-//         return monthName.value
-//       }
+  //       // Find matching student (lean for speed)
 
-//       const accountNumber =
-//         String(row['Cust ID']).length === 8
-//           ? `00${row['Cust ID']}`
-//           : row['Cust ID'] || ''
+  //       // paymentRecords.push({
+  //       //   studentRandomId: row.StudentID,
+  //       //   class: row.Class,
+  //       //   totalAttendanceScore: parseInt(row.TotalAttendanceScore) || 0,
+  //       //   enumeratorId: userID,
+  //       //   month: parseInt(row.Month),
+  //       //   year,
+  //       //   amount: row.amount || 0,
+  //       //   firstname: row.Firstname,
+  //       //   middlename: row.Middlename,
+  //       //   surname: row.Surname,
+  //       //   bankName: row.BankName,
+  //       //   accountNumber: Number(row.AccountNumber),
+  //       //   schoolName: row.SchoolName,
+  //       //   ward: row.Ward,
+  //       //   LGA: row.LGA,
+  //       //   paymentStatus: row.status || 'not paid',
+  //       // })
 
-//       // Find matching student (lean for speed)
+  //       // Prepare bulk update operations
+  //       bulkOperations.push({
+  //         updateOne: {
+  //           filter: {
+  //             // studentRandomId: row.StudentID,
+  //             accountNumber,
+  //             month: month,
+  //             year: Number(year),
+  //             paymentType,
 
-//       // paymentRecords.push({
-//       //   studentRandomId: row.StudentID,
-//       //   class: row.Class,
-//       //   totalAttendanceScore: parseInt(row.TotalAttendanceScore) || 0,
-//       //   enumeratorId: userID,
-//       //   month: parseInt(row.Month),
-//       //   year,
-//       //   amount: row.amount || 0,
-//       //   firstname: row.Firstname,
-//       //   middlename: row.Middlename,
-//       //   surname: row.Surname,
-//       //   bankName: row.BankName,
-//       //   accountNumber: Number(row.AccountNumber),
-//       //   schoolName: row.SchoolName,
-//       //   ward: row.Ward,
-//       //   LGA: row.LGA,
-//       //   paymentStatus: row.status || 'not paid',
-//       // })
+  //             amount: Number(row.Amount),
+  //           },
+  //           update: {
+  //             $set: {
+  //               fullName: row?.Customer || '',
+  //               amount: Number(row?.Amount) || 0,
+  //               paymentDate: row['Date'],
+  //               paymentType: paymentType,
+  //               paymentStatus: row?.Status || 'Not paid',
+  //               bankName: row?.BankName || '',
+  //               accountNumber,
+  //               firstname: student?.firstname || '',
+  //               middlename: student?.middlename || '',
+  //               surname: student?.surname || '',
+  //               schoolId: student?.schoolId || '',
+  //               LGA: student?.lgaOfEnrollment || '',
+  //               presentClass: student?.presentClass || '',
+  //               verificationStatus: student?.verificationStatus
+  //                 ? 'Verified'
+  //                 : 'Not Verifiied',
+  //             },
+  //           },
+  //           upsert: true, // Insert if no matching document
+  //         },
+  //       })
+  //     }
 
-//       // Prepare bulk update operations
-//       bulkOperations.push({
-//         updateOne: {
-//           filter: {
-//             // studentRandomId: row.StudentID,
-//             accountNumber,
-//             month: month,
-//             year: Number(year),
-//             paymentType,
+  //     if (bulkOperations.length > 0) {
+  //       // Perform bulk write
+  //       const result = await Payment.bulkWrite(bulkOperations)
+  //       return res.status(200).json({
+  //         message: `Payment records processed: new records for  ${result.upsertedCount} and modified for ${result.modifiedCount}`,
+  //         insertedCount: result.upsertedCount,
+  //         modifiedCount: result.modifiedCount,
+  //       })
+  //     } else {
+  //       return res
+  //         .status(400)
+  //         .json({ message: 'No valid payment records to process.' })
+  //     }
+  //   }
+  try {
+    const { userID } = req.user
+    const { month, year, paymentType } = req.body
 
-//             amount: Number(row.Amount),
-//           },
-//           update: {
-//             $set: {
-//               fullName: row?.Customer || '',
-//               amount: Number(row?.Amount) || 0,
-//               paymentDate: row['Date'],
-//               paymentType: paymentType,
-//               paymentStatus: row?.Status || 'Not paid',
-//               bankName: row?.BankName || '',
-//               accountNumber,
-//               firstname: student?.firstname || '',
-//               middlename: student?.middlename || '',
-//               surname: student?.surname || '',
-//               schoolId: student?.schoolId || '',
-//               LGA: student?.lgaOfEnrollment || '',
-//               presentClass: student?.presentClass || '',
-//               verificationStatus: student?.verificationStatus
-//                 ? 'Verified'
-//                 : 'Not Verifiied',
-//             },
-//           },
-//           upsert: true, // Insert if no matching document
-//         },
-//       })
-//     }
+    if (!req.parsedData || !req.parsedData.length) {
+      return res.status(400).json({ message: 'No data found to process.' })
+    }
 
-//     if (bulkOperations.length > 0) {
-//       // Perform bulk write
-//       const result = await Payment.bulkWrite(bulkOperations)
-//       return res.status(200).json({
-//         message: `Payment records processed: new records for  ${result.upsertedCount} and modified for ${result.modifiedCount}`,
-//         insertedCount: result.upsertedCount,
-//         modifiedCount: result.modifiedCount,
-//       })
-//     } else {
-//       return res
-//         .status(400)
-//         .json({ message: 'No valid payment records to process.' })
-//     }
-//   } 
-   try {
-     const { userID } = req.user
-     const { month, year, paymentType } = req.body
+    // 🔹 Step 1: Extract all account numbers
+    const accountNumbers = req.parsedData.map((row) => {
+      const custId = row['Cust ID']
+      return String(custId).length === 8 ? `00${custId}` : String(custId)
+    })
 
-     if (!req.parsedData || !req.parsedData.length) {
-       return res.status(400).json({ message: 'No data found to process.' })
-     }
+    // 🔹 Step 2: Fetch all students in a single query
+    const students = await Student.find({
+      accountNumber: { $in: accountNumbers },
+    }).lean()
 
-     // 🔹 Step 1: Extract all account numbers
-     const accountNumbers = req.parsedData.map((row) => {
-       const custId = row['Cust ID']
-       return String(custId).length === 8 ? `00${custId}` : String(custId)
-     })
+    // 🔹 Step 3: Create a lookup map for O(1) access
+    const studentMap = new Map(students.map((s) => [s.accountNumber, s]))
 
-     // 🔹 Step 2: Fetch all students in a single query
-     const students = await Student.find({
-       accountNumber: { $in: accountNumbers },
-     }).lean()
+    // 🔹 Step 4: Chunk the data to avoid overwhelming Mongo
+    const chunkSize = 500
+    let totalUpserts = 0
+    let totalModified = 0
 
-     // 🔹 Step 3: Create a lookup map for O(1) access
-     const studentMap = new Map(students.map((s) => [s.accountNumber, s]))
+    for (let i = 0; i < req.parsedData.length; i += chunkSize) {
+      const chunk = req.parsedData.slice(i, i + chunkSize)
+      const bulkOps = []
 
-     // 🔹 Step 4: Chunk the data to avoid overwhelming Mongo
-     const chunkSize = 500
-     let totalUpserts = 0
-     let totalModified = 0
+      for (const row of chunk) {
+        const accountNumber =
+          String(row['Cust ID']).length === 8
+            ? `00${row['Cust ID']}`
+            : String(row['Cust ID']) || ''
 
-     for (let i = 0; i < req.parsedData.length; i += chunkSize) {
-       const chunk = req.parsedData.slice(i, i + chunkSize)
-       const bulkOps = []
+        const student = studentMap.get(String(accountNumber)) || {}
 
-       for (const row of chunk) {
-         const accountNumber =
-           String(row['Cust ID']).length === 8
-             ? `00${row['Cust ID']}`
-             : String(row['Cust ID']) || ''
+        //  console.log(student)
 
-         const student = studentMap.get(accountNumber) || {}
+        bulkOps.push({
+          updateOne: {
+            filter: {
+              accountNumber,
+              month: Number(month),
+              year: Number(year),
+              paymentType,
+            },
+            update: {
+              $set: {
+                fullName: row?.Customer || '',
+                amount: Number(row?.Amount) || 0,
+                paymentDate: row['Date'] || null,
+                paymentType,
+                paymentStatus: row?.Status || 'Not paid',
+                bankName: row?.BankName || '',
+                accountNumber,
+                firstname: student?.firstname || '',
+                middlename: student?.middlename || '',
+                surname: student?.surname || '',
+                schoolId: student?.schoolId || '',
+                LGA: student?.lgaOfEnrollment || '',
+                presentClass: student?.presentClass || '',
+                month: Number(month),
+                year: Number(year),
+                verificationStatus: student?.verificationStatus || false,
 
-         bulkOps.push({
-           updateOne: {
-             filter: {
-               accountNumber,
-               month,
-               year: Number(year),
-               paymentType,
-             },
-             update: {
-               $set: {
-                 fullName: row?.Customer || '',
-                 amount: Number(row?.Amount) || 0,
-                 paymentDate: row['Date'] || null,
-                 paymentType,
-                 paymentStatus: row?.Status || 'Not paid',
-                 bankName: row?.BankName || '',
-                 accountNumber,
-                 firstname: student?.firstname || '',
-                 middlename: student?.middlename || '',
-                 surname: student?.surname || '',
-                 schoolId: student?.schoolId || '',
-                 LGA: student?.lgaOfEnrollment || '',
-                 presentClass: student?.presentClass || '',
-                 verificationStatus: student?.verificationStatus
-                   ? 'Verified'
-                   : 'Not Verified',
-                 enumeratorId: userID,
-               },
-             },
-             upsert: true,
-           },
-         })
-       }
+                enumeratorId: userID,
+              },
+            },
+            upsert: true,
+          },
+        })
+      }
 
-       if (bulkOps.length > 0) {
-         const result = await Payment.bulkWrite(bulkOps, { ordered: false })
-         totalUpserts += result.upsertedCount || 0
-         totalModified += result.modifiedCount || 0
-        //  console.log(
-        //    `Processed chunk ${i / chunkSize + 1}: inserted ${
-        //      result.upsertedCount
-        //    }, modified ${result.modifiedCount}`
-        //  )
-       }
-     }
+      if (bulkOps.length > 0) {
+        const result = await Payment.bulkWrite(bulkOps, { ordered: false })
+        totalUpserts += result.upsertedCount || 0
+        totalModified += result.modifiedCount || 0
+        console.log(
+          `Processed chunk ${i / chunkSize + 1}: inserted ${
+            result.upsertedCount
+          }, modified ${result.modifiedCount}`
+        )
+      }
+    }
 
-     return res.status(200).json({
-       message: `Payment records processed: new records for  ${totalUpserts} and modified for ${totalModified}`,
-     })
-   } catch (error) {
-     return next(error)
-   }
+    return res.status(200).json({
+      message: `Payment records processed: new records for  ${totalUpserts} and modified for ${totalModified}`,
+    })
+  } catch (error) {
+    return next(error)
+  }
 }
 
 export const createStudent = async (req, res, next) => {

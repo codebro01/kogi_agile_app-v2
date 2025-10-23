@@ -429,6 +429,9 @@ export const ViewPaymentsRecords = () => {
     },
   }
 
+
+  console.log(paymentsData)
+
   const columns = [
     {
       name: 'S/N',
@@ -518,7 +521,7 @@ export const ViewPaymentsRecords = () => {
     },
     {
       name: 'Verification Status',
-      selector: (row) => row.verificationStatus,
+      selector: (row) => row.verificationStatus ? "Verified" : "Not Verified",
       sortable: true,
     },
     // {

@@ -1,6 +1,6 @@
 import { getDefaultResultOrder } from 'dns'
 import { Attendance } from '../models/attendanceSchema.js'
-import { Payment, Student} from '../models/index.js';
+import { Payment, Student } from '../models/index.js'
 
 export const getTotalAmountPaid = async (req, res, next) => {
   try {
@@ -31,11 +31,11 @@ export const getTotalAmountPaid = async (req, res, next) => {
           totalAmountDisbursed: 1, // Returning the total amount
         },
       },
-    ]);
+    ])
 
     res
       .status(200)
-      .json({totalAmountDisbursed: totalAmount[0].totalAmountDisbursed})
+      .json({ totalAmountDisbursed: totalAmount[0].totalAmountDisbursed })
   } catch (error) {
     console.error('Error fetching total amount paid:', error)
     res.status(500).json({ message: 'Error fetching total amount paid' })
@@ -78,69 +78,68 @@ export const getLGAWithTotalPayments = async (req, res, next) => {
   }
 }
 
-
 export const viewPayments = async (req, res, next) => {
-   try {
-     const {
-       page,
-       limit,
-       year,
-       month,
-       paymentStatus,
-       LGA,
-       ward,
-       schoolName,
-       totalAttendanceScore,
-       bankName,
-       presentClass,
-       amount,
-       paymentType,
-       dateFrom,
-       dateTo,
-       download
-     } = req.query
+  try {
+    const {
+      page,
+      limit,
+      year,
+      month,
+      paymentStatus,
+      LGA,
+      ward,
+      schoolName,
+      totalAttendanceScore,
+      bankName,
+      presentClass,
+      amount,
+      paymentType,
+      dateFrom,
+      dateTo,
+      download,
+    } = req.query
 
-     // Build the match stage with filters
-     const matchStage = {}
-     if (year) matchStage.year = parseInt(year) // Filter by year
-     if (month) matchStage.month = parseInt(month) // Filter by month
-     if (paymentStatus) matchStage.paymentStatus = paymentStatus // Filter by payment status
-     if (totalAttendanceScore)
-       matchStage.totalAttendanceScore = parseInt(totalAttendanceScore) // Filter by total attendance score
-     if (bankName) matchStage.bankName = bankName // Filter by bank name
-     if (paymentType) matchStage.paymentType = paymentType // Filter by payment type
-     if (LGA) matchStage.LGA = LGA // Filter by LGA
-     if (ward) matchStage.ward = ward // Filter by ward
-     if (schoolName) matchStage.schoolName = schoolName // Filter by school name
-     if (presentClass) matchStage.class = presentClass // Filter by class
-     if (amount) matchStage.amount = parseInt(amount) // Filter by amount
-     // Handle date range filters
-     if (dateFrom || dateTo) {
-       matchStage.createdAt = {}
-       if (dateFrom) {
-         const fromDate = new Date(dateFrom)
-         if (isNaN(fromDate)) {
-           return next(new BadRequestError('Invalid dateFrom format'))
-         }
-         matchStage.createdAt.$gte = fromDate
-       }
-       if (dateTo) {
-         const toDate = new Date(new Date(dateTo).setHours(23, 59, 59, 999))
-         if (isNaN(toDate)) {
-           return next(new BadRequestError('Invalid dateTo format'))
-         }
-         matchStage.createdAt.$lte = toDate
-       }
-     }
+    // Build the match stage with filters
+    const matchStage = {}
+    if (year) matchStage.year = parseInt(year) // Filter by year
+    if (month) matchStage.month = parseInt(month) // Filter by month
+    if (paymentStatus) matchStage.paymentStatus = paymentStatus // Filter by payment status
+    if (totalAttendanceScore)
+      matchStage.totalAttendanceScore = parseInt(totalAttendanceScore) // Filter by total attendance score
+    if (bankName) matchStage.bankName = bankName // Filter by bank name
+    if (paymentType) matchStage.paymentType = paymentType // Filter by payment type
+    if (LGA) matchStage.LGA = LGA // Filter by LGA
+    if (ward) matchStage.ward = ward // Filter by ward
+    if (schoolName) matchStage.schoolName = schoolName // Filter by school name
+    if (presentClass) matchStage.class = presentClass // Filter by class
+    if (amount) matchStage.amount = parseInt(amount) // Filter by amount
+    // Handle date range filters
+    if (dateFrom || dateTo) {
+      matchStage.createdAt = {}
+      if (dateFrom) {
+        const fromDate = new Date(dateFrom)
+        if (isNaN(fromDate)) {
+          return next(new BadRequestError('Invalid dateFrom format'))
+        }
+        matchStage.createdAt.$gte = fromDate
+      }
+      if (dateTo) {
+        const toDate = new Date(new Date(dateTo).setHours(23, 59, 59, 999))
+        if (isNaN(toDate)) {
+          return next(new BadRequestError('Invalid dateTo format'))
+        }
+        matchStage.createdAt.$lte = toDate
+      }
+    }
 
-     const pageNumber = parseInt(page, 10) || 1
-     const limitNumber = parseInt(limit, 10) || 200
+    const pageNumber = parseInt(page, 10) || 1
+    const limitNumber = parseInt(limit, 10) || 200
 
-     let pipeline;
+    let pipeline
 
-     // Build the aggregation pipeline
-   if(download) {
-       pipeline = [
+    // Build the aggregation pipeline
+    if (download) {
+      pipeline = [
         { $match: matchStage },
 
         // Join school name from School collection (optional if you have that collection)
@@ -180,9 +179,9 @@ export const viewPayments = async (req, res, next) => {
             _id: 0,
             'Serial No': '$serialNumber',
             'School Name': '$schoolInfo.schoolName',
-            'Surname': '$surname',
-            'Firstname': '$firstname',
-            'Middlename': '$middlename',
+            Surname: '$surname',
+            Firstname: '$firstname',
+            Middlename: '$middlename',
             'Present Class': '$presentClass',
             'Account Number': '$accountNumber',
             'Amount Paid': '$amount',
@@ -192,9 +191,8 @@ export const viewPayments = async (req, res, next) => {
           },
         },
       ]
-
-   } else {
-       pipeline = [
+    } else {
+      pipeline = [
         { $match: matchStage }, // Match stage
         {
           $project: {
@@ -228,40 +226,38 @@ export const viewPayments = async (req, res, next) => {
           },
         },
       ]
-   }
+    }
 
-     const result = await Payment.aggregate(pipeline).collation({
-       locale: 'en',
-       strength: 2,
-     })
+    const result = await Payment.aggregate(pipeline).collation({
+      locale: 'en',
+      strength: 2,
+    })
 
-     console.log(result)
+    // console.log(result)
 
+    let metadata
+    let data
+    let amountSum
 
+    if (download) {
+      data = result
+    } else {
+      metadata = result[0]?.metadata[0] || { totalPayments: 0 }
+      data = result[0]?.data || []
+      amountSum = result[0]?.totalAmount || 0
+    }
 
-     let metadata;
-     let data;
-     let amountSum;
-
-     if(download) {
-            data = result
-     } else {
-       metadata = result[0]?.metadata[0] || { totalPayments: 0 }
-       data = result[0]?.data || []
-       amountSum = result[0]?.totalAmount || 0
-     }
-
-     return res.status(200).json({
-       getAllPaymentsRecords: data,
-       totalPayments:download ? null : metadata.totalPayments,
-       amountSum: download ? null : amountSum,
-     })
-   } catch (error) {
-     console.error('Error fetching payments:', error)
-     return res
-       .status(500)
-       .json({ message: 'An error occurred while fetching payments' })
-   }
+    return res.status(200).json({
+      getAllPaymentsRecords: data,
+      totalPayments: download ? null : metadata.totalPayments,
+      amountSum: download ? null : amountSum,
+    })
+  } catch (error) {
+    console.error('Error fetching payments:', error)
+    return res
+      .status(500)
+      .json({ message: 'An error occurred while fetching payments' })
+  }
 }
 
 export const getTotalStudentsPaidMonthly = async (req, res, next) => {
@@ -355,7 +351,7 @@ export const getPaymentsByLGA = async (req, res, next) => {
     ]
 
     const paymentByLGA = await Payment.aggregate(pipeline)
-      // console.log('done aggregation:', paymentByLGA)
+    // console.log('done aggregation:', paymentByLGA)
     res.status(200).json({ paymentByLGA })
   } catch (error) {
     console.error('Error fetching payments by LGA:', error)
@@ -386,14 +382,13 @@ export const getTotalStudentPaid = async (req, res, next) => {
     //   },
     // ]
 
-
     const pipeline = [
       {
         $group: {
           _id: '$accountNumber',
           totalStudentPaid: {
-            $sum:1
-          }
+            $sum: 1,
+          },
         },
       },
     ]
@@ -408,47 +403,46 @@ export const getTotalStudentPaid = async (req, res, next) => {
   }
 }
 
-
 export const mergeStudentsDataIntoPayments = async (req, res, next) => {
   // console.log('🔥Payment Started')
 
- try {
-   const cursor = Student.find().lean().cursor()
-   const bulkOps = []
-   const batchSize = 1000
+  try {
+    const cursor = Student.find().lean().cursor()
+    const bulkOps = []
+    const batchSize = 1000
 
-   for await (const student of cursor) {
-     bulkOps.push({
-       updateOne: {
-         filter: { accountNumber: student.accountNumber },
-         update: {
-           $set: {
-             firstname: student.firstname,
-             surname: student.surname,
-             middlename: student.middleName,
-             presentClass: student.presentClass,
-             LGA: student.lgaOfEnrollment,
-             ward: student.ward,
-             schoolId: student.schoolId,
-           },
-         },
-       },
-     })
+    for await (const student of cursor) {
+      bulkOps.push({
+        updateOne: {
+          filter: { accountNumber: student.accountNumber },
+          update: {
+            $set: {
+              firstname: student.firstname,
+              surname: student.surname,
+              middlename: student.middleName,
+              presentClass: student.presentClass,
+              LGA: student.lgaOfEnrollment,
+              ward: student.ward,
+              schoolId: student.schoolId,
+            },
+          },
+        },
+      })
 
-     if (bulkOps.length === batchSize) {
-       await Payment.bulkWrite(bulkOps, { ordered: false })
-       bulkOps.length = 0
-     }
-   }
+      if (bulkOps.length === batchSize) {
+        await Payment.bulkWrite(bulkOps, { ordered: false })
+        bulkOps.length = 0
+      }
+    }
 
-   if (bulkOps.length > 0) {
-     await Payment.bulkWrite(bulkOps, { ordered: false })
-   }
+    if (bulkOps.length > 0) {
+      await Payment.bulkWrite(bulkOps, { ordered: false })
+    }
 
-   res
-     .status(200)
-     .json({ message: 'Students information merged successfully!' })
- } catch (error) {
-   return next(error)
- }
+    res
+      .status(200)
+      .json({ message: 'Students information merged successfully!' })
+  } catch (error) {
+    return next(error)
+  }
 }

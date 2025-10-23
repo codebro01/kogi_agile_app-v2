@@ -47,7 +47,7 @@ const PaymentSchema = new Schema(
 
     month: {
       type: Number,
-      requireed: true,
+      required: true,
     },
     year: {
       type: Number,
