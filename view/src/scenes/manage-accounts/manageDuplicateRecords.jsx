@@ -250,7 +250,7 @@ export const ManageDuplicateRecords = () => {
     fetchDuplicate()
   }, [])
 
-  console.log(selectedStudents)
+  // console.log(selectedStudents)
 
   return (
     <Box

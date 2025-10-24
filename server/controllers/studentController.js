@@ -2053,12 +2053,12 @@ export const deleteManyStudents = async (req, res, next) => {
 export const restoreSelectedStudents = async (req, res, next) => {
   let session
   try {
-    console.log(req.query)
     session = await mongoose.startSession()
     session.startTransaction()
-
+    
     const { ids } = req.query
     const selectedStudents = ids?.split(',').map((id) => id.trim())
+    console.log(selectedStudents)
 
     if (!selectedStudents?.length) {
       await session.abortTransaction()
@@ -2068,11 +2068,13 @@ export const restoreSelectedStudents = async (req, res, next) => {
         .json({ message: 'No students selected for deletion.' })
     }
 
-    const students = await Student.find(
+    const students = await DeletedStudents.find(
       { randomId: { $in: selectedStudents } },
       null,
       { session }
     )
+
+
 
     if (!students.length) {
       await session.abortTransaction()
@@ -2085,11 +2087,12 @@ export const restoreSelectedStudents = async (req, res, next) => {
       deletedAt: new Date(),
     }))
 
+// console.log(recycleBinData)
     // Insert into DeletedStudents (within the same transaction)
-    await DeletedStudents.insertMany(recycleBinData, { session })
+    await Student.insertMany(recycleBinData, { session })
 
     // Delete from Students collection
-    const deletedStudents = await Student.deleteMany(
+    const deletedStudents = await DeletedStudents.deleteMany(
       { randomId: { $in: selectedStudents } },
       { session }
     )
@@ -2105,7 +2108,7 @@ export const restoreSelectedStudents = async (req, res, next) => {
     session.endSession()
 
     res.status(StatusCodes.OK).json({
-      message: `${deletedStudents.deletedCount} students moved to recycle bin successfully.`,
+      message: `${deletedStudents.deletedCount} students restored successfully.`,
     })
   } catch (error) {
     // Roll back in case of error
@@ -2153,6 +2156,8 @@ export const updateStudent = async (req, res, next) => {
     if (req.file && req.uploadedImage) {
       const { secure_url } = req.uploadedImage
 
+      // console.log(secure_url)
+
       updatedStudent = await Student.findByIdAndUpdate(
         { _id: id },
         { ...req.body, passport: secure_url },
@@ -2166,7 +2171,7 @@ export const updateStudent = async (req, res, next) => {
       )
     }
 
-    return res.status(StatusCodes.OK).json({ updatedStudent }) // Ensure response is sent only once
+     res.status(StatusCodes.OK).json({ updatedStudent }) // Ensure response is sent only once
   } catch (error) {
     console.error('Error occurred:', error)
     return next(error) // Pass errors to the error handler

@@ -48,7 +48,7 @@ export const cloudinaryImageUploader = async (req, res, next, cloudinaryFolder) 
 
         const result = await uploadToCloudinary(image.buffer);
 
-
+        //  console.log('result, successfully uploaded in cloudinary', result)
         // Attach Cloudinary result to the request
         req.uploadedImage = result;
 

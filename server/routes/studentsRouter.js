@@ -64,6 +64,7 @@ router.route('/:id').patch(
   upload.single('image'),
   async (req, res, next) => {
     if (req.file) {
+      // console.log('req.file', req.file)
       await cloudinaryImageUploader(req, res, next, 'student_passport')
     }
     next()

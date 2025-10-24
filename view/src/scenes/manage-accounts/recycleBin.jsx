@@ -39,6 +39,7 @@ console.log(`${API_URL}/students/fetch/recycle-bin-data`)
 
 console.log('selectedStudents', selectedStudents)
   const handleRestore = async () => {
+    console.log('entered restore')
      try {
        const confirmDelete = window.confirm(`Are you sure you want to restore ${selectedStudents.length} students `)
        if (!confirmDelete) return;
@@ -82,7 +83,6 @@ console.log('selectedStudents', selectedStudents)
 
     const handleSelectedStudentsChange = ({ selectedRows }) => {
       setSelectedStudents(selectedRows)
-      // console.log('Selected Rows:', selectedStudents)
     }
 
   const customStyles = {
@@ -184,7 +184,7 @@ console.log('selectedStudents', selectedStudents)
         fontWeight:"600"
       }}>Recycle Bin</Typography>
 
-      {selectedStudents.length > 0 && <Button variant = {'contained'} marginLeft ={2} onclick = {handleRestore}>
+      {selectedStudents.length > 0 && <Button variant = {'contained'} marginLeft ={2} onClick = {handleRestore}>
           Restore
       </Button>}
 

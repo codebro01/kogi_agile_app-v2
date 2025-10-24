@@ -25,7 +25,7 @@ const StudentSchema = new mongoose.Schema(
     },
     firstname: {
       type: String,
-      required: [true, 'Firstname cannnot be empty'],
+      // required: [true, 'Firstname cannnot be empty'],
     },
     middlename: {
       type: String,
