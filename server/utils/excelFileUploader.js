@@ -59,7 +59,6 @@ export const XLSXUploader = (req, res, next) => {
   }
 }
 
-
 export const XLSXUploaderAccountDetails = (req, res, next) => {
   try {
     const file = req.file
@@ -82,7 +81,7 @@ export const XLSXUploaderAccountDetails = (req, res, next) => {
     // Read the Excel file
     const workbook = XLSX.readFile(filePath)
 
-    // Convert the first sheet to JSON
+    // Convert the first sheet to +JSON
     const sheetName = workbook.SheetNames[0]
     let sheetData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], {
       header: 1,
@@ -104,12 +103,12 @@ export const XLSXUploaderAccountDetails = (req, res, next) => {
     })
 
     req.parsedData = data
-    
+
     fs.unlink(filePath, (err) => {
       if (err) return next(err)
-      })
-      // console.log(req.parsedData)
-      // return;
+    })
+    // console.log(req.parsedData)
+    // return;
 
     next()
   } catch (error) {
@@ -145,7 +144,6 @@ export const XLSXUploaderPaymentInformation = (req, res, next) => {
     let sheetData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], {
       header: 1,
     }) // Read as 2D array
-
 
     // Remove the first column from each row
     sheetData = sheetData.map((row) => row.slice(1))

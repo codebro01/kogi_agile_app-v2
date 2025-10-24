@@ -250,6 +250,8 @@ export const ManageDuplicateRecords = () => {
     fetchDuplicate()
   }, [])
 
+  console.log(selectedStudents)
+
   return (
     <Box
       sx={{
@@ -353,6 +355,7 @@ export const ManageDuplicateRecords = () => {
                     <TableCell style={{ fontWeight: 'bold' }}>
                       Verification Status
                     </TableCell>
+                    <TableCell style={{ fontWeight: 'bold' }}>Cohort</TableCell>
                     <TableCell style={{ fontWeight: 'bold' }}>
                       School Name
                     </TableCell>
@@ -414,7 +417,10 @@ export const ManageDuplicateRecords = () => {
                         <TableCell>{similarStudent.surname}</TableCell>
                         <TableCell>{similarStudent.firstname}</TableCell>
                         <TableCell>{similarStudent.middlename}</TableCell>
-                        <TableCell>{similarStudent.verificationStatus ? 'True' : 'False'}</TableCell>
+                        <TableCell>
+                          {similarStudent.verificationStatus ? 'True' : 'False'}
+                        </TableCell>
+                        <TableCell>{similarStudent.cohort}</TableCell>
                         <TableCell>
                           {similarStudent.schoolName || 'N/A'}
                         </TableCell>{' '}

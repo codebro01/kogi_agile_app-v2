@@ -599,7 +599,7 @@ export const ViewPaymentsRecords = () => {
             View & Export Payments Records
           </Typography>
 
-          <Box
+          {/* <Box
             sx={{
               display: 'flex',
               justifyContent: 'center',
@@ -618,7 +618,7 @@ export const ViewPaymentsRecords = () => {
               Click to Merge Students Information into the Payment Table{' '}
               {mergingStudents && <CircularProgress size={20} />}
             </Button>
-          </Box>
+          </Box> */}
 
           {/* Filter Form */}
           {

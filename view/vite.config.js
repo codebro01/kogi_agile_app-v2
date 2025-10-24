@@ -5,6 +5,9 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 3000, // Customize as needed
-    host: true
+    host: true,
+    watch: {
+      ignored: ['**/server/**'], // 🚫 ignore server folder
+    },
   },
-});
+})
