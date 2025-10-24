@@ -58,6 +58,8 @@ import {
   SyncStudentsVerification,
   getSchoolsByStudentsRegistered,
   getLgasByStudentsRegistered,
+  restoreSelectedStudents,
+  studentRecycleBinData,
 } from './studentController.js'
 import {
   getSinglePayrollSpecialist,
@@ -173,4 +175,6 @@ export {
   getSchoolsByStudentsRegistered,
   getLgasByStudentsRegistered,
   mergeStudentsDataIntoPayments,
+  restoreSelectedStudents,
+  studentRecycleBinData,
 }

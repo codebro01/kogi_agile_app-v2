@@ -14,7 +14,7 @@ import {
   Autocomplete,
   Fade,
   CircularProgress,
-  IconButton
+  IconButton,
 } from '@mui/material'
 
 // import { StudentsContext } from '../../components/dataContext'
@@ -135,8 +135,7 @@ export const AdminViewAllStudentsDataNoExport = () => {
     dispatch(fetchSchools({ schoolType: '', lgaOfEnrollment: '' }))
   }, [dispatch])
 
-    const [message, setMessage] = useState('')
-
+  const [message, setMessage] = useState('')
 
   useEffect(() => {
     dispatch(
@@ -176,10 +175,9 @@ export const AdminViewAllStudentsDataNoExport = () => {
   const API_URL = `${import.meta.env.VITE_API_URL}/api/v1`
   const token = localStorage.getItem('token') || ''
   useEffect(() => {
-  
     if (message) setBulkDemotionSnackbarOpen(true)
   }, [message])
-console.log(message)
+  console.log(message)
 
   useEffect(() => {
     if (schools && schools.length > 0) {
@@ -598,13 +596,12 @@ console.log(message)
           withCredentials: true,
         }
       )
-      setMessage(response.data.message);
+      setMessage(response.data.message)
       setTimeout(() => setMessage(''), 10000)
     } catch (err) {
       console.error(err)
       setMessage(err?.response?.data?.message)
-            setTimeout(() => setMessage(''), 10000)
-
+      setTimeout(() => setMessage(''), 10000)
     }
   }
   const handleSingleDemotion = async (row) => {
@@ -634,13 +631,11 @@ console.log(message)
         }
       )
       setMessage(response.data.message)
-            setTimeout(() => setMessage(''), 10000)
-
+      setTimeout(() => setMessage(''), 10000)
     } catch (err) {
       console.error(err)
       setMessage(err?.response?.data?.message)
-            setTimeout(() => setMessage(''), 10000)
-
+      setTimeout(() => setMessage(''), 10000)
     }
   }
   const handleBulkdemotion = async (presentClass) => {
@@ -662,14 +657,13 @@ console.log(message)
         }
       )
       setMessage(resp.data.message)
-            setTimeout(() => setMessage(''), 10000)
+      setTimeout(() => setMessage(''), 10000)
 
       // console.log(resp.data.message)
     } catch (err) {
       console.error(err)
       setMessage(err?.response?.data?.message)
-            setTimeout(() => setMessage(''), 10000)
-
+      setTimeout(() => setMessage(''), 10000)
     }
   }
   const handleBulkPromotion = async (presentClass) => {
@@ -692,15 +686,13 @@ console.log(message)
         }
       )
       setMessage(resp2.data.message)
-            setTimeout(() => setMessage(''), 10000)
+      setTimeout(() => setMessage(''), 10000)
 
-            // console.log(resp2.data.message)
-
+      // console.log(resp2.data.message)
     } catch (err) {
       console.error(err)
       setMessage(err?.response?.data?.message)
-            setTimeout(() => setMessage(''), 10000)
-
+      setTimeout(() => setMessage(''), 10000)
     }
   }
 
@@ -1894,8 +1886,8 @@ console.log(message)
                 position: 'fixed',
                 bottom: '20px',
                 left: {
-                  xs: "120px", 
-                  md: '240px'
+                  xs: '120px',
+                  md: '240px',
                 },
                 background: '#196b57',
                 color: '#fff',
@@ -1913,10 +1905,13 @@ console.log(message)
               >
                 {message}
               </Typography>
-              <IconButton onClick={() => setMessage('')} sx = {{
-                color: "#fff"
-              }}>
-                <CloseIcon  />
+              <IconButton
+                onClick={() => setMessage('')}
+                sx={{
+                  color: '#fff',
+                }}
+              >
+                <CloseIcon />
               </IconButton>
             </Box>
           )}

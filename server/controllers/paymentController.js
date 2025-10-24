@@ -1,6 +1,7 @@
 import { getDefaultResultOrder } from 'dns'
 import { Attendance } from '../models/attendanceSchema.js'
 import { Payment, Student } from '../models/index.js'
+import mongoose from 'mongoose'
 
 export const getTotalAmountPaid = async (req, res, next) => {
   try {
@@ -88,7 +89,7 @@ export const viewPayments = async (req, res, next) => {
       paymentStatus,
       LGA,
       ward,
-      schoolName,
+      schoolId,
       totalAttendanceScore,
       bankName,
       presentClass,
@@ -110,8 +111,10 @@ export const viewPayments = async (req, res, next) => {
     if (paymentType) matchStage.paymentType = paymentType // Filter by payment type
     if (LGA) matchStage.LGA = LGA // Filter by LGA
     if (ward) matchStage.ward = ward // Filter by ward
-    if (schoolName) matchStage.schoolName = schoolName // Filter by school name
-    if (presentClass) matchStage.class = presentClass // Filter by class
+    if (schoolId && mongoose.Types.ObjectId.isValid(schoolId)) {
+      matchStage.schoolId = new mongoose.Types.ObjectId(schoolId)
+    }
+    if (presentClass) matchStage.presentClass = presentClass // Filter by class
     if (amount) matchStage.amount = parseInt(amount) // Filter by amount
     // Handle date range filters
     if (dateFrom || dateTo) {
@@ -136,7 +139,7 @@ export const viewPayments = async (req, res, next) => {
     const limitNumber = parseInt(limit, 10) || 200
 
     let pipeline
-
+    console.log(matchStage)
     // Build the aggregation pipeline
     if (download) {
       pipeline = [

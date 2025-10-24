@@ -6,6 +6,7 @@ import {
   Attendance,
   Verification,
   Payment,
+  DeletedStudents,
 } from '../models/index.js'
 import { StatusCodes } from 'http-status-codes'
 import {
@@ -1937,48 +1938,196 @@ export const createStudent = async (req, res, next) => {
 }
 
 export const deleteStudent = async (req, res, next) => {
-  try {
-    const { id } = req.params
-    const student = await Student.findOne({ randomId: id })
+let session;
+try {
+   session = await mongoose.startSession()
+  session.startTransaction()
 
-    if (!student)
-      return next(new NotFoundError('There is no student with id: ' + id))
+  const { id } = req.params
 
-    const deletedStudent = await Student.findOneAndDelete({ randomId: id })
+  // Find the student within the session
+  const student = await Student.findOne({ randomId: id }).session(session)
 
-    if (!deletedStudent)
-      return next(new Error('An Error occurred while trying to delete student'))
-    console.log('student deleted')
-    res.status(StatusCodes.OK).json({ message: 'student deleted' })
-  } catch (error) {
-    return next(error)
+  if (!student) {
+    await session.abortTransaction()
+    session.endSession()
+    return next(new NotFoundError(`There is no student with id: ${id}`))
   }
+
+  const studentObj = student.toObject()
+
+  // Save to recycle bin within the same transaction
+  await DeletedStudents.create([{ ...studentObj, deletedAt: new Date() }], {
+    session,
+  })
+
+  // Delete the student within the same transaction
+  const deletedStudent = await Student.findOneAndDelete({
+    randomId: id,
+  }).session(session)
+
+  if (!deletedStudent) {
+    throw new Error('An error occurred while trying to delete student')
+  }
+
+  await session.commitTransaction()
+  session.endSession()
+
+  console.log('Student deleted and moved to recycle bin')
+  res.status(StatusCodes.OK).json({ message: 'Student deleted successfully' })
+} catch (error) {
+  if (session) {
+    await session.abortTransaction()
+    session.endSession()
+  }
+  next(error)
+}
+
 }
 
 export const deleteManyStudents = async (req, res, next) => {
+let session;
   try {
-    const { ids } = req.query // Access the query parameter
-    const selectedStudents = ids.split(',') // Convert to array
+   session = await mongoose.startSession()
+  session.startTransaction()
 
-    if (!selectedStudents || !selectedStudents.length) {
+  const { ids } = req.query
+  const selectedStudents = ids?.split(',').map((id) => id.trim())
+
+  if (!selectedStudents?.length) {
+    await session.abortTransaction()
+    session.endSession()
+    return res
+      .status(StatusCodes.BAD_REQUEST)
+      .json({ message: 'No students selected for deletion.' })
+  }
+
+  const students = await Student.find(
+    { randomId: { $in: selectedStudents } },
+    null,
+    { session }
+  )
+
+  if (!students.length) {
+    await session.abortTransaction()
+    session.endSession()
+    return next(new NotFoundError('No matching students found.'))
+  }
+
+  const recycleBinData = students.map((student) => ({
+    ...student.toObject(),
+    deletedAt: new Date(),
+  }))
+
+  // Insert into DeletedStudents (within the same transaction)
+  await DeletedStudents.insertMany(recycleBinData, { session })
+
+  // Delete from Students collection
+  const deletedStudents = await Student.deleteMany(
+    { randomId: { $in: selectedStudents } },
+    { session }
+  )
+
+  if (deletedStudents.deletedCount === 0) {
+    await session.abortTransaction()
+    session.endSession()
+    return next(new Error('No students were deleted.'))
+  }
+
+  // Commit if everything succeeded
+  await session.commitTransaction()
+  session.endSession()
+
+  res.status(StatusCodes.OK).json({
+    message: `${deletedStudents.deletedCount} students moved to recycle bin successfully.`,
+  })
+} catch (error) {
+  // Roll back in case of error
+  if (session) {
+    await session.abortTransaction()
+    session.endSession()
+  }
+  next(error)
+}
+}
+
+export const restoreSelectedStudents = async (req, res , next) => {
+ let session;
+  try {
+
+    console.log(req.query);
+     session = await mongoose.startSession()
+    session.startTransaction()
+
+    const { ids } = req.query
+    const selectedStudents = ids?.split(',').map((id) => id.trim())
+
+    if (!selectedStudents?.length) {
+      await session.abortTransaction()
+      session.endSession()
       return res
         .status(StatusCodes.BAD_REQUEST)
         .json({ message: 'No students selected for deletion.' })
     }
 
-    const deletedStudents = await Student.deleteMany({
-      randomId: { $in: selectedStudents },
-    })
+    const students = await Student.find(
+      { randomId: { $in: selectedStudents } },
+      null,
+      { session }
+    )
 
-    if (deletedStudents.deletedCount === 0) {
-      return next(new NotFoundError('No students found for deletion.'))
+    if (!students.length) {
+      await session.abortTransaction()
+      session.endSession()
+      return next(new NotFoundError('No matching students found.'))
     }
 
+    const recycleBinData = students.map((student) => ({
+      ...student.toObject(),
+      deletedAt: new Date(),
+    }))
+
+    // Insert into DeletedStudents (within the same transaction)
+    await DeletedStudents.insertMany(recycleBinData, { session })
+
+    // Delete from Students collection
+    const deletedStudents = await Student.deleteMany(
+      { randomId: { $in: selectedStudents } },
+      { session }
+    )
+
+    if (deletedStudents.deletedCount === 0) {
+      await session.abortTransaction()
+      session.endSession()
+      return next(new Error('No students were deleted.'))
+    }
+
+    // Commit if everything succeeded
+    await session.commitTransaction()
+    session.endSession()
+
     res.status(StatusCodes.OK).json({
-      message: `${deletedStudents.deletedCount} students deleted successfully.`,
+      message: `${deletedStudents.deletedCount} students moved to recycle bin successfully.`,
     })
   } catch (error) {
+    // Roll back in case of error
+    if (session) {
+      await session.abortTransaction()
+      session.endSession()
+    }
     next(error)
+  }
+}
+
+export const studentRecycleBinData = async (req, res, next) => {
+  try {
+    const students = await DeletedStudents.find().populate('schoolId').lean();
+
+    // console.log(students)
+    res.status(StatusCodes.OK).json({data: students})
+  }
+  catch(err) {
+    return next (err)
   }
 }
 

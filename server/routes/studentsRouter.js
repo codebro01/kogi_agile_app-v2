@@ -28,6 +28,8 @@ import {
   SyncStudentsVerification,
   getSchoolsByStudentsRegistered,
   getLgasByStudentsRegistered,
+  restoreSelectedStudents,
+  studentRecycleBinData,
 } from '../controllers/index.js'
 import {
   authMiddleware,
@@ -223,6 +225,18 @@ router.get(
   authMiddleware,
   authorizePermission(['handle_registrars']),
   getLgasByStudentsRegistered
+)
+router.post(
+  '/restore/recycle-bin-data',
+  authMiddleware,
+  authorizePermission(['handle_admins']),
+  restoreSelectedStudents
+)
+router.get(
+  '/fetch/recycle-bin-data',
+  authMiddleware,
+  authorizePermission(['handle_admins']),
+  studentRecycleBinData
 )
 
 export default router

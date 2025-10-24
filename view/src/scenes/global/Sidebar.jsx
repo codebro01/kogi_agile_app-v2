@@ -8,6 +8,8 @@ import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined'
 import PeopleOutlinedIcon from '@mui/icons-material/PeopleOutlined'
 import DescriptionIcon from '@mui/icons-material/Description' // Sheet icon
 import ContactsOutlinedIcon from '@mui/icons-material/ContactsOutlined'
+import FolderDeleteIcon from '@mui/icons-material/FolderDelete'
+
 // import SchoolIcon from '@mui/icons-material/School'
 import InsertChartOutlinedIcon from '@mui/icons-material/InsertChartOutlined'
 
@@ -433,6 +435,13 @@ const Sidebar = ({ isSidebar }) => {
                     selected={selected}
                     setSelected={setSelected}
                   />
+                  <Item
+                    title="Recycle Bin"
+                    to={'/admin-dashboard/student/restore'}
+                    icon={<FolderDeleteIcon />}
+                    selected={selected}
+                    setSelected={setSelected}
+                  />
                 </>
               </>
             )}
@@ -646,13 +655,13 @@ const Sidebar = ({ isSidebar }) => {
                     selected={selected}
                     setSelected={setSelected}
                   />
-                  <Item
+                  {/* <Item
                     title="Export Attendance"
                     to={'/payroll-specialist-dashboard/update-attendance-sheet'}
                     icon={<DescriptionIcon />}
                     selected={selected}
                     setSelected={setSelected}
-                  />
+                  /> */}
 
                   <Item
                     title="Upload Payments Records"

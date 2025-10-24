@@ -12,6 +12,7 @@ import { AllSchools } from "./schoolsSchema.js";
 import { NewAttendance } from "./newAttendanceSchema.js";
 import { Verifier } from './verifierSchema.js';
 import { Verification } from "./verificationSchema.js";
+import { DeletedStudents } from "./deletedStudentSchema.js";
 
 
 
@@ -30,4 +31,5 @@ export {
   NewAttendance,
   Verifier,
   Verification,
+  DeletedStudents,
 }

@@ -161,6 +161,7 @@ export const ViewPaymentsRecords = () => {
     amount: filters.amount,
     year: filters.year,
     month: filters.month,
+    schoolId: filters.schoolId,
     totalAttendanceScore: filters.totalAttendanceScore,
     dateFrom: filters.dateFrom,
     dateTo: filters.dateTo,
@@ -200,6 +201,8 @@ export const ViewPaymentsRecords = () => {
     { name: 'November', value: 11 },
     { name: 'December', value: 12 },
   ]
+
+  console.log('filtered params', filteredParams)
 
   const fetchAttendance = async () => {
     try {
@@ -430,7 +433,7 @@ export const ViewPaymentsRecords = () => {
   }
 
 
-  console.log(paymentsData)
+  // console.log(paymentsData)
 
   const columns = [
     {
@@ -578,6 +581,9 @@ export const ViewPaymentsRecords = () => {
 
   const uniqueSchools =
     dashboardData?.results?.[0]?.distinctSchoolsDetails || []
+
+    console.log(filters)
+    console.log(uniqueSchools)
   return (
     <>
       {userPermissions.includes('handle_registrars') ||
@@ -646,12 +652,15 @@ export const ViewPaymentsRecords = () => {
                       getOptionLabel={(option) => option.schoolName} // Use schoolName as the label
                       value={
                         uniqueSchools.find(
-                          (school) => school.schoolId === selectedSchoolId
+                          (option) => option.schoolId === filters.schoolId
                         ) || null
                       } // Set the current value
-                      onChange={(event, newValue) =>
-                        setSelectedSchoolId(newValue ? newValue.schoolId : null)
-                      }
+                      onChange={(event, newValue) => {
+                        setFilters((prevFilters) => ({
+                          ...prevFilters,
+                          schoolId: newValue?.schoolId || null,
+                        }))
+                      }}
                       isOptionEqualToValue={(option, value) =>
                         option.schoolId === value.schoolId
                       } // Ensure correct matching
@@ -939,7 +948,7 @@ export const ViewPaymentsRecords = () => {
                     />
                   </Grid>
 
-                  <Grid item xs={12} sm={6} md={4}>
+                  {/* <Grid item xs={12} sm={6} md={4}>
                     <InputLabel id="payment-label" sx={{ marginBottom: 1 }}>
                       Type Attendance Score
                     </InputLabel>
@@ -967,7 +976,7 @@ export const ViewPaymentsRecords = () => {
                         },
                       }}
                     />
-                  </Grid>
+                  </Grid> */}
                   <Grid item xs={12} sm={6} md={4}>
                     <InputLabel id="date-label" sx={{ marginBottom: 1 }}>
                       Start Date
