@@ -147,8 +147,8 @@ const DeletedStudentsSchema = new mongoose.Schema(
     },
     disabilitystatus: {
       type: String,
-      enum: ['Yes', 'No'],
-      default: 'No',
+     // enum: ['Yes', 'No'],
+     // default: 'No',
     },
     NUBAN: {
       type: String,
