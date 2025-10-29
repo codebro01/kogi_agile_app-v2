@@ -43,6 +43,7 @@ import CheckIcon from '@mui/icons-material/Check'
 import EditIcon from '@mui/icons-material/Edit'
 import NoteAddIcon from '@mui/icons-material/NoteAdd'
 import PrintIcon from '@mui/icons-material/Print'
+import PhotoCameraIcon from '@mui/icons-material/PhotoCamera'
 
 import { useAuth } from '../auth/authContext.jsx'
 import {
@@ -431,7 +432,7 @@ const Sidebar = ({ isSidebar }) => {
                   <Item
                     title="Generate Photocard"
                     to={'/admin-dashboard/generate-photocard'}
-                    icon={<PrintIcon />}
+                    icon={<PhotoCameraIcon />}
                     selected={selected}
                     setSelected={setSelected}
                   />
@@ -451,6 +452,13 @@ const Sidebar = ({ isSidebar }) => {
             {userPermissions.includes('handle_registrars') &&
               userPermissions.length === 2 && (
                 <>
+                  <Item
+                    title="Dashboard"
+                    to={'/admin-dashboard'}
+                    icon={<HomeOutlinedIcon />}
+                    selected={selected}
+                    setSelected={setSelected}
+                  />
                   <Item
                     title="Manage Students"
                     to={'/admin-dashboard/view-all-students-data'}
@@ -583,6 +591,14 @@ const Sidebar = ({ isSidebar }) => {
                     setSelected={setSelected}
                   />
 
+                  <Item
+                    title="Generate Photocard"
+                    to={'/admin-dashboard/generate-photocard'}
+                    icon={<PhotoCameraIcon />}
+                    selected={selected}
+                    setSelected={setSelected}
+                  />
+
                   <></>
                 </>
               )}
@@ -645,6 +661,13 @@ const Sidebar = ({ isSidebar }) => {
                     title="Dashboard"
                     to={'/payroll-specialist-dashboard'}
                     icon={<HomeOutlinedIcon />}
+                    selected={selected}
+                    setSelected={setSelected}
+                  />
+                  <Item
+                    title="View all Students"
+                    to={'/payroll-specialist-dashboard/payroll-specialist-view-all-students-no-export'}
+                    icon={<VisibilityIcon />}
                     selected={selected}
                     setSelected={setSelected}
                   />

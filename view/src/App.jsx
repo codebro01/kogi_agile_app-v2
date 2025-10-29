@@ -389,6 +389,11 @@ function App() {
                           path="/payroll-specialist-dashboard"
                           element={<Dashboard />}
                         />
+
+                        <Route
+                          path="/payroll-specialist-dashboard/payroll-specialist-view-all-students-no-export"
+                          element={<AdminViewAllStudentsDataNoExport />}
+                        />
                         {/* <Route
                           path="/export-attendance-sheet/"
                           element={<ExportAttendanceSheetPayroll />}

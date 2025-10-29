@@ -39,6 +39,7 @@ const app = express()
 import { KogiLga } from './models/LgaSchema.js'
 import { Verification } from './models/verificationSchema.js'
 import { Payment } from './models/paymentSchema.js'
+import { ensureIndexes } from './utils/ensureIndexes.js'
 
 // Rate Limiting
 const limiter = rateLimit({
@@ -168,6 +169,8 @@ const startDB = async () => {
     // const allSchools = [...primary, ...secondary];
 
     // await AllSchools.insertMany(allSchools);
+
+    await ensureIndexes()
 
     app.listen(PORT, () => {
       console.log('app connected to port:' + PORT)

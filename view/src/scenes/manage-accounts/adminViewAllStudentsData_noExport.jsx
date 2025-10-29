@@ -822,40 +822,42 @@ export const AdminViewAllStudentsDataNoExport = () => {
           maxWidth="lg"
           sx={{ marginTop: 4, marginBottom: '50px', position: 'relative' }}
         >
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItem: 'center',
-              width: '100px',
-              position: 'fixed',
-              background: 'transparent',
-              zIndex: 999999,
-              right: 50,
-              bottom: 30,
-              gap: '10px',
-            }}
-          >
+          {userPermissions.includes('handle_admins') && (
             <Box
               sx={{
                 display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                padding: '12px',
-                background: 'rgb(194, 186, 186)',
-                cursor: 'pointer',
+                justifyContent: 'space-between',
+                alignItem: 'center',
+                width: '100px',
+                position: 'fixed',
+                background: 'transparent',
+                zIndex: 999999,
+                right: 50,
+                bottom: 30,
+                gap: '10px',
               }}
-              onClick={handleEditManyStudents}
             >
-              <EditIcon />
-            </Box>
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  padding: '12px',
+                  background: 'rgb(194, 186, 186)',
+                  cursor: 'pointer',
+                }}
+                onClick={handleEditManyStudents}
+              >
+                <EditIcon />
+              </Box>
 
-            <DeleteButton
-              onConfirm={handleDeleteManyStudents}
-              itemName="Students Record"
-              selectedRows={selectedStudents}
-            />
-          </Box>
+              <DeleteButton
+                onConfirm={handleDeleteManyStudents}
+                itemName="Students Record"
+                selectedRows={selectedStudents}
+              />
+            </Box>
+          )}
 
           <Typography
             variant="h3"
