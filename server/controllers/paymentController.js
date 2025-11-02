@@ -305,7 +305,6 @@ export const getTotalStudentsPaidMonthly = async (req, res, next) => {
 }
 
 export const getPaymentsByLGA = async (req, res, next) => {
-  await Student.createIndex({ accountNumber: 1 })
 
   try {
     const pipeline = [
