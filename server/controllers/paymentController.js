@@ -182,6 +182,7 @@ export const viewPayments = async (req, res, next) => {
             _id: 0,
             'Serial No': '$serialNumber',
             'School Name': '$schoolInfo.schoolName',
+            'LGA of Enrollment': '$LGA',
             Surname: '$surname',
             Firstname: '$firstname',
             Middlename: '$middlename',

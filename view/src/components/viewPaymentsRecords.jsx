@@ -202,7 +202,6 @@ export const ViewPaymentsRecords = () => {
     { name: 'December', value: 12 },
   ]
 
-  console.log('filtered params', filteredParams)
 
   const fetchAttendance = async () => {
     try {
@@ -582,8 +581,7 @@ export const ViewPaymentsRecords = () => {
   const uniqueSchools =
     dashboardData?.results?.[0]?.distinctSchoolsDetails || []
 
-    console.log(filters)
-    console.log(uniqueSchools)
+  
   return (
     <>
       {userPermissions.includes('handle_registrars') ||
