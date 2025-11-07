@@ -53,6 +53,8 @@ import { EditManyStudents } from './scenes/manage-accounts/EditManyStudents.jsx'
 import { AttendanceSheet } from './scenes/manage-accounts/attendanceSheet.jsx'
 import { UpdateAttendanceSheet } from './scenes/manage-accounts/updateAttendanceSheet.jsx'
 import { RecycleBin } from './scenes/manage-accounts/recycleBin.jsx'
+import { UpdateParentRelationship } from './scenes/manage-accounts/updateParentRelationship'
+
 import {
   VerifyStudent,
   Preselect,
@@ -236,6 +238,10 @@ function App() {
                         <Route
                           path="/admin-dashboard/student/restore"
                           element={<RecycleBin />}
+                        />
+                        <Route
+                          path="/admin-dashboard/update-parent-relationship"
+                          element={<UpdateParentRelationship />}
                         />
                         <Route
                           path="/enumerator-dashboard/update-student/:id"

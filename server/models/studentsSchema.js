@@ -113,6 +113,9 @@ const StudentSchema = new mongoose.Schema(
     parentBvn: {
       type: String,
     },
+    parentRelationship: {
+      type: String,
+    },
     bankName: {
       type: String,
     },

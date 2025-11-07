@@ -2799,3 +2799,86 @@ export const getLgasByStudentsRegistered = async (req, res, next) => {
     return next(error)
   }
 }
+export const UpdateParentRelationship = async (req, res, next) => {
+  try {
+    const updateStudentsAccount = async () => {
+      try {
+        // console.log(req.parsedData)
+
+        const operations = req.parsedData.map((student) => {
+          return {
+            updateOne: {
+              filter: { randomId: student.RANDOMID?.toString()?.trim() },
+              update: {
+                $set: {
+                  parentRelationship:
+                    student['RELATIONSHIP WITH STUDENT'] ||
+                    student['Relationship with Student'],
+                },
+              },
+              upsert: true
+            },
+          }
+        })
+
+        // console.log('operations', operations)
+
+        const result = await Student.bulkWrite(operations)
+        console.log(result)
+        const studentIdsFromExcel = req.parsedData.map((student) =>
+          student.RANDOMID?.toString()?.trim()
+        )
+
+        // Fetch all matching students from DB
+        const foundStudents = await Student.find({
+          randomId: { $in: studentIdsFromExcel },
+        }).select('randomId')
+
+        // Convert DB IDs into a Set for faster lookup
+        const foundIdsSet = new Set(foundStudents.map((s) => s.randomId))
+
+        // Filter the missing ones
+
+        const unmatchedStudents = req.parsedData.filter((student) => {
+          const id =
+            student.RANDOMID != null ? student.RANDOMID.toString().trim() : []
+          return !foundIdsSet.has(id)
+        })
+
+        let unmatchedStudentsArray = unmatchedStudents.map((s) => s.RANDOMID)
+
+        if (unmatchedStudentsArray.includes(undefined)) {
+          unmatchedStudentsArray = null
+        }
+
+        // ! check unmatrched studetns array if the elements there are defined, if not just return null
+
+        // ! check duplicates
+        // console.log(unmatchedStudentsArray)
+
+        // const ids = req.parsedData.map((s) => s.STUDENTID?.trim?()).filter(Boolean)
+        // const duplicates = ids.filter((id, index) => ids.indexOf(id) !== index)
+        // console.log('Duplicates:', duplicates)
+
+        // console.log('Unmatched students:', unmatchedStudents.length)
+        // console.log(unmatchedStudents.map((s) => s.STUDENTID))
+
+        res.status(200).json({
+          message: 'Students informations updated successfully!!!',
+          matched: result.matchedCount,
+          modified: result.modifiedCount,
+          unmatchedStudents: unmatchedStudentsArray,
+        })
+      } catch (error) {
+        console.error('Error updating students:', error)
+        res.status(500).json({ message: 'Failed to update students' })
+      }
+    }
+
+    updateStudentsAccount()
+  } catch (err) {
+    return next(err)
+  }
+}
+
+

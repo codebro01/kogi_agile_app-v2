@@ -22,6 +22,7 @@ import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
 import EditIcon from '@mui/icons-material/Edit'
 import CloseIcon from '@mui/icons-material/Close'
+import UploadFileOutlinedIcon from '@mui/icons-material/UploadFileOutlined'
 import { tokens } from '../../theme'
 // import { PersonLoader } from '../../components/personLoader'
 import { getNigeriaStates } from 'geo-ng'
@@ -826,15 +827,15 @@ export const AdminViewAllStudentsDataNoExport = () => {
             <Box
               sx={{
                 display: 'flex',
-                justifyContent: 'space-between',
+                justifyContent: 'center',
                 alignItem: 'center',
-                width: '100px',
+                width: '200px',
                 position: 'fixed',
                 background: 'transparent',
                 zIndex: 999999,
                 right: 50,
                 bottom: 30,
-                gap: '10px',
+                gap: '20px',
               }}
             >
               <Box
@@ -850,7 +851,19 @@ export const AdminViewAllStudentsDataNoExport = () => {
               >
                 <EditIcon />
               </Box>
-
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  padding: '12px',
+                  background: 'rgb(194, 186, 186)',
+                  cursor: 'pointer',
+                }}
+                onClick={() => navigate('/admin-dashboard/update-parent-relationship')}
+              >
+                <UploadFileOutlinedIcon />
+              </Box>
               <DeleteButton
                 onConfirm={handleDeleteManyStudents}
                 itemName="Students Record"

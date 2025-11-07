@@ -60,6 +60,7 @@ import {
   getLgasByStudentsRegistered,
   restoreSelectedStudents,
   studentRecycleBinData,
+  UpdateParentRelationship,
 } from './studentController.js'
 import {
   getSinglePayrollSpecialist,
@@ -177,4 +178,5 @@ export {
   mergeStudentsDataIntoPayments,
   restoreSelectedStudents,
   studentRecycleBinData,
+  UpdateParentRelationship,
 }

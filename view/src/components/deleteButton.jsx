@@ -14,7 +14,7 @@ export const DeleteButton = ({ onConfirm, itemName = "this item", selectedRows }
   return (
     <>
 
-     <Box  sx = {{position: "fixed", right: 50, bottom: 30, padding: "5px", background: "rgb(194, 186, 186)", zIndex: 999999}}>
+     <Box  sx = {{ padding: "5px", background: "rgb(194, 186, 186)"}}>
         <IconButton onClick={handleOpen} color="error" width = {"100%"} disabled = {selectedRows?.length < 1}>
           <DeleteIcon />
         </IconButton>

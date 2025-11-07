@@ -30,6 +30,7 @@ import {
   getLgasByStudentsRegistered,
   restoreSelectedStudents,
   studentRecycleBinData,
+  UpdateParentRelationship,
 } from '../controllers/index.js'
 import {
   authMiddleware,
@@ -41,6 +42,7 @@ import {
   XLSXUploader,
   XLSXUploaderAccountDetails,
   XLSXUploaderPaymentInformation,
+  XLSXUploaderUpdateParentRelationship,
 } from '../utils/excelFileUploader.js'
 
 const router = express.Router()
@@ -232,6 +234,16 @@ router.post(
   authMiddleware,
   authorizePermission(['handle_admins']),
   restoreSelectedStudents
+)
+
+
+router.patch(
+  '/update/student-parent-relationship',
+  authMiddleware,
+  authorizePermission(['handle_registrars', 'handle_payments']),
+  uploadXLSX.single('file'),
+  XLSXUploaderUpdateParentRelationship,
+  UpdateParentRelationship
 )
 router.get(
   '/fetch/recycle-bin-data',

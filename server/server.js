@@ -170,7 +170,7 @@ const startDB = async () => {
 
     // await AllSchools.insertMany(allSchools);
 
-    await ensureIndexes()
+    // await ensureIndexes()
 
     app.listen(PORT, () => {
       console.log('app connected to port:' + PORT)
