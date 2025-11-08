@@ -490,6 +490,7 @@ export const filterAndDownload = async (req, res, next) => {
       'residentialAddress',
       'yearOfEnrollment',
       'parentName',
+      'parentRelationship',
       'parentPhone',
       'parentOccupation',
       'parentNin',
@@ -2826,7 +2827,7 @@ export const UpdateParentRelationship = async (req, res, next) => {
         // console.log('operations', operations)
 
         const result = await Student.bulkWrite(operations)
-        console.log('result', result)
+        // console.log('result', result)
         const studentIdsFromExcel = req.parsedData.map((student) =>
           student.RANDOMID?.toString()?.trim()
         )
@@ -2856,14 +2857,14 @@ export const UpdateParentRelationship = async (req, res, next) => {
         // ! check unmatrched studetns array if the elements there are defined, if not just return null
 
         // ! check duplicates
-        console.log(unmatchedStudentsArray)
+        // console.log(unmatchedStudentsArray)
 
-        const ids = req.parsedData.map((s) => s.STUDENTID?.trim?.()).filter(Boolean)
-        const duplicates = ids.filter((id, index) => ids.indexOf(id) !== index)
-        console.log('Duplicates:', duplicates)
+        // const ids = req.parsedData.map((s) => s.STUDENTID?.trim?.()).filter(Boolean)
+        // const duplicates = ids.filter((id, index) => ids.indexOf(id) !== index)
+        // console.log('Duplicates:', duplicates)
 
-        console.log('Unmatched students:', unmatchedStudents.length)
-        console.log(unmatchedStudents.map((s) => s.STUDENTID))
+        // console.log('Unmatched students:', unmatchedStudents.length)
+        // console.log(unmatchedStudents.map((s) => s.STUDENTID))
 
         res.status(200).json({
           message: 'Students informations updated successfully!!!',

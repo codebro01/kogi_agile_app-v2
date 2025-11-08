@@ -47,7 +47,10 @@ export const getTotalAmountPaid = async (req, res, next) => {
       },
     ])
 
-    // console.log('Payments without students:', paymentsWithoutStudents)
+    console.log(
+      'Payments without students:',
+      paymentsWithoutStudents,
+      paymentsWithoutStudents.length)
 
     res
       .status(200)
