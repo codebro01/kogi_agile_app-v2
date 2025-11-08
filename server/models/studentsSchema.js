@@ -113,9 +113,6 @@ const StudentSchema = new mongoose.Schema(
     parentBvn: {
       type: String,
     },
-    parentRelationship: {
-      type: String,
-    },
     bankName: {
       type: String,
     },
@@ -124,6 +121,9 @@ const StudentSchema = new mongoose.Schema(
       //unique: true,
     },
     passport: {
+      type: String,
+    },
+    parentRelationship: {
       type: String,
     },
     lastLogged: {
@@ -159,7 +159,7 @@ const StudentSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.Mixed,
     },
   },
-  { timestamps: true }
+  { timestamps: true, strict: false }
 )
 
 StudentSchema.virtual('verificationInfo', {

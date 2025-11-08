@@ -2803,7 +2803,7 @@ export const UpdateParentRelationship = async (req, res, next) => {
   try {
     const updateStudentsAccount = async () => {
       try {
-        // console.log(req.parsedData)
+        // console.log(req.parsedData.slice(0, 500))
 
         const operations = req.parsedData.map((student) => {
           return {
@@ -2812,11 +2812,13 @@ export const UpdateParentRelationship = async (req, res, next) => {
               update: {
                 $set: {
                   parentRelationship:
-                    student['RELATIONSHIP WITH STUDENT'] ||
+                    student['RELATIONSHIP WITH STUDENT'] || student['RELATIONSHIP WITH STUDENT '] ||
                     student['Relationship with Student'],
                 },
+                $setOnInsert: {
+                  randomId: student.RANDOMID?.toString()?.trim(),
+                },
               },
-              upsert: true
             },
           }
         })
@@ -2824,7 +2826,7 @@ export const UpdateParentRelationship = async (req, res, next) => {
         // console.log('operations', operations)
 
         const result = await Student.bulkWrite(operations)
-        console.log(result)
+        console.log('result', result)
         const studentIdsFromExcel = req.parsedData.map((student) =>
           student.RANDOMID?.toString()?.trim()
         )
@@ -2854,14 +2856,14 @@ export const UpdateParentRelationship = async (req, res, next) => {
         // ! check unmatrched studetns array if the elements there are defined, if not just return null
 
         // ! check duplicates
-        // console.log(unmatchedStudentsArray)
+        console.log(unmatchedStudentsArray)
 
-        // const ids = req.parsedData.map((s) => s.STUDENTID?.trim?()).filter(Boolean)
-        // const duplicates = ids.filter((id, index) => ids.indexOf(id) !== index)
-        // console.log('Duplicates:', duplicates)
+        const ids = req.parsedData.map((s) => s.STUDENTID?.trim?.()).filter(Boolean)
+        const duplicates = ids.filter((id, index) => ids.indexOf(id) !== index)
+        console.log('Duplicates:', duplicates)
 
-        // console.log('Unmatched students:', unmatchedStudents.length)
-        // console.log(unmatchedStudents.map((s) => s.STUDENTID))
+        console.log('Unmatched students:', unmatchedStudents.length)
+        console.log(unmatchedStudents.map((s) => s.STUDENTID))
 
         res.status(200).json({
           message: 'Students informations updated successfully!!!',
