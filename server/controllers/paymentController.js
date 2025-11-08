@@ -355,7 +355,7 @@ console.log('got in here')
     ]
 
     const paymentByLGA = await Payment.aggregate(pipeline)
-    // console.log('done aggregation:', paymentByLGA)
+    console.log('done aggregation:', paymentByLGA)
     res.status(200).json({ paymentByLGA })
   } catch (error) {
     console.error('Error fetching payments by LGA:', error)
