@@ -139,6 +139,9 @@ const Dashboard = () => {
     }
   }, [])
 
+
+  // console.log('lgaWithTotalPayments', lgaWithTotalPayments)
+
   useEffect(() => {
     if (userPermissions.includes('handle_verifications')) {
       // console.log('its goint to try verifications')
