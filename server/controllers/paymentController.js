@@ -11,15 +11,6 @@ export const getTotalAmountPaid = async (req, res, next) => {
 
     // console.log('entered here')
     const totalAmount = await Payment.aggregate([
-      // {
-      //   $match: {
-      //     paymentStatus: 'Complete', // Filtering only completed payments
-      //     paymentDate: {
-      //       $gte: startOfYear,
-      //       $lte: endOfYear,
-      //     }, // Filtering payments within the current year
-      //   },
-      // },
       {
         $group: {
           _id: null, // Grouping by no specific field to get the total sum
@@ -33,6 +24,30 @@ export const getTotalAmountPaid = async (req, res, next) => {
         },
       },
     ])
+
+    const paymentsWithoutStudents = await Payment.aggregate([
+      {
+        $lookup: {
+          from: 'students',
+          localField: 'accountNumber',
+          foreignField: 'accountNumber',
+          as: 'studentDetails',
+        },
+      },
+      {
+        $match: {
+          studentDetails: { $size: 0 },
+        },
+      },
+      {
+        $project: {
+          accountNumber: 1,
+          amount: 1,
+        },
+      },
+    ])
+
+    // console.log('Payments without students:', paymentsWithoutStudents)
 
     res
       .status(200)
@@ -306,45 +321,8 @@ export const getTotalStudentsPaidMonthly = async (req, res, next) => {
 }
 
 export const getPaymentsByLGA = async (req, res, next) => {
-console.log('got in here')
   try {
-     const paymentCount = await Payment.countDocuments()
-     const Student = mongoose.model('students')
-     const studentCount = await Student.countDocuments()
-
-     console.log(`Found ${paymentCount} payments and ${studentCount} students`)
-
-     if (paymentCount === 0) {
-       return res.status(200).json({
-         paymentByLGA: [],
-         message: 'No payments found in database',
-       })
-     }
-
-     if (studentCount === 0) {
-       return res.status(200).json({
-         paymentByLGA: [],
-         message: 'No students found in database',
-       })
-     }
-
-     // Debug: Check if lookup will match
-     const samplePayment = await Payment.findOne()
-       .select('accountNumber')
-       .lean()
-     const matchingStudent = await Student.findOne({
-       accountNumber: samplePayment?.accountNumber,
-     }).lean()
-
-     console.log('Sample payment accountNumber:', samplePayment?.accountNumber)
-     console.log('Matching student found:', !!matchingStudent)
-
-     if (!matchingStudent) {
-       console.warn(
-         '⚠️ No students match payment accountNumbers - check data integrity'
-       )
-     }
-
+    
     const pipeline = [
       // { $limit: 10 },
       {
@@ -392,7 +370,7 @@ console.log('got in here')
     ]
 
     const paymentByLGA = await Payment.aggregate(pipeline)
-    console.log('done aggregation:', paymentByLGA)
+    // console.log('done aggregation:', paymentByLGA)
     res.status(200).json({ paymentByLGA })
   } catch (error) {
     console.error('Error fetching payments by LGA:', error)
