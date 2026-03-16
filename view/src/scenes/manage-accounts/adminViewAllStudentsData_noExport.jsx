@@ -95,7 +95,7 @@ export const AdminViewAllStudentsDataNoExport = () => {
     yearOfEnrollment: '',
     yearOfAdmission: '',
     disabilitystatus: '',
-    status: 'active',
+    status: 'all',
     cohort: '',
     verified: null,
   })
@@ -1421,8 +1421,8 @@ export const AdminViewAllStudentsDataNoExport = () => {
                   size="small"
                   labelId="sortBy-label"
                 >
-                  <MenuItem value="active">Active</MenuItem>
                   <MenuItem value="all">All</MenuItem>
+                  <MenuItem value="active">Active</MenuItem>
                   <MenuItem value="inactive">Inactive</MenuItem>
                 </Select>
               </Grid>

@@ -78,7 +78,7 @@ export const AdminViewAllStudentsData = () => {
     cohort: '',
     schoolType: '',
     verified:'', 
-    status: 'active',
+    status: 'all',
   })
 
   // ! Redux toolkit consumption
@@ -750,7 +750,7 @@ export const AdminViewAllStudentsData = () => {
                   labelId="active - status"
                 >
                   <MenuItem value="active">
-                    <em>Active</em>
+                    <em>All</em>
                   </MenuItem>
                   <MenuItem value={'all'}>All</MenuItem>
                   <MenuItem value={'inactive'}>Inactive</MenuItem>

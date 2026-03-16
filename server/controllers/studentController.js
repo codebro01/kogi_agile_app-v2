@@ -840,8 +840,8 @@ export const downloadAttendanceSheet = async (req, res, next) => {
           key === 'StudentId'
             ? value
             : typeof value === 'string'
-            ? value.toUpperCase()
-            : value,
+              ? value.toUpperCase()
+              : value,
         ])
       )
     }
@@ -1440,17 +1440,17 @@ export const getStudentsAttendance = async (req, res, next) => {
             }),
             ...(dateFrom || dateTo
               ? {
-                  date: {
-                    ...(dateFrom ? { $gte: new Date(dateFrom) } : {}),
-                    ...(dateTo
-                      ? {
-                          $lte: new Date(
-                            new Date(dateTo).setHours(23, 59, 59, 999)
-                          ),
-                        }
-                      : {}),
-                  },
-                }
+                date: {
+                  ...(dateFrom ? { $gte: new Date(dateFrom) } : {}),
+                  ...(dateTo
+                    ? {
+                      $lte: new Date(
+                        new Date(dateTo).setHours(23, 59, 59, 999)
+                      ),
+                    }
+                    : {}),
+                },
+              }
               : {}),
           },
         },
@@ -1581,8 +1581,8 @@ export const getStudentsAttendance = async (req, res, next) => {
             key === 'StudentID'
               ? value
               : typeof value === 'string'
-              ? value.toUpperCase()
-              : value,
+                ? value.toUpperCase()
+                : value,
           ])
         )
       }
@@ -1874,8 +1874,7 @@ export const importPaymentSheet = async (req, res, next) => {
         totalUpserts += result.upsertedCount || 0
         totalModified += result.modifiedCount || 0
         console.log(
-          `Processed chunk ${i / chunkSize + 1}: inserted ${
-            result.upsertedCount
+          `Processed chunk ${i / chunkSize + 1}: inserted ${result.upsertedCount
           }, modified ${result.modifiedCount}`
         )
       }
@@ -2056,7 +2055,7 @@ export const restoreSelectedStudents = async (req, res, next) => {
   try {
     session = await mongoose.startSession()
     session.startTransaction()
-    
+
     const { ids } = req.query
     const selectedStudents = ids?.split(',').map((id) => id.trim())
     console.log(selectedStudents)
@@ -2088,7 +2087,7 @@ export const restoreSelectedStudents = async (req, res, next) => {
       deletedAt: new Date(),
     }))
 
-// console.log(recycleBinData)
+    // console.log(recycleBinData)
     // Insert into DeletedStudents (within the same transaction)
     await Student.insertMany(recycleBinData, { session })
 
@@ -2172,7 +2171,7 @@ export const updateStudent = async (req, res, next) => {
       )
     }
 
-     res.status(StatusCodes.OK).json({ updatedStudent }) // Ensure response is sent only once
+    res.status(StatusCodes.OK).json({ updatedStudent }) // Ensure response is sent only once
   } catch (error) {
     console.error('Error occurred:', error)
     return next(error) // Pass errors to the error handler
