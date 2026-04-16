@@ -155,6 +155,37 @@ const StudentSchema = new mongoose.Schema(
     cohort: {
       type: Number,
     },
+    schoolName: {
+      type: String
+    },
+    schoolCode: {
+      type: String
+    },
+    latitude: {
+      type: String
+    },
+    longitude: {
+      type: String
+    },
+    altitude: {
+      type: String
+    },
+    ninBecauseOfKogiAgile: {
+      type: Boolean
+    },
+    caregiverGender: {
+      type: String,
+      Enum: ["Male", "Female"]
+    },
+    caregiverDob: {
+      type: Date,
+    },
+    caregiverRelationship: {
+      type: String,
+    },
+    caregiverPhoto: {
+      type: String,
+    },
     others: {
       type: mongoose.Schema.Types.Mixed,
     },
@@ -173,7 +204,7 @@ StudentSchema.set('toObject', { virtuals: true })
 StudentSchema.set('toJSON', { virtuals: true })
 
 StudentSchema.index({ randomId: 1, lga: 1, presentClass: 1, accountNumber: 1 })
-StudentSchema.index({accountNumber: 1})
+StudentSchema.index({ accountNumber: 1 })
 
 StudentSchema.pre('save', function (next) {
   if (this.isModified('lastLogged')) {
