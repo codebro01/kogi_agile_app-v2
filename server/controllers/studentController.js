@@ -449,7 +449,7 @@ export const filterAndDownload = async (req, res, next) => {
       }
     })
 
-    console.log(basket, 'students', students)
+    // console.log(basket, 'students', students)
 
     if (schoolType) {
       students = students.filter(
@@ -469,8 +469,12 @@ export const filterAndDownload = async (req, res, next) => {
     // });
     const orderedHeaders = [
       'S/N',
+      'schoolCode',
       'schoolName',
       'schoolCategory',
+      'latitude',
+      'longitude',
+      'altitude',
       'surname',
       'firstname',
       'middlename',
@@ -484,6 +488,7 @@ export const filterAndDownload = async (req, res, next) => {
       'stateOfOrigin',
       'lga',
       'studentNin',
+      'ninBecauseOfKogiAgile',
       'lgaOfEnrollment',
       'ward',
       'communityName',
@@ -497,9 +502,25 @@ export const filterAndDownload = async (req, res, next) => {
       'parentBvn',
       'bankName',
       'accountNumber',
+      'caregiverGender',
+      'caregiverDob',
+      'caregiverRelationship',
+      'caregiverPhoto',
       'lastLogged',
       'createdAt',
       'createdBy',
+    ]
+
+    const newFields = [
+      'schoolCode',
+      'latitude',
+      'longitude',
+      'altitude',
+      'ninBecauseOfKogiAgile',
+      'caregiverGender',
+      'caregiverDob',
+      'caregiverRelationship',
+      'caregiverPhoto'
     ]
 
     const headers = [
@@ -511,7 +532,7 @@ export const filterAndDownload = async (req, res, next) => {
         (header) =>
           header !== 'S/N' &&
           header !== 'schoolName' &&
-          students.some((student) => student.hasOwnProperty(header))
+          (newFields.includes(header) || students.some((student) => student.hasOwnProperty(header)))
       ),
     ]
 
@@ -532,11 +553,15 @@ export const filterAndDownload = async (req, res, next) => {
         } else if (student[header] && header === 'randomId') {
           row[uppercaseHeader] = student.randomId || ''
         } else if (header === 'schoolName') {
-          row[uppercaseHeader] =
-            student.schoolId?.schoolName?.toUpperCase() || ''
+          const sName = student.schoolName?.toUpperCase() || student.schoolId?.schoolName?.toUpperCase();
+          row[uppercaseHeader] = sName ? sName : 'null'
         } else if (header === 'schoolCategory') {
           row[uppercaseHeader] =
             student.schoolId?.schoolCategory?.toUpperCase() || ''
+        } else if (newFields.includes(header)) {
+          row[uppercaseHeader] = (student[header] !== undefined && student[header] !== null && student[header] !== '')
+            ? student[header].toString().toUpperCase()
+            : 'null'
         } else {
           row[uppercaseHeader] = student[header]?.toString().toUpperCase() || ''
         }
@@ -712,6 +737,17 @@ export const filterAndView = async (req, res, next) => {
         verificationImage: verification.verificationImage || null,
         reasonNotVerified: verification.reasonNotVerified || null,
         verificationCreatedAt: verification.createdAt || null, // add this
+        // Adding the new fields below
+        schoolName: student.schoolName || student.schoolId?.schoolName,
+        schoolCode: student.schoolCode || student.schoolId?.schoolCode,
+        latitude: student.latitude,
+        longitude: student.longitude,
+        altitude: student.altitude,
+        ninBecauseOfKogiAgile: student.ninBecauseOfKogiAgile,
+        caregiverGender: student.caregiverGender,
+        caregiverDob: student.caregiverDob,
+        caregiverRelationship: student.caregiverRelationship,
+        caregiverPhoto: student.caregiverPhoto,
       }
     })
 

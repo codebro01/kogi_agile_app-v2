@@ -463,13 +463,64 @@ export const AdminViewAllStudentsDataNoExport = () => {
     },
     {
       name: 'School',
-      selector: (row) => row?.schoolId?.schoolName,
+      selector: (row) => row?.schoolName ?? 'null',
+      sortable: true,
+    },
+    {
+      name: 'School Code',
+      selector: (row) => row?.schoolCode ?? 'null',
       sortable: true,
     },
     {
       name: 'School Type',
       selector: (row) => row?.schoolId?.schoolCategory,
       sortable: true,
+    },
+    {
+      name: 'Latitude',
+      selector: (row) => row?.latitude ?? 'null',
+      sortable: true,
+    },
+    {
+      name: 'Longitude',
+      selector: (row) => row?.longitude ?? 'null',
+      sortable: true,
+    },
+    {
+      name: 'Altitude',
+      selector: (row) => row?.altitude ?? 'null',
+      sortable: true,
+    },
+    {
+      name: 'NIN (Kogi Agile)',
+      selector: (row) => (row?.ninBecauseOfKogiAgile !== undefined && row?.ninBecauseOfKogiAgile !== null) ? String(row.ninBecauseOfKogiAgile) : 'null',
+      sortable: true,
+    },
+    {
+      name: 'Caregiver Gender',
+      selector: (row) => row?.caregiverGender ?? 'null',
+      sortable: true,
+    },
+    {
+      name: 'Caregiver DOB',
+      selector: (row) => row?.caregiverDob ?? 'null',
+      sortable: true,
+    },
+    {
+      name: 'Caregiver Relationship',
+      selector: (row) => row?.caregiverRelationship ?? 'null',
+      sortable: true,
+    },
+    {
+      name: 'Caregiver Photo',
+      cell: (row) => row?.caregiverPhoto ? (
+        <img
+          src={row?.caregiverPhoto}
+          alt="Caregiver"
+          style={{ width: '50px', height: '50px' }}
+        />
+      ) : 'null',
+      sortable: false,
     },
     {
       name: 'dob',
