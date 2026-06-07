@@ -180,9 +180,6 @@ const StudentSchema = new mongoose.Schema(
     caregiverDob: {
       type: Date,
     },
-    caregiverRelationship: {
-      type: String,
-    },
     caregiverPhoto: {
       type: String,
     },
