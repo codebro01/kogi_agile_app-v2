@@ -504,7 +504,6 @@ export const filterAndDownload = async (req, res, next) => {
       'accountNumber',
       'caregiverGender',
       'caregiverDob',
-      'caregiverRelationship',
       'caregiverPhoto',
       'lastLogged',
       'createdAt',
@@ -512,14 +511,13 @@ export const filterAndDownload = async (req, res, next) => {
     ]
 
     const newFields = [
-      'schoolCode',
       'latitude',
       'longitude',
       'altitude',
       'ninBecauseOfKogiAgile',
       'caregiverGender',
       'caregiverDob',
-      'caregiverRelationship',
+      'parentRelationship',
       'caregiverPhoto'
     ]
 
