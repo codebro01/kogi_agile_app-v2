@@ -88,13 +88,13 @@ export const createOrUpdateAttendance = async (req, res) => {
   try {
     const bulkOps = attendanceArray
       .filter(
-        ({ studentId, present, splittedDate }) =>
-          studentId && typeof present === 'boolean' && splittedDate
+        ({ studentId, status, splittedDate }) =>
+          studentId && typeof status === 'number' && splittedDate
       )
-      .map(({ studentId, present, splittedDate }) => ({
+      .map(({ studentId, status, splittedDate }) => ({
         updateOne: {
           filter: { studentId, date: new Date(splittedDate) },
-          update: { $set: { present } },
+          update: { $set: { status } },
           upsert: true,
         },
       }))
@@ -209,7 +209,7 @@ export const getAttendanceTable = async (req, res, next) => {
         (a) => a.studentId.toString() === student._id.toString()
       )
 
-      const totalPresent = studentAttendance.filter((a) => a.present).length
+      const totalPresent = studentAttendance.filter((a) => a.status === 1).length
       const score = totalPresent * 5
       const percentage = (score / (daysInWeek * 5)) * 100
 
@@ -227,7 +227,7 @@ export const getAttendanceTable = async (req, res, next) => {
         (a) => a.studentId.toString() === student._id.toString()
       )
 
-      const totalPresent = studentAttendance.filter((a) => a.present).length
+      const totalPresent = studentAttendance.filter((a) => a.status === 1).length
       const attendanceScore = totalPresent * 5
 
       const passed =
@@ -253,7 +253,7 @@ export const getAttendanceTable = async (req, res, next) => {
 
         dailyRecords.push({
           date: dateObj,
-          present: record ? record.present : false,
+          status: record ? record.status : 0, // default to absent (0) if no record
         })
       }
 
@@ -364,10 +364,10 @@ export const downloadAttendanceRecordExcel = async (req, res) => {
     // console.log(student)
 
     const totalPresent = student.attendance.filter(
-      (entry) => entry.present === true
+      (entry) => entry.status === 1
     ).length
     const totalAbsent = student.attendance.filter(
-      (entry) => entry.present === false
+      (entry) => entry.status === 0
     ).length
     const pTotal = totalPresent * 5
     const xTotal = totalAbsent * 5
@@ -384,7 +384,7 @@ export const downloadAttendanceRecordExcel = async (req, res) => {
         const entry = student.attendance.find(
           (t) => t.date.toLocaleDateString('en-GB') === date
         )
-        return entry ? (entry.present ? 5 : 0) : ''
+        return entry ? (entry.status === 1 ? 5 : 0) : ''
       }),
       pTotal,
       xTotal,
@@ -409,3 +409,111 @@ export const downloadAttendanceRecordExcel = async (req, res) => {
   )
   res.send(buffer)
 }
+
+// 📊 Attendance Analytics
+export const getAttendanceAnalytics = async (req, res) => {
+  try {
+    const { schoolId, cohort, fromDate, toDate } = req.query;
+    
+    // Build match for students
+    const studentMatch = {};
+    if (schoolId && schoolId !== 'all') studentMatch.schoolId = schoolId;
+    if (cohort) studentMatch.cohort = Number(cohort);
+
+    const students = await Student.find(studentMatch).select('_id');
+    const studentIds = students.map(s => s._id);
+
+    // Build match for attendance
+    const attendanceMatch = { studentId: { $in: studentIds } };
+    if (fromDate || toDate) {
+      attendanceMatch.date = {};
+      if (fromDate) attendanceMatch.date.$gte = new Date(fromDate);
+      if (toDate) attendanceMatch.date.$lte = new Date(toDate);
+    }
+
+    const attendanceRecords = await NewAttendance.find(attendanceMatch);
+
+    // Calculate totals for statuses (0: absent, 1: present, 2: transferred, 3: dropout, 4: died)
+    const stats = {
+      total: attendanceRecords.length,
+      absent: 0,
+      present: 0,
+      transferred: 0,
+      dropout: 0,
+      died: 0
+    };
+
+    attendanceRecords.forEach(record => {
+      if (record.status === 0) stats.absent++;
+      else if (record.status === 1) stats.present++;
+      else if (record.status === 2) stats.transferred++;
+      else if (record.status === 3) stats.dropout++;
+      else if (record.status === 4) stats.died++;
+    });
+
+    res.status(200).json({ stats });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Error fetching attendance analytics' });
+  }
+};
+
+// 📈 Monthly Attendance Trend
+export const getMonthlyAttendanceTrend = async (req, res) => {
+  try {
+    const { schoolId, month, year } = req.query; // month is 1-12
+    if (!month || !year) {
+      return res.status(400).json({ message: 'Missing month or year' });
+    }
+
+    const m = Number(month) - 1; // 0-indexed for Date
+    const y = Number(year);
+
+    const startOfMonth = new Date(y, m, 1);
+    const endOfMonth = new Date(y, m + 1, 1);
+
+    const studentMatch = {};
+    if (schoolId && schoolId !== 'all') {
+      const schoolIdObj = schoolId.length === 24 ? schoolId : null; // Validation could be needed
+      studentMatch.schoolId = schoolId;
+    }
+    
+    let studentIds = [];
+    if (Object.keys(studentMatch).length > 0) {
+      const students = await Student.find(studentMatch).select('_id');
+      studentIds = students.map(s => s._id);
+    }
+
+    const attendanceMatch = {
+      date: { $gte: startOfMonth, $lt: endOfMonth }
+    };
+
+    if (studentIds.length > 0 || schoolId) {
+       attendanceMatch.studentId = { $in: studentIds };
+    }
+
+    const attendanceRecords = await NewAttendance.find(attendanceMatch);
+
+    // Group by day of the month
+    const trend = {};
+    const daysInMonth = new Date(y, m + 1, 0).getDate();
+
+    for (let i = 1; i <= daysInMonth; i++) {
+      trend[i] = { present: 0, absent: 0, total: 0 };
+    }
+
+    attendanceRecords.forEach(record => {
+      const day = record.date.getUTCDate();
+      if (trend[day]) {
+         trend[day].total++;
+         if (record.status === 1) trend[day].present++;
+         if (record.status === 0) trend[day].absent++;
+      }
+    });
+
+    res.status(200).json({ trend });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Error fetching monthly trend' });
+  }
+};

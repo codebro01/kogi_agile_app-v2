@@ -96,6 +96,8 @@ import {
   createOrUpdateAttendance,
   getAttendanceTable,
   downloadAttendanceRecordExcel,
+  getAttendanceAnalytics,
+  getMonthlyAttendanceTrend,
 } from './attendanceController.js'
 
 export {
@@ -162,6 +164,8 @@ export {
   createOrUpdateAttendance,
   getAttendanceTable,
   downloadAttendanceRecordExcel,
+  getAttendanceAnalytics,
+  getMonthlyAttendanceTrend,
   toggleVerifierStatus,
   createVerifier,
   getSingleVerifier,

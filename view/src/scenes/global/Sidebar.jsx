@@ -73,7 +73,8 @@ const Item = ({ title, to, icon, selected, setSelected }) => {
 }
 
 const Sidebar = ({ isSidebar }) => {
-  const { userPermissions } = useAuth()
+  const { userPermissions: rawPermissions } = useAuth()
+  const userPermissions = Array.isArray(rawPermissions) ? rawPermissions : []
   const theme = useTheme()
   const colors = tokens(theme.palette.mode)
   const [isCollapsed, setIsCollapsed] = useState(true)
@@ -437,6 +438,13 @@ const Sidebar = ({ isSidebar }) => {
                     setSelected={setSelected}
                   />
                   <Item
+                    title="Manage Attendance Takers"
+                    to={'/admin-dashboard/manage-accounts/attendance-takers'}
+                    icon={<EventNoteIcon />}
+                    selected={selected}
+                    setSelected={setSelected}
+                  />
+                  <Item
                     title="Recycle Bin"
                     to={'/admin-dashboard/student/restore'}
                     icon={<FolderDeleteIcon />}
@@ -728,6 +736,31 @@ const Sidebar = ({ isSidebar }) => {
                 />
               </>
             )}
+
+            {/********************************** Attendance Taker Sidebar ******************************** */}
+
+            {userPermissions.includes('handle_attendance') &&
+              !userPermissions.includes('handle_admins') &&
+              !userPermissions.includes('handle_registrars') &&
+              !userPermissions.includes('handle_payments') &&
+              !userPermissions.includes('handle_verifications') && (
+                <>
+                  <Item
+                    title="Dashboard"
+                    to={'/attendance-taker-dashboard'}
+                    icon={<HomeOutlinedIcon />}
+                    selected={selected}
+                    setSelected={setSelected}
+                  />
+                  <Item
+                    title="Take Attendance"
+                    to={'/attendance-taker-dashboard/take-attendance'}
+                    icon={<EventNoteIcon />}
+                    selected={selected}
+                    setSelected={setSelected}
+                  />
+                </>
+              )}
           </Box>
         </Menu>
       </ProSidebar>

@@ -452,18 +452,57 @@ export const UpdateAttendanceSheet = () => {
     }
   }
 
+  // Status mapping: 0=Absent, 1=Present, 2=Transferred, 3=Dropout, 4=Died
+  const STATUS_OPTIONS = [
+    { value: 0, label: 'A', title: 'Absent' },
+    { value: 1, label: 'P', title: 'Present' },
+    { value: 2, label: 'T', title: 'Transferred' },
+    { value: 3, label: 'D', title: 'Dropout' },
+    { value: 4, label: 'X', title: 'Died' },
+  ]
+
+  const STATUS_COLORS = {
+    0: '#d32f2f', // Absent - red
+    1: '#388e3c', // Present - green
+    2: '#1565c0', // Transferred - blue
+    3: '#f57c00', // Dropout - orange
+    4: '#424242', // Died - dark grey
+  }
+
   useEffect(() => {
     if (studentsData.length > 0) {
       const cloned = studentsData?.map((student) => ({
         studentId: student.studentId,
         attendance: student.attendance?.map((att) => ({
           date: att.date.split('T')[0],
-          present: att.present,
+          status: typeof att.status === 'number' ? att.status : (att.present === true ? 1 : 0),
         })),
       }))
       setLocalAttendance(cloned)
     }
   }, [studentsData])
+
+  // Check All Present for current page
+  const handleCheckAllPresent = () => {
+    setLocalAttendance((prev) =>
+      prev.map((entry) => ({
+        ...entry,
+        attendance: entry.attendance.map((a) => ({ ...a, status: 1 })),
+      }))
+    )
+    // Also queue all for save
+    const newRecords = []
+    localAttendance.forEach((entry) => {
+      entry.attendance.forEach((a) => {
+        newRecords.push({
+          studentId: entry.studentId,
+          status: 1,
+          splittedDate: a.date,
+        })
+      })
+    })
+    setAttendanceRecord(newRecords)
+  }
 
   const downloadAttendanceRecordExcel = async () => {
     try {
@@ -546,13 +585,15 @@ export const UpdateAttendanceSheet = () => {
     student,
     index,
     page,
-    // handleChecked,
   }) {
-    // console.log('rendering', student.surname) // just to check
-
     const sn = String((presentPage - 1) * 25 + index + 1).padStart(3, '0')
 
-    // console.log(attendanceRecord)
+    const studentLocal = localAttendance.find(
+      (entry) => entry.studentId === student.studentId
+    )
+
+    const presentCount = studentLocal?.attendance?.filter((a) => a.status === 1).length || 0
+    const absentCount = studentLocal?.attendance?.filter((a) => a.status === 0).length || 0
 
     return (
       <tr key={student.studentId}>
@@ -567,81 +608,80 @@ export const UpdateAttendanceSheet = () => {
 
         {student?.attendance?.map((date, i) => {
           const splittedDate = date.date.split('T')[0]
+          const currentStatus =
+            studentLocal?.attendance?.find((a) => a.date === splittedDate)?.status ?? 0
+
           return (
-            <td key={i}>
-              <input
+            <td key={i} style={{ padding: '1px' }}>
+              <select
+                value={currentStatus}
                 style={{
-                  width: '13px',
-                  height: '13px',
-                  accentColor: 'rgb(17, 74, 60)',
-                  backgroundColor: '#fff',
+                  width: '32px',
+                  height: '22px',
+                  fontSize: '10px',
+                  fontWeight: 700,
                   cursor: 'pointer',
+                  border: 'none',
+                  borderRadius: '3px',
+                  padding: '0 2px',
+                  color: STATUS_COLORS[currentStatus] || '#000',
+                  backgroundColor: '#f5f5f5',
+                  appearance: 'none',
+                  textAlign: 'center',
                 }}
-                type="checkbox"
-                checked={
-                  localAttendance
-                    .find((entry) => entry.studentId === student.studentId)
-                    ?.attendance.find((a) => a.date === splittedDate)
-                    ?.present === true
-                }
+                title={STATUS_OPTIONS.find((o) => o.value === currentStatus)?.title}
                 onChange={(e) => {
-                  const isChecked = e.target.checked
+                  const newStatus = Number(e.target.value)
                   const studentId = student.studentId
+
                   setLocalAttendance((prev) =>
                     prev.map((entry) => {
                       if (entry.studentId !== studentId) return entry
-
                       const updatedAttendance = entry.attendance.map((a) => {
                         if (a.date !== splittedDate) return a
-                        return { ...a, present: !a.present }
+                        return { ...a, status: newStatus }
                       })
-
                       return { ...entry, attendance: updatedAttendance }
                     })
                   )
-                  // handleChecked(studentId, isChecked, splittedDate)
-
-                  // Call your handleChecked logic
 
                   setAttendanceRecord((prev) => {
-                    // Check if the current student & date combo already exists
                     const existingIndex = prev.findIndex(
                       (att) =>
                         att.studentId === studentId &&
                         att.splittedDate === splittedDate
                     )
-
                     if (existingIndex !== -1) {
-                      // If it exists, update it
                       const updated = [...prev]
                       updated[existingIndex] = {
                         ...updated[existingIndex],
-                        present: isChecked,
+                        status: newStatus,
                       }
                       return updated
                     } else {
-                      // Otherwise, add it
                       return [
                         ...prev,
-                        {
-                          studentId,
-                          present: isChecked,
-                          splittedDate,
-                        },
+                        { studentId, status: newStatus, splittedDate },
                       ]
                     }
                   })
                 }}
-              />
+              >
+                {STATUS_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
             </td>
           )
         })}
 
         <td className="p-total" style={{ fontWeight: 600, fontSize: '12px' }}>
-          {student?.attendance?.filter((d) => d.present === true).length * 5}
+          {presentCount * 5}
         </td>
         <td className="x-total" style={{ fontWeight: 600, fontSize: '12px' }}>
-          {student?.attendance?.filter((d) => d.present === false).length * 5}
+          {absentCount * 5}
         </td>
       </tr>
     )
@@ -1285,10 +1325,56 @@ export const UpdateAttendanceSheet = () => {
                   },
                 }}
               >
-                <table className="attendance-table">
+                {/* Check All + Legend Bar */}
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 2,
+                  mb: 1,
+                  p: '6px 10px',
+                  backgroundColor: '#e8f5e9',
+                  borderRadius: '6px',
+                  flexWrap: 'wrap',
+                }}
+              >
+                <Button
+                  variant="contained"
+                  size="small"
+                  color="success"
+                  onClick={handleCheckAllPresent}
+                  sx={{ textTransform: 'none', fontWeight: 700, fontSize: '12px' }}
+                >
+                  ✅ Mark All Present
+                </Button>
+                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', fontSize: '11px', alignItems: 'center' }}>
+                  {[
+                    { label: 'A = Absent', color: '#d32f2f' },
+                    { label: 'P = Present', color: '#388e3c' },
+                    { label: 'T = Transferred', color: '#1565c0' },
+                    { label: 'D = Dropout', color: '#f57c00' },
+                    { label: 'X = Died', color: '#424242' },
+                  ].map((item) => (
+                    <span
+                      key={item.label}
+                      style={{
+                        color: item.color,
+                        fontWeight: 700,
+                        fontSize: '11px',
+                        padding: '2px 6px',
+                        border: `1px solid ${item.color}`,
+                        borderRadius: '4px',
+                      }}
+                    >
+                      {item.label}
+                    </span>
+                  ))}
+                </Box>
+              </Box>
+
+              <table className="attendance-table">
                   <thead>
                     <tr>
-                      {/* <th>S/N</th> */}
                       <th className="name-col">Student Name</th>
                       {days.map((day, idx) => (
                         <th key={idx}>

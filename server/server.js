@@ -23,6 +23,7 @@ import {
   schoolsRouter,
   attendanceRouter,
   verifierRouter,
+  attendanceTakerAuthRouter,
 } from './routes/index.js'
 import {
   authMiddleware,
@@ -79,6 +80,9 @@ const allowedOrigins = [
   // 'https://kogi-agile-app-vite.vercel.app',
   // 'https://server-nu-khaki-78.vercel.app',
   'https://miscct.kogiagile.org',
+  'https://attendance.kogiagile.org',
+  'https://www.attendance.kogiagile.org',
+  'http://attendance.localhost:3000',
 ]
 
 // CORS middleware
@@ -149,6 +153,7 @@ app.use('/api/v1/schools', schoolsRouter)
 app.use('/api/v1/wards', wards)
 app.use('/api/v1/attendance', attendanceRouter)
 app.use('/api/v1/verifier', verifierRouter)
+app.use('/api/v1/attendance-takers', attendanceTakerAuthRouter)
 
 app.use('/api/v1/payments', paymentRouter)
 // app.get("*", (req, res) => {

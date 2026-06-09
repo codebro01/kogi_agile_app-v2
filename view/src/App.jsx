@@ -5,6 +5,7 @@ import Sidebar from './scenes/global/Sidebar'
 import Dashboard from './scenes/dashboard'
 import { CssBaseline, ThemeProvider } from '@mui/material'
 import { ColorModeContext, useMode } from './theme'
+import { AttendanceTakerDashboard } from './scenes/attendanceTaker/Dashboard.jsx'
 // import BrandingSignUpPage from "./scenes/auth/register";
 import {
   SignInForm,
@@ -12,6 +13,7 @@ import {
   PayrollSpecialistSignInForm,
   EnumeratorSignInFormWebView,
   VerifierSignInForm,
+  AttendanceTakerSignInForm,
 } from './scenes/auth/signIn'
 import CreateEnumerator from './scenes/manage-accounts/createEnumeratorForm'
 import RegistrationSelector from './scenes/manage-accounts/registrationSelector'
@@ -61,6 +63,8 @@ import {
 } from './scenes/manage-accounts/verifyStudent.jsx'
 import CreateVerifier from './scenes/manage-accounts/createVerifier.jsx'
 import PhotoCard from './scenes/manage-accounts/photoCard.jsx'
+import { CreateAttendanceTaker } from './scenes/manage-accounts/createAttendanceTaker.jsx'
+import { ManageAttendanceTakers } from './scenes/manage-accounts/manageAttendanceTakers.jsx'
 
 function App() {
   const [theme, colorMode] = useMode()
@@ -196,12 +200,20 @@ function App() {
                           element={<CreateSchool />}
                         />
                         <Route
+                          path="/admin-dashboard/create-accounts/register-attendance-taker"
+                          element={<CreateAttendanceTaker />}
+                        />
+                        <Route
                           path="/admin-dashboard/create-accounts/update-school-information"
                           element={<UpdateSchool />}
                         />
                         <Route
                           path="/admin-dashboard/manage-accounts/admins"
                           element={<ManageAdmins />}
+                        />
+                        <Route
+                          path="/admin-dashboard/manage-accounts/attendance-takers"
+                          element={<ManageAttendanceTakers />}
                         />
                         <Route
                           path="/admin-dashboard/manage-accounts/enumerators"
@@ -504,6 +516,64 @@ function App() {
                         <Route
                           path="*"
                           element={<Navigate to="/verifier-dashboard" />}
+                        />
+                      </Routes>
+                    </Provider>
+                  }
+                />
+              </Routes>
+            </main>
+          </div>
+        </ThemeProvider>
+      </ColorModeContext.Provider>
+    )
+  }
+
+  if (subdomain === 'attendance') {
+    return (
+      <ColorModeContext.Provider value={colorMode}>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <div className="app">
+            {location.pathname !== '/dashboard/sign-in' &&
+              location.pathname !== '/' &&
+              location.pathname !== '/sign-in' && (
+                <Sidebar isSidebar={isSidebar} />
+              )}
+
+            <main className={`content ${isSidebar ? '' : 'collapsed'}`}>
+              {location.pathname !== '/sign-in' &&
+                location.pathname !== '/' &&
+                location.pathname !== '/dashboard/sign-in' && (
+                  <Topbar setIsSidebar={setIsSidebar} />
+                )}
+
+              <Routes>
+                <Route path="/sign-in" element={<AttendanceTakerSignInForm />} />
+                <Route path="/" element={<AttendanceTakerSignInForm />} />
+
+                <Route
+                  path="/*"
+                  element={
+                    <Provider store={store}>
+                      <Routes>
+                        <Route
+                          path="/attendance-taker-dashboard"
+                          element={<AttendanceTakerDashboard />}
+                        />
+                        <Route
+                          path="/attendance-taker-dashboard/take-attendance"
+                          element={<UpdateAttendanceSheet />}
+                        />
+
+                        <Route
+                          path="/index.html"
+                          element={<Navigate to="/" />}
+                        />
+
+                        <Route
+                          path="*"
+                          element={<Navigate to="/attendance-taker-dashboard" />}
                         />
                       </Routes>
                     </Provider>

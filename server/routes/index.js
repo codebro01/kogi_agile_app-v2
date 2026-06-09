@@ -8,6 +8,7 @@ import paymentRouter from './paymentRouter.js';
 import schoolsRouter from './schoolsRouter.js';
 import attendanceRouter from './attendanceRouter.js';
 import verifierRouter from './verifierRouter.js'
+import attendanceTakerAuthRouter from './auth/attendanceTakerAuth.js'
 
 export {
   schoolsRouter,
@@ -20,4 +21,5 @@ export {
   paymentRouter,
   attendanceRouter,
   verifierRouter,
+  attendanceTakerAuthRouter,
 }

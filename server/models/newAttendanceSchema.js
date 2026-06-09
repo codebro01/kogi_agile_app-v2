@@ -11,11 +11,12 @@ const newAttendanceSchema = new Schema(
       type: Date,
       required: true,
     },
-    present: {
-      type: Boolean,
+    status: {
+      type: Number,
       required: true,
+      enum: [0, 1, 2, 3, 4], // 0: absent, 1: present, 2: transferred, 3: dropout, 4: died
     },
-    score: Number, 
+    score: Number,
   },
   { timestamps: true }
 )
