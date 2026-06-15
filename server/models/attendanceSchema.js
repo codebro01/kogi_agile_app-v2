@@ -42,7 +42,7 @@ const AttendanceSchema = new Schema({
     lockStatus: {
         type: Boolean,
         default: false
-    }, 
+    },
     attendanceSpread: [String]
 }, { timestamps: true });
 

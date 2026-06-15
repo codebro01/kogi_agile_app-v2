@@ -4,6 +4,7 @@ import {
   Registrar,
   Verifier,
   PayrollSpecialist,
+  AttendanceTaker,
 } from '../models/index.js'
 import { verifyJWT } from '../utils/index.js'
 import { StatusCodes } from 'http-status-codes'
@@ -60,9 +61,16 @@ export const authMiddleware = async (req, res, next) => {
         select: 'name', // Select only the "name" field of permissions
       },
     })
+    const attendanceTaker = await AttendanceTaker.findById(userID).populate({
+      path: 'roles',
+      populate: {
+        path: 'permissions',
+        select: 'name',
+      },
+    })
 
-    if (!admin && !registrar && !payrollSpecialist && !verifier)
-      next(new NotFoundError('User not found'))
+    if (!admin && !registrar && !payrollSpecialist && !verifier && !attendanceTaker)
+      return next(new NotFoundError('User not found'))
     if (admin) {
       const permissionsArray = admin.roles.flatMap((role) =>
         role.permissions.map((permission) => permission.name)
@@ -93,6 +101,17 @@ export const authMiddleware = async (req, res, next) => {
       )
       verifier.permissions = permissionsArray
       const { fullName, email, permissions, userID: _id } = verifier
+      req.user = { fullName, email, permissions, userID }
+    }
+    if (attendanceTaker) {
+      const permissionsArray = attendanceTaker.roles.flatMap((role) =>
+        role.permissions.map((permission) => permission.name)
+      )
+      if (permissionsArray.length === 0) {
+        permissionsArray.push('handle_attendance')
+      }
+      attendanceTaker.permissions = permissionsArray
+      const { fullName, email, permissions, userID: _id } = attendanceTaker
       req.user = { fullName, email, permissions, userID }
     }
 

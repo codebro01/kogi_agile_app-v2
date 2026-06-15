@@ -98,6 +98,9 @@ import {
   downloadAttendanceRecordExcel,
   getAttendanceAnalytics,
   getMonthlyAttendanceTrend,
+  getStudentsForAttendance,
+  createOrUpdateTermlyAverage,
+  getTermlyAverage
 } from './attendanceController.js'
 
 export {
@@ -166,6 +169,9 @@ export {
   downloadAttendanceRecordExcel,
   getAttendanceAnalytics,
   getMonthlyAttendanceTrend,
+  getStudentsForAttendance,
+  createOrUpdateTermlyAverage,
+  getTermlyAverage,
   toggleVerifierStatus,
   createVerifier,
   getSingleVerifier,

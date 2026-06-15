@@ -3,7 +3,10 @@ import {
   getAttendanceTable,
   downloadAttendanceRecordExcel,
   getAttendanceAnalytics,
-  getMonthlyAttendanceTrend
+  getMonthlyAttendanceTrend,
+  getStudentsForAttendance,
+  createOrUpdateTermlyAverage,
+  getTermlyAverage
 } from '../controllers/index.js'
 import express from 'express'
 
@@ -24,6 +27,24 @@ router.get(
   authMiddleware,
   authorizePermission(['handle_registrars', 'handle_payments', 'handle_attendance']),
   getAttendanceTable
+)
+router.get(
+  '/students-for-attendance',
+  authMiddleware,
+  authorizePermission(['handle_registrars', 'handle_payments', 'handle_attendance']),
+  getStudentsForAttendance
+)
+router.post(
+  '/termly-average',
+  authMiddleware,
+  authorizePermission(['handle_registrars', 'handle_payments', 'handle_attendance']),
+  createOrUpdateTermlyAverage
+)
+router.get(
+  '/termly-average',
+  authMiddleware,
+  authorizePermission(['handle_registrars', 'handle_payments', 'handle_attendance']),
+  getTermlyAverage
 )
 router.get(
   '/download-attendance-record',

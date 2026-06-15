@@ -91,15 +91,28 @@ export const createOrUpdateAttendance = async (req, res) => {
         ({ studentId, status, splittedDate }) =>
           studentId && typeof status === 'number' && splittedDate
       )
-      .map(({ studentId, status, splittedDate }) => ({
+      .map(({ studentId, status, splittedDate, absentReason, year, month, term, session }) => ({
         updateOne: {
           filter: { studentId, date: new Date(splittedDate) },
-          update: { $set: { status } },
+          update: { $set: { status, absentReason, year, month, term, session } },
           upsert: true,
         },
       }))
 
     const result = await NewAttendance.bulkWrite(bulkOps)
+
+    // Check if any student needs to be marked inactive (died=4, dropout=3, relocated=2)
+    const inactiveStatuses = [2, 3, 4]
+    const studentsToDeactivate = attendanceArray
+      .filter(a => inactiveStatuses.includes(a.status))
+      .map(a => a.studentId)
+
+    if (studentsToDeactivate.length > 0) {
+      await Student.updateMany(
+        { _id: { $in: studentsToDeactivate } },
+        { $set: { isActive: false } }
+      )
+    }
 
     // Fetch the updated records bsack from DB
     const attendanceDocs = await Promise.all(
@@ -413,7 +426,7 @@ export const downloadAttendanceRecordExcel = async (req, res) => {
 // 📊 Attendance Analytics
 export const getAttendanceAnalytics = async (req, res) => {
   try {
-    const { schoolId, cohort, fromDate, toDate } = req.query;
+    const { schoolId, cohort, fromDate, toDate, term, session, month, year } = req.query;
     
     // Build match for students
     const studentMatch = {};
@@ -430,6 +443,10 @@ export const getAttendanceAnalytics = async (req, res) => {
       if (fromDate) attendanceMatch.date.$gte = new Date(fromDate);
       if (toDate) attendanceMatch.date.$lte = new Date(toDate);
     }
+    if (term) attendanceMatch.term = term;
+    if (session) attendanceMatch.session = session;
+    if (month) attendanceMatch.month = Number(month);
+    if (year) attendanceMatch.year = Number(year);
 
     const attendanceRecords = await NewAttendance.find(attendanceMatch);
 
@@ -515,5 +532,60 @@ export const getMonthlyAttendanceTrend = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Error fetching monthly trend' });
+  }
+};
+
+export const getStudentsForAttendance = async (req, res) => {
+  try {
+    const { schoolId } = req.query;
+    if (!schoolId) return res.status(400).json({ message: 'schoolId is required' });
+
+    console.log('schoolId', schoolId)
+
+    // Only get students with an account number
+    const students = await Student.find({ 
+      schoolId, 
+      accountNumber: { $nin: [null, '', ' '] }
+    }).sort({ surname: 1 }).select('_id surname firstname middlename accountNumber isActive');
+
+    res.status(200).json({ students });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Error fetching students for attendance' });
+  }
+};
+
+import { TermlyAverage } from '../models/index.js';
+
+export const createOrUpdateTermlyAverage = async (req, res) => {
+  const { studentId, term, session, averageScore } = req.body;
+  if (!studentId || !term || !session || typeof averageScore !== 'number') {
+    return res.status(400).json({ message: 'Missing required fields' });
+  }
+  try {
+    const record = await TermlyAverage.findOneAndUpdate(
+      { studentId, term, session },
+      { averageScore },
+      { new: true, upsert: true }
+    );
+    res.status(200).json({ record });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Error saving termly average' });
+  }
+};
+
+export const getTermlyAverage = async (req, res) => {
+  const { studentId, term, session } = req.query;
+  try {
+    const query = {};
+    if (studentId) query.studentId = studentId;
+    if (term) query.term = term;
+    if (session) query.session = session;
+    const records = await TermlyAverage.find(query);
+    res.status(200).json({ records });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Error fetching termly averages' });
   }
 };

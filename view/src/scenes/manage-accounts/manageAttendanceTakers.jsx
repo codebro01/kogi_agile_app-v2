@@ -287,7 +287,9 @@ export const ManageAttendanceTakers = () => {
               />
             )}
           />
-          
+
+
+
           {/* Display selected schools underneath */}
           <Box sx={{ mt: 2, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
             {selectedSchools.map((schoolId) => {

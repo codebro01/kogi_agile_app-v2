@@ -613,7 +613,7 @@ const Sidebar = ({ isSidebar }) => {
 
             {/**********************************  Enumerator sidebar ******************************** */}
 
-            {userPermissions.length === 1 && (
+            {userPermissions.includes('handle_students') && userPermissions.length === 1 && (
               <>
                 <Item
                   title="Dashboard"
@@ -756,6 +756,13 @@ const Sidebar = ({ isSidebar }) => {
                     title="Take Attendance"
                     to={'/attendance-taker-dashboard/take-attendance'}
                     icon={<EventNoteIcon />}
+                    selected={selected}
+                    setSelected={setSelected}
+                  />
+                  <Item
+                    title="Termly Average"
+                    to={'/attendance-taker-dashboard/termly-average'}
+                    icon={<DescriptionIcon />}
                     selected={selected}
                     setSelected={setSelected}
                   />

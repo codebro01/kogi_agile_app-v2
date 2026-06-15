@@ -23,17 +23,19 @@ export const AttendanceTakerDashboard = () => {
     const [toDate, setToDate] = useState('');
     const [month, setMonth] = useState((new Date().getMonth() + 1).toString());
     const [year, setYear] = useState(new Date().getFullYear().toString());
+    const [term, setTerm] = useState('');
+    const [session, setSession] = useState('');
 
     useEffect(() => {
         fetchAnalytics();
         fetchTrend();
-    }, [schoolId, cohort, fromDate, toDate, month, year]);
+    }, [schoolId, cohort, fromDate, toDate, month, year, term, session]);
 
     const fetchAnalytics = async () => {
         try {
             const token = localStorage.getItem("token");
             const res = await axios.get(`${API_URL}/attendance/analytics`, {
-                params: { schoolId, cohort, fromDate, toDate },
+                params: { schoolId, cohort, fromDate, toDate, term, session },
                 headers: { Authorization: `Bearer ${token}` },
                 withCredentials: true
             });
@@ -99,6 +101,38 @@ export const AttendanceTakerDashboard = () => {
                     value={toDate}
                     onChange={(e) => setToDate(e.target.value)}
                 />
+
+                <FormControl variant="filled" sx={{ minWidth: 120 }}>
+                    <InputLabel>Term</InputLabel>
+                    <Select value={term} onChange={(e) => setTerm(e.target.value)}>
+                        <MenuItem value="">All Terms</MenuItem>
+                        <MenuItem value="First">First</MenuItem>
+                        <MenuItem value="Second">Second</MenuItem>
+                        <MenuItem value="Third">Third</MenuItem>
+                    </Select>
+                </FormControl>
+
+                <TextField
+                    variant="filled"
+                    label="Session"
+                    value={session}
+                    onChange={(e) => setSession(e.target.value)}
+                    placeholder="e.g. 2025/2026"
+                />
+
+                <Button variant="contained" color="secondary" sx={{ ml: 2 }} onClick={() => {
+                    const csvContent = "data:text/csv;charset=utf-8," 
+                        + "Total Records,Present,Absent,Transferred,Dropout,Died\n"
+                        + `${stats.total},${stats.present},${stats.absent},${stats.transferred},${stats.dropout},${stats.died}`;
+                    const encodedUri = encodeURI(csvContent);
+                    const link = document.createElement("a");
+                    link.setAttribute("href", encodedUri);
+                    link.setAttribute("download", "attendance_analytics.csv");
+                    document.body.appendChild(link);
+                    link.click();
+                }}>
+                    Export Analytics CSV
+                </Button>
             </Box>
 
             <Box display="grid" gridTemplateColumns="repeat(12, 1fr)" gap="20px" mb="20px">

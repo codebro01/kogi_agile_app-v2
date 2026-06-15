@@ -1,5 +1,4 @@
 import { getDefaultResultOrder } from 'dns'
-import { Attendance } from '../models/attendanceSchema.js'
 import { Payment, Student } from '../models/index.js'
 import mongoose from 'mongoose'
 

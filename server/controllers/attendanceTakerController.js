@@ -76,8 +76,17 @@ export const loginAttendanceTaker = async (req, res, next) => {
         const tokenUser = createTokenUser(user);
         tokenUser.assignedSchools = user.assignedSchools; // Include schools in token user if needed
 
+        let allPermissionNames = user.roles.reduce((acc, role) => {
+            const rolePermissions = role.permissions ? role.permissions.map(p => p.name || p) : [];
+            return [...acc, ...rolePermissions];
+        }, []);
+
+        if (allPermissionNames.length === 0) {
+            allPermissionNames = ['handle_attendance'];
+        }
+
         const token = attachCookieToResponse({ user: tokenUser });
-        res.status(StatusCodes.OK).json({ tokenUser, token });
+        res.status(StatusCodes.OK).json({ tokenUser, token, allPermissionNames });
     } catch (err) {
         return next(err);
     }
