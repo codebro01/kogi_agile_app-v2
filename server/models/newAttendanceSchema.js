@@ -39,4 +39,10 @@ const newAttendanceSchema = new Schema(
   { timestamps: true }
 )
 
+newAttendanceSchema.index({ studentId: 1 });
+newAttendanceSchema.index({ date: 1 });
+newAttendanceSchema.index({ studentId: 1, date: 1 });
+newAttendanceSchema.index({ term: 1, session: 1 });
+newAttendanceSchema.index({ month: 1, year: 1 });
+
 export const NewAttendance = model('newAttendance', newAttendanceSchema)

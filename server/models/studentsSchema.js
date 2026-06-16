@@ -202,6 +202,9 @@ StudentSchema.set('toJSON', { virtuals: true })
 
 StudentSchema.index({ randomId: 1, lga: 1, presentClass: 1, accountNumber: 1 })
 StudentSchema.index({ accountNumber: 1 })
+StudentSchema.index({ schoolId: 1 })
+StudentSchema.index({ presentClass: 1 })
+StudentSchema.index({ cohort: 1 })
 
 StudentSchema.pre('save', function (next) {
   if (this.isModified('lastLogged')) {
