@@ -13,6 +13,7 @@ export const TakeAttendance = () => {
     
     const [schools, setSchools] = useState([]);
     const [selectedSchool, setSelectedSchool] = useState('');
+    const [selectedClass, setSelectedClass] = useState('');
     const [students, setStudents] = useState([]);
     const [selectedStudent, setSelectedStudent] = useState(null);
     const [year, setYear] = useState(new Date().getFullYear());
@@ -24,6 +25,8 @@ export const TakeAttendance = () => {
     const [isSaving, setIsSaving] = useState(false);
     const [message, setMessage] = useState({ text: '', type: 'success', open: false });
 
+    const CLASS_OPTIONS = ['Primary 1', 'Primary 2', 'Primary 3', 'Primary 4', 'Primary 5', 'Primary 6', 'JSS 1', 'JSS 2', 'JSS 3', 'SSS 1', 'SSS 2', 'SSS 3'];
+
     // Fetch schools (assigned)
     useEffect(() => {
         const storedUser = JSON.parse(localStorage.getItem('userData'));
@@ -32,20 +35,20 @@ export const TakeAttendance = () => {
         }
     }, []);
 
-    // Fetch students when school changes
+    // Fetch students when school or class changes
     useEffect(() => {
-        if (selectedSchool) {
+        if (selectedSchool && selectedClass) {
             fetchStudents();
         } else {
             setStudents([]);
             setSelectedStudent(null);
         }
-    }, [selectedSchool]);
+    }, [selectedSchool, selectedClass]);
 
     const fetchStudents = async () => {
         try {
             const res = await axios.get(`${API_URL}/attendance/students-for-attendance`, {
-                params: { schoolId: selectedSchool },
+                params: { schoolId: selectedSchool, presentClass: selectedClass },
                 headers: { Authorization: `Bearer ${token}` },
                 withCredentials: true
             });
@@ -155,6 +158,22 @@ export const TakeAttendance = () => {
 
     const isStudentDisabled = selectedStudent && selectedStudent.isActive === false;
 
+    const handlePreviousStudent = () => {
+        if (!selectedStudent || students.length === 0) return;
+        const currentIndex = students.findIndex(s => s._id === selectedStudent._id);
+        if (currentIndex > 0) {
+            setSelectedStudent(students[currentIndex - 1]);
+        }
+    };
+
+    const handleNextStudent = () => {
+        if (!selectedStudent || students.length === 0) return;
+        const currentIndex = students.findIndex(s => s._id === selectedStudent._id);
+        if (currentIndex < students.length - 1) {
+            setSelectedStudent(students[currentIndex + 1]);
+        }
+    };
+
     return (
         <Box m="20px">
             <Header title="TAKE ATTENDANCE" subtitle="Record monthly attendance for beneficiaries" />
@@ -165,6 +184,15 @@ export const TakeAttendance = () => {
                     <Select value={selectedSchool} onChange={(e) => setSelectedSchool(e.target.value)}>
                         {schools.map(s => (
                             <MenuItem key={s._id} value={s._id}>{s.schoolName}</MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
+
+                <FormControl variant="filled" sx={{ minWidth: 150 }} disabled={!selectedSchool}>
+                    <InputLabel>Class</InputLabel>
+                    <Select value={selectedClass} onChange={(e) => setSelectedClass(e.target.value)}>
+                        {CLASS_OPTIONS.map(c => (
+                            <MenuItem key={c} value={c}>{c}</MenuItem>
                         ))}
                     </Select>
                 </FormControl>
@@ -188,7 +216,7 @@ export const TakeAttendance = () => {
                             variant="filled" 
                         />
                     )}
-                    disabled={!selectedSchool}
+                    disabled={!selectedSchool || !selectedClass}
                     sx={{ minWidth: 250 }}
                 />
 
@@ -267,7 +295,25 @@ export const TakeAttendance = () => {
                         ))}
                     </Grid>
 
-                    <Box mt={3} display="flex" justifyContent="flex-end">
+                    <Box mt={3} display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap="20px">
+                        <Box display="flex" gap="10px">
+                            <Button 
+                                variant="contained" 
+                                color="info" 
+                                onClick={handlePreviousStudent} 
+                                disabled={!selectedStudent || students.findIndex(s => s._id === selectedStudent._id) <= 0}
+                            >
+                                Previous Student
+                            </Button>
+                            <Button 
+                                variant="contained" 
+                                color="info" 
+                                onClick={handleNextStudent} 
+                                disabled={!selectedStudent || students.findIndex(s => s._id === selectedStudent._id) >= students.length - 1}
+                            >
+                                Next Student
+                            </Button>
+                        </Box>
                         <Button 
                             variant="contained" 
                             color="secondary" 

@@ -1,10 +1,10 @@
 import React from 'react';
-import { Pie, Line } from 'react-chartjs-2';
-import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, PointElement, LineElement, Title } from 'chart.js';
+import { Pie, Line, Bar } from 'react-chartjs-2';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title } from 'chart.js';
 import { useTheme } from '@mui/material';
 import { tokens } from '../../theme';
 
-ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, PointElement, LineElement, Title);
+ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title);
 
 export const AttendanceCharts = ({ type, data }) => {
     const theme = useTheme();
@@ -56,6 +56,26 @@ export const AttendanceCharts = ({ type, data }) => {
             ],
         };
         return <Line data={chartData} options={{ maintainAspectRatio: false }} />;
+    }
+
+    if (type === 'bar' && data.groupA && data.groupB) {
+        const labels = ['Present', 'Absent', 'Transferred', 'Dropout', 'Died'];
+        const chartData = {
+            labels,
+            datasets: [
+                {
+                    label: data.groupALabel || 'Group A',
+                    data: [data.groupA.present, data.groupA.absent, data.groupA.transferred, data.groupA.dropout, data.groupA.died],
+                    backgroundColor: colors.blueAccent[500],
+                },
+                {
+                    label: data.groupBLabel || 'Group B',
+                    data: [data.groupB.present, data.groupB.absent, data.groupB.transferred, data.groupB.dropout, data.groupB.died],
+                    backgroundColor: colors.greenAccent[500],
+                }
+            ],
+        };
+        return <Bar data={chartData} options={{ maintainAspectRatio: false }} />;
     }
 
     return null;

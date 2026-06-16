@@ -426,12 +426,13 @@ export const downloadAttendanceRecordExcel = async (req, res) => {
 // 📊 Attendance Analytics
 export const getAttendanceAnalytics = async (req, res) => {
   try {
-    const { schoolId, cohort, fromDate, toDate, term, session, month, year } = req.query;
+    const { schoolId, cohort, fromDate, toDate, term, session, month, year, presentClass } = req.query;
     
     // Build match for students
     const studentMatch = {};
     if (schoolId && schoolId !== 'all') studentMatch.schoolId = schoolId;
     if (cohort) studentMatch.cohort = Number(cohort);
+    if (presentClass) studentMatch.presentClass = presentClass;
 
     const students = await Student.find(studentMatch).select('_id');
     const studentIds = students.map(s => s._id);
@@ -537,16 +538,22 @@ export const getMonthlyAttendanceTrend = async (req, res) => {
 
 export const getStudentsForAttendance = async (req, res) => {
   try {
-    const { schoolId } = req.query;
+    const { schoolId, presentClass } = req.query;
     if (!schoolId) return res.status(400).json({ message: 'schoolId is required' });
 
-    console.log('schoolId', schoolId)
+    // console.log('schoolId', schoolId)
 
-    // Only get students with an account number
-    const students = await Student.find({ 
-      schoolId, 
+    const matchQuery = {
+      schoolId,
       accountNumber: { $nin: [null, '', ' '] }
-    }).sort({ surname: 1 }).select('_id surname firstname middlename accountNumber isActive');
+    };
+    
+    if (presentClass) {
+      matchQuery.presentClass = presentClass;
+    }
+
+    // Only get students with an account number and specific class
+    const students = await Student.find(matchQuery).sort({ surname: 1 }).select('_id surname firstname middlename accountNumber isActive');
 
     res.status(200).json({ students });
   } catch (err) {

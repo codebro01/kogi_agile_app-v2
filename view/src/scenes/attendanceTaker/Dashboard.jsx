@@ -4,6 +4,7 @@ import { tokens } from '../../theme';
 import Header from '../../components/Header';
 import axios from 'axios';
 import { AttendanceCharts } from './AttendanceCharts';
+import { CompareAttendanceModal } from './CompareAttendanceModal';
 import StatBox from '../../components/StatBox';
 import EmailIcon from '@mui/icons-material/Email';
 
@@ -25,6 +26,7 @@ export const AttendanceTakerDashboard = () => {
     const [year, setYear] = useState(new Date().getFullYear().toString());
     const [term, setTerm] = useState('');
     const [session, setSession] = useState('');
+    const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
 
     useEffect(() => {
         fetchAnalytics();
@@ -133,6 +135,10 @@ export const AttendanceTakerDashboard = () => {
                 }}>
                     Export Analytics CSV
                 </Button>
+
+                <Button variant="contained" color="info" sx={{ ml: 2 }} onClick={() => setIsCompareModalOpen(true)}>
+                    Compare Performance
+                </Button>
             </Box>
 
             <Box display="grid" gridTemplateColumns="repeat(12, 1fr)" gap="20px" mb="20px">
@@ -191,6 +197,12 @@ export const AttendanceTakerDashboard = () => {
                     </Box>
                 </Box>
             </Box>
+
+            <CompareAttendanceModal 
+                open={isCompareModalOpen} 
+                onClose={() => setIsCompareModalOpen(false)} 
+                assignedSchools={assignedSchools}
+            />
         </Box>
     );
 };
