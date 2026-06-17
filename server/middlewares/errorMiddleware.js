@@ -15,7 +15,19 @@ export const customErrorHandler = (err, req, res, next) => {
 
     // Handle MongoDB duplicate key error
     if (err.code && err.code === 11000) {
-        errObj.message = `${Object.values(err.keyValue)} already exists. Please select another ${Object.keys(err.keyValue)}.`;  
+        let keyValueObj = err.keyValue;
+        
+        // If it's a BulkWriteError, err.keyValue is undefined. We must look inside writeErrors
+        if (!keyValueObj && err.writeErrors && err.writeErrors.length > 0) {
+            const nestedErr = err.writeErrors[0].err;
+            keyValueObj = nestedErr ? nestedErr.keyValue || nestedErr.keyPattern : null;
+        }
+
+        if (keyValueObj) {
+            errObj.message = `${Object.values(keyValueObj)} already exists. Please select another ${Object.keys(keyValueObj)}.`;  
+        } else {
+            errObj.message = `A duplicate record was found and could not be saved.`;
+        }
         errObj.statusCode = StatusCodes.BAD_REQUEST;
     }
 

@@ -1990,6 +1990,9 @@ export const deleteStudent = async (req, res, next) => {
 
     const studentObj = student.toObject()
 
+    // Remove any existing record in the recycle bin for this student to prevent Duplicate Key errors
+    await DeletedStudents.findOneAndDelete({ randomId: id }).session(session)
+
     // Save to recycle bin within the same transaction
     await DeletedStudents.create([{ ...studentObj, deletedAt: new Date() }], {
       session,
@@ -2051,6 +2054,12 @@ export const deleteManyStudents = async (req, res, next) => {
       ...student.toObject(),
       deletedAt: new Date(),
     }))
+
+    // Remove any existing records in the recycle bin for these students to prevent Duplicate Key errors
+    await DeletedStudents.deleteMany(
+      { randomId: { $in: selectedStudents } },
+      { session }
+    )
 
     // Insert into DeletedStudents (within the same transaction)
     await DeletedStudents.insertMany(recycleBinData, { session })
