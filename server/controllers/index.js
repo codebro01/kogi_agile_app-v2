@@ -100,7 +100,11 @@ import {
   getMonthlyAttendanceTrend,
   getStudentsForAttendance,
   createOrUpdateTermlyAverage,
-  getTermlyAverage
+  getTermlyAverage,
+  exportEmptyAverageSheet,
+  importAverageRecords,
+  exportAverageRecords,
+  getAverageChartData
 } from './attendanceController.js'
 
 export {
@@ -189,4 +193,8 @@ export {
   restoreSelectedStudents,
   studentRecycleBinData,
   UpdateParentRelationship,
+  exportEmptyAverageSheet,
+  importAverageRecords,
+  exportAverageRecords,
+  getAverageChartData,
 }

@@ -6,7 +6,11 @@ import {
   getMonthlyAttendanceTrend,
   getStudentsForAttendance,
   createOrUpdateTermlyAverage,
-  getTermlyAverage
+  getTermlyAverage,
+  exportEmptyAverageSheet,
+  importAverageRecords,
+  exportAverageRecords,
+  getAverageChartData
 } from '../controllers/index.js'
 import express from 'express'
 
@@ -14,6 +18,7 @@ import {
   authorizePermission,
   authMiddleware,
 } from '../middlewares/authenticationMiddleware.js'
+import { uploadXLSX } from '../config/multer.js'
 const router = express.Router()
 
 router.post(
@@ -64,6 +69,36 @@ router.get(
   authMiddleware,
   authorizePermission(['handle_registrars', 'handle_payments', 'handle_attendance']),
   getMonthlyAttendanceTrend
+)
+
+// Result Average Features
+router.get(
+  '/export-average-template',
+  authMiddleware,
+  authorizePermission(['handle_registrars', 'handle_payments', 'handle_attendance']),
+  exportEmptyAverageSheet
+)
+
+router.post(
+  '/import-average-records',
+  authMiddleware,
+  authorizePermission(['handle_registrars', 'handle_payments', 'handle_attendance']),
+  uploadXLSX.single('file'),
+  importAverageRecords
+)
+
+router.get(
+  '/export-average-records',
+  authMiddleware,
+  authorizePermission(['handle_registrars', 'handle_payments', 'handle_attendance']),
+  exportAverageRecords
+)
+
+router.get(
+  '/average-chart-data',
+  authMiddleware,
+  authorizePermission(['handle_registrars', 'handle_payments', 'handle_attendance']),
+  getAverageChartData
 )
 
 export default router

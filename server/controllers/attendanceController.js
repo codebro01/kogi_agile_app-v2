@@ -596,3 +596,176 @@ export const getTermlyAverage = async (req, res) => {
     res.status(500).json({ message: 'Error fetching termly averages' });
   }
 };
+
+// 📊 Result Average Features
+export const exportEmptyAverageSheet = async (req, res) => {
+  try {
+    const { schoolId, presentClass } = req.query;
+    if (!schoolId) return res.status(400).json({ message: 'School ID is required' });
+
+    const query = { schoolId };
+    if (presentClass) query.presentClass = presentClass;
+    
+    // Fetch beneficiaries (we'll fetch matching students)
+    const students = await Student.find(query).lean();
+    
+    const data = students.map(s => ({
+      'Student ID': s._id.toString(),
+      'Random ID': s.randomId || '',
+      'Name': `${s.surname || ''} ${s.firstname || ''} ${s.middlename || ''}`.trim(),
+      'Account Number': s.accountNumber || '',
+      'Class': s.presentClass || '',
+      'Term': 'First', // Default
+      'Session': '2025/2026', // Default
+      'Average Score': '' // Empty for user to fill
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Result Average Template');
+
+    const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+    res.setHeader('Content-Disposition', 'attachment; filename=result_average_template.xlsx');
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.send(buffer);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Error exporting template' });
+  }
+};
+
+export const importAverageRecords = async (req, res) => {
+  try {
+    if (!req.file || !req.file.buffer) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+
+    const workbook = XLSX.read(req.file.buffer, { type: 'buffer' });
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+    const data = XLSX.utils.sheet_to_json(sheet);
+
+    if (!data.length) {
+      return res.status(400).json({ message: 'Excel sheet is empty' });
+    }
+
+    let successCount = 0;
+    const bulkOps = [];
+
+    for (const row of data) {
+      const studentId = row['Student ID'];
+      const term = row['Term'];
+      const session = row['Session'];
+      const score = row['Average Score'];
+
+      if (studentId && term && session && score !== undefined && score !== '') {
+        bulkOps.push({
+          updateOne: {
+            filter: { studentId, term, session },
+            update: { $set: { averageScore: Number(score) } },
+            upsert: true
+          }
+        });
+        successCount++;
+      }
+    }
+
+    if (bulkOps.length > 0) {
+      await TermlyAverage.bulkWrite(bulkOps);
+    }
+
+    res.status(200).json({ message: `Successfully imported ${successCount} records.` });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Error importing records' });
+  }
+};
+
+export const exportAverageRecords = async (req, res) => {
+  try {
+    const { schoolId, cohort } = req.query;
+    
+    // First find matching students
+    const studentQuery = {};
+    if (schoolId && schoolId !== 'all') studentQuery.schoolId = schoolId;
+    if (cohort) studentQuery.cohort = Number(cohort);
+
+    const students = await Student.find(studentQuery).select('_id randomId surname firstname middlename accountNumber presentClass').lean();
+    const studentIds = students.map(s => s._id);
+
+    const studentMap = {};
+    students.forEach(s => {
+      studentMap[s._id.toString()] = s;
+    });
+
+    const records = await TermlyAverage.find({ studentId: { $in: studentIds } }).lean();
+
+    const data = records.map(r => {
+      const s = studentMap[r.studentId.toString()] || {};
+      return {
+        'Student ID': r.studentId.toString(),
+        'Random ID': s.randomId || '',
+        'Name': `${s.surname || ''} ${s.firstname || ''} ${s.middlename || ''}`.trim(),
+        'Account Number': s.accountNumber || '',
+        'Class': s.presentClass || '',
+        'Term': r.term,
+        'Session': r.session,
+        'Average Score': r.averageScore
+      };
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Result Averages');
+
+    const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+    res.setHeader('Content-Disposition', 'attachment; filename=result_averages.xlsx');
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.send(buffer);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Error exporting records' });
+  }
+};
+
+export const getAverageChartData = async (req, res) => {
+  try {
+    const { schoolId, session } = req.query;
+    if (!schoolId || !session) {
+      return res.status(400).json({ message: 'schoolId and session are required' });
+    }
+
+    const students = await Student.find({ schoolId }).select('_id').lean();
+    const studentIds = students.map(s => s._id);
+
+    const records = await TermlyAverage.find({
+      studentId: { $in: studentIds },
+      session
+    }).lean();
+
+    // Group by term and calculate average
+    const termStats = {
+      'First': { totalScore: 0, count: 0 },
+      'Second': { totalScore: 0, count: 0 },
+      'Third': { totalScore: 0, count: 0 }
+    };
+
+    records.forEach(r => {
+      if (termStats[r.term]) {
+        termStats[r.term].totalScore += r.averageScore;
+        termStats[r.term].count++;
+      }
+    });
+
+    const chartData = {
+      'First': termStats['First'].count > 0 ? (termStats['First'].totalScore / termStats['First'].count).toFixed(2) : 0,
+      'Second': termStats['Second'].count > 0 ? (termStats['Second'].totalScore / termStats['Second'].count).toFixed(2) : 0,
+      'Third': termStats['Third'].count > 0 ? (termStats['Third'].totalScore / termStats['Third'].count).toFixed(2) : 0
+    };
+
+    res.status(200).json({ chartData });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Error fetching chart data' });
+  }
+};
