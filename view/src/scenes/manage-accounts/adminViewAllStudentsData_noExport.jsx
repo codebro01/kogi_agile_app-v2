@@ -160,6 +160,7 @@ export const AdminViewAllStudentsDataNoExport = () => {
   // const [fetchLoading, setFetchLoading] = useState(false)
   const [selectedItem, setSelectedItem] = useState(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isParentModalOpen, setIsParentModalOpen] = useState(false)
   // const [filteredData, setFilteredData] = useState([]); // State for filtered data
   const [checked, setChecked] = useState(false)
   const [demotionChecked, setDemotionChecked] = useState(false)
@@ -433,6 +434,26 @@ export const AdminViewAllStudentsDataNoExport = () => {
         </Typography>
       ),
     },
+    {
+      name: 'View Parent',
+      cell: (row) => (
+        <Typography
+          onClick={() => handleViewParent(row)}
+          sx={{
+            padding: '5px 10px',
+            backgroundColor: '#196b57',
+            color: '#fff',
+            border: 'none',
+            cursor: 'pointer',
+            fontSize: '12px',
+            minWidth: '90px',
+            textAlign: 'center'
+          }}
+        >
+          View Parent
+        </Typography>
+      ),
+    },
 
     {
       name: 'Image',
@@ -615,6 +636,11 @@ export const AdminViewAllStudentsDataNoExport = () => {
   const handleViewItem = (item) => {
     setSelectedItem(item)
     setIsModalOpen(true)
+  }
+
+  const handleViewParent = (item) => {
+    setSelectedItem(item)
+    setIsParentModalOpen(true)
   }
 
   const handleSearch = (event) => {
@@ -1938,6 +1964,141 @@ export const AdminViewAllStudentsDataNoExport = () => {
                     border: 'none',
                     // borderRadius: '5px',
                     cursor: 'pointer',
+                  }}
+                >
+                  Close
+                </button>
+              </Box>
+            </div>
+          )}
+
+          {isParentModalOpen && (
+            <div
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: '100vw',
+                height: '100vh',
+                backgroundColor: 'rgba(0, 0, 0, 0.52)',
+                zIndex: 9999,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Box
+                sx={{
+                  position: 'fixed',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  backgroundColor: '#fff',
+                  padding: '20px',
+                  boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
+                  width: { lg: '30%', md: '50%', sm: '50%', xs: '80%' },
+                  height: { xs: '80vh' },
+                  overflowY: 'scroll',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'flex-start',
+                  justifyContent: 'flex-start',
+                }}
+              >
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    width: '100%',
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontWeight: 800,
+                      fontSize: '25px',
+                      color: '#196b57',
+                      textAlign: 'center',
+                      display: 'flex',
+                      justifyContent: 'center',
+                      width: '100%',
+                    }}
+                  >
+                    Parent / Caregiver Details
+                  </Typography>
+                  <Box
+                    onClick={() => setIsParentModalOpen(false)}
+                    sx={{ cursor: 'pointer' }}
+                  >
+                    <CancelIcon sx={{ color: 'red' }} />
+                  </Box>
+                </Box>
+
+                <div
+                  style={{
+                    alignSelf: 'center',
+                    display: 'flex',
+                    gap: '20px',
+                    alignItems: 'center',
+                    marginTop: '20px',
+                    marginBottom: '20px'
+                  }}
+                >
+                  <div
+                    style={{
+                      alignSelf: 'center',
+                      display: 'flex',
+                      gap: '10px',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <h3>Caregiver Photo</h3>
+                    <div
+                      style={{
+                        alignSelf: 'center',
+                        display: 'flex',
+                        gap: '10px',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        width: '150px',
+                        height: '150px',
+                      }}
+                    >
+                      {selectedItem?.caregiverPhoto ? (
+                        <img
+                          src={`${selectedItem.caregiverPhoto}`}
+                          alt="Caregiver Photo"
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        />
+                      ) : (
+                        <img
+                          src={`/not-verified.png`}
+                          alt="No Photo"
+                          style={{ width: '140px', minHeight: '120px' }}
+                        />
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <p><strong>Student Name:</strong> {`${selectedItem?.surname} ${selectedItem?.firstname} ${selectedItem?.middlename || ''}`}</p>
+                <p><strong>Parent/Caregiver Name:</strong> {selectedItem?.parentName || 'N/A'}</p>
+                <p><strong>Parent Contact:</strong> {selectedItem?.parentPhone ? `0${selectedItem.parentPhone}` : 'N/A'}</p>
+                <p><strong>Caregiver Relationship:</strong> {selectedItem?.caregiverRelationship || 'N/A'}</p>
+                <p><strong>Caregiver Gender:</strong> {selectedItem?.caregiverGender || 'N/A'}</p>
+                <p><strong>Caregiver DOB:</strong> {selectedItem?.caregiverDob || 'N/A'}</p>
+                <p><strong>NIN (Kogi Agile):</strong> {selectedItem?.ninBecauseOfKogiAgile || 'N/A'}</p>
+                <p><strong>Card No:</strong> {selectedItem?.cardNo || 'N/A'}</p>
+
+                <button
+                  onClick={() => setIsParentModalOpen(false)}
+                  style={{
+                    padding: '5px 13px',
+                    backgroundColor: '#dc3545',
+                    color: '#fff',
+                    border: 'none',
+                    cursor: 'pointer',
+                    marginTop: '20px'
                   }}
                 >
                   Close
