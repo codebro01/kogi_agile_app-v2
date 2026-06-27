@@ -260,7 +260,7 @@ const PhotoCard = () => {
   useEffect(() => {
     const filteredParams = {
       verified: verifiedOnly ? 'true' : '',
-      status: 'active',
+      status: 'all',
     }
     const sortParam = { sortBy: '', sortOrder: '' }
     if (verificationDataReady) {

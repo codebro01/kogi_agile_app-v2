@@ -750,7 +750,7 @@ export const AdminViewAllStudentsData = () => {
                   labelId="active - status"
                 >
                   <MenuItem value="active">
-                    <em>All</em>
+                    <em>Active</em>
                   </MenuItem>
                   <MenuItem value={'all'}>All</MenuItem>
                   <MenuItem value={'inactive'}>Inactive</MenuItem>

@@ -362,9 +362,11 @@ export const filterAndDownload = async (req, res, next) => {
     } else {
       basket = {}
     }
-    if ((status && status === 'active') || !status) basket.isActive = true
-    if (status && status === 'inactive') basket.isActive = false
-    if (status && status === 'all') basket.isActive
+    if ((status && status === 'active') || !status) {
+      basket.isActive = { $ne: false }
+    } else if (status && status === 'inactive') {
+      basket.isActive = false
+    }
     if (lga) basket.lgaOfEnrollment = lga
     if (presentClass) basket.presentClass = presentClass
     if (yearOfEnrollment) basket.yearOfEnrollment = yearOfEnrollment
@@ -410,12 +412,14 @@ export const filterAndDownload = async (req, res, next) => {
 
     // if (yearOfAdmission) basket.yearAdmitted = yearOfAdmission;
 
+    // Add verificationStatus directly to DB query basket for efficiency
+    if (verified === 'true') basket.verificationStatus = true
+    if (verified === 'false') basket.verificationStatus = false
+
     let sort = { createdAt: -1 } // Default sort
     if (sortBy && sortOrder) {
       sort[sortBy] = sortOrder === 'asc' ? 1 : -1
     }
-
-    // console.log(basket)
 
     let students
 
@@ -427,15 +431,6 @@ export const filterAndDownload = async (req, res, next) => {
       .sort(sort)
       .collation({ locale: 'en', strength: 2 })
       .lean()
-
-    if (verified === 'true')
-      students = students.filter(
-        (student) => student.verificationStatus === true
-      )
-    if (verified === 'false')
-      students = students.filter(
-        (student) => student.verificationStatus !== true
-      )
 
     students = students.map((student) => {
       const verification = student.verificationInfo || {}
@@ -645,14 +640,16 @@ export const filterAndView = async (req, res, next) => {
 
     // Create a basket object
     let basket
-    if (permissions.includes(['handle_students'] && permissions.length === 1)) {
+    if (permissions.length === 1 && permissions.includes('handle_students')) {
       basket = { createdBy: userID }
     } else {
       basket = {}
     }
-    if ((status && status === 'active') || !status) basket.isActive = true
-    if (status && status === 'inactive') basket.isActive = false
-    if (status && status === 'all') basket.isActive
+    if ((status && status === 'active') || !status) {
+      basket.isActive = { $ne: false }
+    } else if (status && status === 'inactive') {
+      basket.isActive = false
+    }
     if (lga) basket.lgaOfEnrollment = lga
     if (presentClass) basket.presentClass = presentClass
     if (disabilitystatus) basket.disabilitystatus = disabilitystatus
@@ -2775,21 +2772,27 @@ export const EditManyStudents = async (req, res, next) => {
 export const SyncStudentsVerification = async (req, res, next) => {
   // console.log('got in here')
   try {
-    const studentsWithVerification = await Verification.find({})
-    const studentsIdWithVerification = studentsWithVerification.map(
-      (student) => student.studentId
-    )
+    // Sync verified = true
+    const verifiedStudents = await Verification.find({ verified: true }).select('studentId').lean()
+    const verifiedIds = verifiedStudents.map((s) => s.studentId)
 
-    await Student.updateMany(
-      {
-        _id: { $in: studentsIdWithVerification },
-      },
-      {
-        $set: {
-          verificationStatus: true,
-        },
-      }
-    )
+    if (verifiedIds.length > 0) {
+      await Student.updateMany(
+        { _id: { $in: verifiedIds } },
+        { $set: { verificationStatus: true } }
+      )
+    }
+
+    // Sync verified = false
+    const unverifiedStudents = await Verification.find({ verified: false }).select('studentId').lean()
+    const unverifiedIds = unverifiedStudents.map((s) => s.studentId)
+
+    if (unverifiedIds.length > 0) {
+      await Student.updateMany(
+        { _id: { $in: unverifiedIds } },
+        { $set: { verificationStatus: false } }
+      )
+    }
 
     res
       .status(200)
