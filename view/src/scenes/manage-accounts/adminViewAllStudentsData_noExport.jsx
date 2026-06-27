@@ -160,7 +160,6 @@ export const AdminViewAllStudentsDataNoExport = () => {
   // const [fetchLoading, setFetchLoading] = useState(false)
   const [selectedItem, setSelectedItem] = useState(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [isParentModalOpen, setIsParentModalOpen] = useState(false)
   // const [filteredData, setFilteredData] = useState([]); // State for filtered data
   const [checked, setChecked] = useState(false)
   const [demotionChecked, setDemotionChecked] = useState(false)
@@ -201,7 +200,7 @@ export const AdminViewAllStudentsDataNoExport = () => {
   ]
 
   useEffect(() => {
-    ;(async () => {
+    ; (async () => {
       try {
         const token = localStorage.getItem('token')
         const response = await axios.get(`${API_URL}/admin-enumerator`, {
@@ -353,7 +352,7 @@ export const AdminViewAllStudentsDataNoExport = () => {
 
     if (confirmDelete) {
       try {
-        ;(async () => {
+        ; (async () => {
           try {
             dispatch(deleteStudent(row.randomId)).unwrap()
           } catch (err) {
@@ -434,26 +433,7 @@ export const AdminViewAllStudentsDataNoExport = () => {
         </Typography>
       ),
     },
-    {
-      name: 'View Parent',
-      cell: (row) => (
-        <Typography
-          onClick={() => handleViewParent(row)}
-          sx={{
-            padding: '5px 10px',
-            backgroundColor: '#196b57',
-            color: '#fff',
-            border: 'none',
-            cursor: 'pointer',
-            fontSize: '12px',
-            minWidth: '90px',
-            textAlign: 'center'
-          }}
-        >
-          View Parent
-        </Typography>
-      ),
-    },
+
 
     {
       name: 'Image',
@@ -638,10 +618,7 @@ export const AdminViewAllStudentsDataNoExport = () => {
     setIsModalOpen(true)
   }
 
-  const handleViewParent = (item) => {
-    setSelectedItem(item)
-    setIsParentModalOpen(true)
-  }
+
 
   const handleSearch = (event) => {
     const query = event.target.value
@@ -812,9 +789,9 @@ export const AdminViewAllStudentsDataNoExport = () => {
         return navigate('/')
       alert(
         err.response?.message ||
-          err.response?.data?.message ||
-          err?.message ||
-          'an error occured, please try again'
+        err.response?.data?.message ||
+        err?.message ||
+        'an error occured, please try again'
       )
     }
   }
@@ -895,7 +872,7 @@ export const AdminViewAllStudentsDataNoExport = () => {
   return (
     <>
       {userPermissions.includes('handle_registrars') ||
-      userPermissions.includes('handle_payments') ? (
+        userPermissions.includes('handle_payments') ? (
         <Container
           maxWidth="lg"
           sx={{ marginTop: 4, marginBottom: '50px', position: 'relative' }}
@@ -1616,7 +1593,7 @@ export const AdminViewAllStudentsDataNoExport = () => {
                 gap: 2,
                 alignItems: 'center',
               }}
-              //   disabled={!filters.file}
+            //   disabled={!filters.file}
             >
               {updateAccountLoading === true ? (
                 <Typography
@@ -1764,10 +1741,10 @@ export const AdminViewAllStudentsDataNoExport = () => {
                   padding: '20px',
                   boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
                   width: {
-                    lg: '30%',
-                    md: '50%',
-                    sm: '50%',
-                    xs: '80%',
+                    lg: '45%',
+                    md: '65%',
+                    sm: '70%',
+                    xs: '90%',
                   },
                   height: {
                     xs: '80vh',
@@ -1891,158 +1868,6 @@ export const AdminViewAllStudentsDataNoExport = () => {
                       />
                     )}
                   </div>
-                </div>
-                <p>
-                  <strong>Student ID:</strong> {selectedItem.randomId}
-                </p>
-                <p>
-                  <strong>Verified Status: </strong>{' '}
-                  {selectedItem.verified ? (
-                    <span>Verfified</span>
-                  ) : (
-                    <span>Not Verified</span>
-                  )}
-                </p>
-                <p>
-                  <strong>Name:</strong>{' '}
-                  {`${selectedItem.surname} ${selectedItem.firstname} ${
-                    selectedItem.fiddlename || ''
-                  }`}
-                </p>
-                <p>
-                  <strong>School name:</strong>{' '}
-                  {selectedItem.schoolId.schoolName}
-                </p>
-                <p>
-                  <strong>Date of Birth:</strong> {selectedItem.dob}
-                </p>
-                <p>
-                  <strong>state Of Origin:</strong> {selectedItem.stateOfOrigin}
-                </p>
-                <p>
-                  <strong>LGA of Enrollment:</strong>{' '}
-                  {selectedItem.lgaOfEnrollment}
-                </p>
-                <p>
-                  <strong>Ward:</strong> {selectedItem.ward}
-                </p>
-                <p>
-                  <strong>Present Class:</strong> {selectedItem.presentClass}
-                </p>
-                <p>
-                  <strong>Year of Enrollment:</strong>{' '}
-                  {selectedItem.yearOfEnrollment}
-                </p>
-                <p>
-                  <strong>Parent Name:</strong> {selectedItem?.parentName}
-                </p>
-                <p>
-                  <strong>Parent Contact:</strong> 0{selectedItem?.parentPhone}
-                </p>
-                <p>
-                  <strong> Card No:</strong>
-                  {selectedItem?.cardNo}
-                </p>
-
-                <p>
-                  <strong>Registered By: </strong>{' '}
-                  {selectedItem?.createdBy?.fullName}
-                </p>
-                <p>
-                  {!selectedItem.verified && (
-                    <strong>
-                      Reason Not Verified: {selectedItem?.reasonNotVerified}
-                    </strong>
-                  )}
-                </p>
-                <button
-                  onClick={() => setIsModalOpen(false)}
-                  style={{
-                    padding: '5px 13px',
-                    backgroundColor: '#dc3545',
-                    color: '#fff',
-                    border: 'none',
-                    // borderRadius: '5px',
-                    cursor: 'pointer',
-                  }}
-                >
-                  Close
-                </button>
-              </Box>
-            </div>
-          )}
-
-          {isParentModalOpen && (
-            <div
-              style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                width: '100vw',
-                height: '100vh',
-                backgroundColor: 'rgba(0, 0, 0, 0.52)',
-                zIndex: 9999,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Box
-                sx={{
-                  position: 'fixed',
-                  top: '50%',
-                  left: '50%',
-                  transform: 'translate(-50%, -50%)',
-                  backgroundColor: '#fff',
-                  padding: '20px',
-                  boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
-                  width: { lg: '30%', md: '50%', sm: '50%', xs: '80%' },
-                  height: { xs: '80vh' },
-                  overflowY: 'scroll',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'flex-start',
-                  justifyContent: 'flex-start',
-                }}
-              >
-                <Box
-                  sx={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    width: '100%',
-                  }}
-                >
-                  <Typography
-                    sx={{
-                      fontWeight: 800,
-                      fontSize: '25px',
-                      color: '#196b57',
-                      textAlign: 'center',
-                      display: 'flex',
-                      justifyContent: 'center',
-                      width: '100%',
-                    }}
-                  >
-                    Parent / Caregiver Details
-                  </Typography>
-                  <Box
-                    onClick={() => setIsParentModalOpen(false)}
-                    sx={{ cursor: 'pointer' }}
-                  >
-                    <CancelIcon sx={{ color: 'red' }} />
-                  </Box>
-                </Box>
-
-                <div
-                  style={{
-                    alignSelf: 'center',
-                    display: 'flex',
-                    gap: '20px',
-                    alignItems: 'center',
-                    marginTop: '20px',
-                    marginBottom: '20px'
-                  }}
-                >
                   <div
                     style={{
                       alignSelf: 'center',
@@ -2071,34 +1896,110 @@ export const AdminViewAllStudentsDataNoExport = () => {
                           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         />
                       ) : (
-                        <img
-                          src={`/not-verified.png`}
-                          alt="No Photo"
-                          style={{ width: '140px', minHeight: '120px' }}
-                        />
+                        <div
+                          style={{
+                            width: '140px',
+                            height: '140px',
+                            borderRadius: '50%',
+                            backgroundColor: '#e0e0e0',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: '#757575',
+                            fontWeight: 'bold',
+                            textAlign: 'center',
+                            fontSize: '14px'
+                          }}
+                        >
+                          No Photo
+                        </div>
                       )}
                     </div>
                   </div>
                 </div>
+                <p>
+                  <strong>Student ID:</strong> {selectedItem.randomId}
+                </p>
+                <p>
+                  <strong>Verified Status: </strong>{' '}
+                  {selectedItem.verified ? (
+                    <span>Verfified</span>
+                  ) : (
+                    <span>Not Verified</span>
+                  )}
+                </p>
+                <p>
+                  <strong>Name:</strong>{' '}
+                  {`${selectedItem.surname} ${selectedItem.firstname} ${selectedItem.fiddlename || ''
+                    }`}
+                </p>
+                <p>
+                  <strong>School name:</strong>{' '}
+                  {selectedItem.schoolId.schoolName}
+                </p>
+                <p>
+                  <strong>Date of Birth:</strong> {selectedItem.dob}
+                </p>
+                <p>
+                  <strong>state Of Origin:</strong> {selectedItem.stateOfOrigin}
+                </p>
+                <p>
+                  <strong>LGA of Enrollment:</strong>{' '}
+                  {selectedItem.lgaOfEnrollment}
+                </p>
+                <p>
+                  <strong>Ward:</strong> {selectedItem.ward}
+                </p>
+                <p>
+                  <strong>Present Class:</strong> {selectedItem.presentClass}
+                </p>
+                <p>
+                  <strong>Year of Enrollment:</strong>{' '}
+                  {selectedItem.yearOfEnrollment}
+                </p>
+                <p>
+                  <strong>Caregiver Name:</strong> {selectedItem?.parentName}
+                </p>
+                <p>
+                  <strong>Caregiver Contact:</strong> 0{selectedItem?.parentPhone}
+                </p>
+                <p>
+                  <strong>Caregiver Relationship:</strong> {selectedItem?.caregiverRelationship || 'N/A'}
+                </p>
+                <p>
+                  <strong>Caregiver Gender:</strong> {selectedItem?.caregiverGender || 'N/A'}
+                </p>
+                <p>
+                  <strong>Caregiver DOB:</strong> {selectedItem?.caregiverDob || 'N/A'}
+                </p>
+                <p>
+                  <strong>NIN (Kogi Agile):</strong> {selectedItem?.ninBecauseOfKogiAgile || 'N/A'}
+                </p>
+                <p>
+                  <strong> Card No:</strong>
+                  {selectedItem?.cardNo}
+                </p>
 
-                <p><strong>Student Name:</strong> {`${selectedItem?.surname} ${selectedItem?.firstname} ${selectedItem?.middlename || ''}`}</p>
-                <p><strong>Parent/Caregiver Name:</strong> {selectedItem?.parentName || 'N/A'}</p>
-                <p><strong>Parent Contact:</strong> {selectedItem?.parentPhone ? `0${selectedItem.parentPhone}` : 'N/A'}</p>
-                <p><strong>Caregiver Relationship:</strong> {selectedItem?.caregiverRelationship || 'N/A'}</p>
-                <p><strong>Caregiver Gender:</strong> {selectedItem?.caregiverGender || 'N/A'}</p>
-                <p><strong>Caregiver DOB:</strong> {selectedItem?.caregiverDob || 'N/A'}</p>
-                <p><strong>NIN (Kogi Agile):</strong> {selectedItem?.ninBecauseOfKogiAgile || 'N/A'}</p>
-                <p><strong>Card No:</strong> {selectedItem?.cardNo || 'N/A'}</p>
-
+                <p>
+                  <strong>Registered By: </strong>{' '}
+                  {selectedItem?.createdBy?.fullName}
+                </p>
+                <p>
+                  {!selectedItem.verified && (
+                    <strong>
+                      Reason Not Verified: {selectedItem?.reasonNotVerified}
+                    </strong>
+                  )}
+                </p>
                 <button
-                  onClick={() => setIsParentModalOpen(false)}
+                  onClick={() => setIsModalOpen(false)}
                   style={{
                     padding: '5px 13px',
                     backgroundColor: '#dc3545',
                     color: '#fff',
                     border: 'none',
+                    // borderRadius: '5px',
                     cursor: 'pointer',
-                    marginTop: '20px'
                   }}
                 >
                   Close
