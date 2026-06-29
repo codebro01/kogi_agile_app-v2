@@ -245,9 +245,29 @@ export const TakeAttendance = () => {
 
             {selectedStudent && (
                 <Paper sx={{ p: 3, backgroundColor: colors.primary[400] }}>
-                    <Typography variant="h5" mb={2}>
-                        Attendance for {selectedStudent.surname} {selectedStudent.firstname}
-                    </Typography>
+                    <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" mb={2} gap="10px">
+                        <Typography variant="h5">
+                            Attendance for {selectedStudent.surname} {selectedStudent.firstname}
+                        </Typography>
+                        <Box display="flex" gap="10px">
+                            <Button 
+                                variant="contained" 
+                                color="info" 
+                                onClick={handlePreviousStudent} 
+                                disabled={!selectedStudent || students.findIndex(s => s._id === selectedStudent._id) <= 0}
+                            >
+                                Previous Student
+                            </Button>
+                            <Button 
+                                variant="contained" 
+                                color="info" 
+                                onClick={handleNextStudent} 
+                                disabled={!selectedStudent || students.findIndex(s => s._id === selectedStudent._id) >= students.length - 1}
+                            >
+                                Next Student
+                            </Button>
+                        </Box>
+                    </Box>
 
                     {isStudentDisabled && (
                         <Alert severity="warning" sx={{ mb: 2 }}>
@@ -295,25 +315,7 @@ export const TakeAttendance = () => {
                         ))}
                     </Grid>
 
-                    <Box mt={3} display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap="20px">
-                        <Box display="flex" gap="10px">
-                            <Button 
-                                variant="contained" 
-                                color="info" 
-                                onClick={handlePreviousStudent} 
-                                disabled={!selectedStudent || students.findIndex(s => s._id === selectedStudent._id) <= 0}
-                            >
-                                Previous Student
-                            </Button>
-                            <Button 
-                                variant="contained" 
-                                color="info" 
-                                onClick={handleNextStudent} 
-                                disabled={!selectedStudent || students.findIndex(s => s._id === selectedStudent._id) >= students.length - 1}
-                            >
-                                Next Student
-                            </Button>
-                        </Box>
+                    <Box mt={3} display="flex" justifyContent="flex-end" alignItems="center" flexWrap="wrap" gap="20px">
                         <Button 
                             variant="contained" 
                             color="secondary" 
