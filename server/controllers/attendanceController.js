@@ -430,11 +430,17 @@ export const getAttendanceAnalytics = async (req, res) => {
     
     // Build match for students
     const studentMatch = {};
-    if (schoolId && schoolId !== 'all') studentMatch.schoolId = schoolId;
+    if (schoolId && schoolId !== 'all') {
+      if (schoolId.includes(',')) {
+        studentMatch.schoolId = { $in: schoolId.split(',') };
+      } else {
+        studentMatch.schoolId = schoolId;
+      }
+    }
     if (cohort) studentMatch.cohort = Number(cohort);
     if (presentClass) studentMatch.presentClass = presentClass;
 
-    const students = await Student.find(studentMatch).select('_id');
+    const students = await Student.find(studentMatch).select('_id').lean();
     const studentIds = students.map(s => s._id);
 
     // Build match for attendance
@@ -449,7 +455,7 @@ export const getAttendanceAnalytics = async (req, res) => {
     if (month) attendanceMatch.month = Number(month);
     if (year) attendanceMatch.year = Number(year);
 
-    const attendanceRecords = await NewAttendance.find(attendanceMatch);
+    const attendanceRecords = await NewAttendance.find(attendanceMatch).lean();
 
     // Calculate totals for statuses (0: absent, 1: present, 2: transferred, 3: dropout, 4: died)
     const stats = {
@@ -493,13 +499,17 @@ export const getMonthlyAttendanceTrend = async (req, res) => {
 
     const studentMatch = {};
     if (schoolId && schoolId !== 'all') {
-      const schoolIdObj = schoolId.length === 24 ? schoolId : null; // Validation could be needed
-      studentMatch.schoolId = schoolId;
+      if (schoolId.includes(',')) {
+        studentMatch.schoolId = { $in: schoolId.split(',') };
+      } else {
+        const schoolIdObj = schoolId.length === 24 ? schoolId : null; // Validation could be needed
+        if (schoolIdObj) studentMatch.schoolId = schoolIdObj;
+      }
     }
     
     let studentIds = [];
     if (Object.keys(studentMatch).length > 0) {
-      const students = await Student.find(studentMatch).select('_id');
+      const students = await Student.find(studentMatch).select('_id').lean();
       studentIds = students.map(s => s._id);
     }
 
@@ -511,7 +521,7 @@ export const getMonthlyAttendanceTrend = async (req, res) => {
        attendanceMatch.studentId = { $in: studentIds };
     }
 
-    const attendanceRecords = await NewAttendance.find(attendanceMatch);
+    const attendanceRecords = await NewAttendance.find(attendanceMatch).lean();
 
     // Group by day of the month
     const trend = {};
@@ -540,9 +550,8 @@ export const getMonthlyAttendanceTrend = async (req, res) => {
 export const getStudentsForAttendance = async (req, res) => {
   try {
     const { schoolId, presentClass } = req.query;
+    console.log("getStudentsForAttendance HIT! query:", req.query);
     if (!schoolId) return res.status(400).json({ message: 'schoolId is required' });
-
-    // console.log('schoolId', schoolId)
 
     const matchQuery = {
       schoolId,
@@ -552,9 +561,13 @@ export const getStudentsForAttendance = async (req, res) => {
     if (presentClass) {
       matchQuery.presentClass = presentClass;
     }
+    
+    console.log("getStudentsForAttendance matchQuery:", matchQuery);
 
     // Only get students with an account number and specific class
     const students = await Student.find(matchQuery).sort({ surname: 1 }).select('_id surname firstname middlename accountNumber isActive');
+    
+    console.log(`getStudentsForAttendance found ${students.length} students`);
 
     res.status(200).json({ students });
   } catch (err) {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, useTheme, Card, CardContent, FormControl, InputLabel, Select, MenuItem, TextField, Button } from '@mui/material';
+import { Box, Typography, useTheme, Card, CardContent, FormControl, InputLabel, Select, MenuItem, TextField, Button, Skeleton } from '@mui/material';
 import { tokens } from '../../theme';
 import Header from '../../components/Header';
 import axios from 'axios';
@@ -16,6 +16,10 @@ export const AttendanceTakerDashboard = () => {
 
     const [stats, setStats] = useState({ totalStudents: 0, total: 0, absent: 0, present: 0, transferred: 0, dropout: 0, died: 0 });
     const [trend, setTrend] = useState({});
+    
+    // Loading states
+    const [isLoadingStats, setIsLoadingStats] = useState(false);
+    const [isLoadingTrend, setIsLoadingTrend] = useState(false);
     
     // Filters
     const [schoolId, setSchoolId] = useState('all');
@@ -34,30 +38,42 @@ export const AttendanceTakerDashboard = () => {
     }, [schoolId, cohort, fromDate, toDate, month, year, term, session]);
 
     const fetchAnalytics = async () => {
+        setIsLoadingStats(true);
         try {
             const token = localStorage.getItem("token");
+            const assignedSchools = storedUser?.assignedSchools || [];
+            const querySchoolId = schoolId === 'all' ? assignedSchools.map(s => s._id).join(',') : schoolId;
+            
             const res = await axios.get(`${API_URL}/attendance/analytics`, {
-                params: { schoolId, cohort, fromDate, toDate, term, session },
+                params: { schoolId: querySchoolId, cohort, fromDate, toDate, term, session },
                 headers: { Authorization: `Bearer ${token}` },
                 withCredentials: true
             });
             setStats(res.data.stats);
         } catch (err) {
             console.error(err);
+        } finally {
+            setIsLoadingStats(false);
         }
     };
 
     const fetchTrend = async () => {
+        setIsLoadingTrend(true);
         try {
             const token = localStorage.getItem("token");
+            const assignedSchools = storedUser?.assignedSchools || [];
+            const querySchoolId = schoolId === 'all' ? assignedSchools.map(s => s._id).join(',') : schoolId;
+
             const res = await axios.get(`${API_URL}/attendance/monthly-trend`, {
-                params: { schoolId, month, year },
+                params: { schoolId: querySchoolId, month, year },
                 headers: { Authorization: `Bearer ${token}` },
                 withCredentials: true
             });
             setTrend(res.data.trend);
         } catch (err) {
             console.error(err);
+        } finally {
+            setIsLoadingTrend(false);
         }
     };
 
@@ -143,25 +159,25 @@ export const AttendanceTakerDashboard = () => {
 
             <Box display="grid" gridTemplateColumns="repeat(auto-fit, minmax(150px, 1fr))" gap="20px" mb="20px">
                 <Box backgroundColor={colors.primary[400]} display="flex" alignItems="center" justifyContent="center">
-                    <StatBox title={stats.totalStudents || 0} subtitle="Total Students" />
+                    <StatBox title={isLoadingStats ? <Skeleton variant="text" width={60} /> : (stats.totalStudents || 0)} subtitle="Total Students" />
                 </Box>
                 <Box backgroundColor={colors.primary[400]} display="flex" alignItems="center" justifyContent="center">
-                    <StatBox title={stats.total} subtitle="Total Records" />
+                    <StatBox title={isLoadingStats ? <Skeleton variant="text" width={60} /> : stats.total} subtitle="Total Records" />
                 </Box>
                 <Box backgroundColor={colors.greenAccent[600]} display="flex" alignItems="center" justifyContent="center">
-                    <StatBox title={stats.present} subtitle="Present" />
+                    <StatBox title={isLoadingStats ? <Skeleton variant="text" width={60} /> : stats.present} subtitle="Present" />
                 </Box>
                 <Box backgroundColor={colors.redAccent[600]} display="flex" alignItems="center" justifyContent="center">
-                    <StatBox title={stats.absent} subtitle="Absent" />
+                    <StatBox title={isLoadingStats ? <Skeleton variant="text" width={60} /> : stats.absent} subtitle="Absent" />
                 </Box>
                 <Box backgroundColor={colors.blueAccent[600]} display="flex" alignItems="center" justifyContent="center">
-                    <StatBox title={stats.transferred} subtitle="Transferred" />
+                    <StatBox title={isLoadingStats ? <Skeleton variant="text" width={60} /> : stats.transferred} subtitle="Transferred" />
                 </Box>
                 <Box backgroundColor={colors.grey[600]} display="flex" alignItems="center" justifyContent="center">
-                    <StatBox title={stats.dropout} subtitle="Dropout" />
+                    <StatBox title={isLoadingStats ? <Skeleton variant="text" width={60} /> : stats.dropout} subtitle="Dropout" />
                 </Box>
                 <Box backgroundColor="#1e1e1e" display="flex" alignItems="center" justifyContent="center">
-                    <StatBox title={stats.died} subtitle="Died" />
+                    <StatBox title={isLoadingStats ? <Skeleton variant="text" width={60} /> : stats.died} subtitle="Died" />
                 </Box>
             </Box>
 
@@ -169,7 +185,11 @@ export const AttendanceTakerDashboard = () => {
                 <Box flex="1" backgroundColor={colors.primary[400]} p="20px" borderRadius="8px">
                     <Typography variant="h5" fontWeight="600" mb="20px">Attendance Analysis</Typography>
                     <Box height="300px">
-                        <AttendanceCharts type="pie" data={stats} />
+                        {isLoadingStats ? (
+                            <Skeleton variant="rectangular" width="100%" height="100%" />
+                        ) : (
+                            <AttendanceCharts type="pie" data={stats} />
+                        )}
                     </Box>
                 </Box>
 
@@ -196,7 +216,11 @@ export const AttendanceTakerDashboard = () => {
                         </Box>
                     </Box>
                     <Box height="300px">
-                        <AttendanceCharts type="line" data={trend} />
+                        {isLoadingTrend ? (
+                            <Skeleton variant="rectangular" width="100%" height="100%" />
+                        ) : (
+                            <AttendanceCharts type="line" data={trend} />
+                        )}
                     </Box>
                 </Box>
             </Box>

@@ -156,7 +156,9 @@ export const TakeAttendance = () => {
 
     const REASON_OPTIONS = ['sick', 'other']; // 'dead', 'relocated', 'dropout' are now main statuses
 
-    const isStudentDisabled = selectedStudent && selectedStudent.isActive === false;
+    // Any student loaded here has an account number (enforced by backend) 
+    // and is therefore eligible to take attendance regardless of isActive status.
+    const isStudentDisabled = false;
 
     const handlePreviousStudent = () => {
         if (!selectedStudent || students.length === 0) return;
@@ -202,7 +204,8 @@ export const TakeAttendance = () => {
                     getOptionLabel={(option) => {
                         if (!option) return '';
                         const name = `${option.surname || ''} ${option.firstname || ''} ${option.middlename || ''}`.trim();
-                        return `${name} (${option.accountNumber || 'N/A'})${!option.isActive ? ' - INACTIVE' : ''}`;
+                        // Ignore isActive flag, they are always considered active now
+                        return `${name} (${option.accountNumber || 'N/A'})`;
                     }}
                     value={selectedStudent || null}
                     onChange={(event, newValue) => {
