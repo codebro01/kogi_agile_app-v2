@@ -453,6 +453,7 @@ export const getAttendanceAnalytics = async (req, res) => {
 
     // Calculate totals for statuses (0: absent, 1: present, 2: transferred, 3: dropout, 4: died)
     const stats = {
+      totalStudents: students.length,
       total: attendanceRecords.length,
       absent: 0,
       present: 0,

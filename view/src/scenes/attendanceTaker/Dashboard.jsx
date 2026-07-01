@@ -14,7 +14,7 @@ export const AttendanceTakerDashboard = () => {
     const storedUser = JSON.parse(localStorage.getItem('userData'));
     const API_URL = `${import.meta.env.VITE_API_URL}/api/v1`;
 
-    const [stats, setStats] = useState({ total: 0, absent: 0, present: 0, transferred: 0, dropout: 0, died: 0 });
+    const [stats, setStats] = useState({ totalStudents: 0, total: 0, absent: 0, present: 0, transferred: 0, dropout: 0, died: 0 });
     const [trend, setTrend] = useState({});
     
     // Filters
@@ -141,23 +141,26 @@ export const AttendanceTakerDashboard = () => {
                 </Button>
             </Box>
 
-            <Box display="grid" gridTemplateColumns="repeat(12, 1fr)" gap="20px" mb="20px">
-                <Box gridColumn="span 2" backgroundColor={colors.primary[400]} display="flex" alignItems="center" justifyContent="center">
+            <Box display="grid" gridTemplateColumns="repeat(auto-fit, minmax(150px, 1fr))" gap="20px" mb="20px">
+                <Box backgroundColor={colors.primary[400]} display="flex" alignItems="center" justifyContent="center">
+                    <StatBox title={stats.totalStudents || 0} subtitle="Total Students" />
+                </Box>
+                <Box backgroundColor={colors.primary[400]} display="flex" alignItems="center" justifyContent="center">
                     <StatBox title={stats.total} subtitle="Total Records" />
                 </Box>
-                <Box gridColumn="span 2" backgroundColor={colors.greenAccent[600]} display="flex" alignItems="center" justifyContent="center">
+                <Box backgroundColor={colors.greenAccent[600]} display="flex" alignItems="center" justifyContent="center">
                     <StatBox title={stats.present} subtitle="Present" />
                 </Box>
-                <Box gridColumn="span 2" backgroundColor={colors.redAccent[600]} display="flex" alignItems="center" justifyContent="center">
+                <Box backgroundColor={colors.redAccent[600]} display="flex" alignItems="center" justifyContent="center">
                     <StatBox title={stats.absent} subtitle="Absent" />
                 </Box>
-                <Box gridColumn="span 2" backgroundColor={colors.blueAccent[600]} display="flex" alignItems="center" justifyContent="center">
+                <Box backgroundColor={colors.blueAccent[600]} display="flex" alignItems="center" justifyContent="center">
                     <StatBox title={stats.transferred} subtitle="Transferred" />
                 </Box>
-                <Box gridColumn="span 2" backgroundColor={colors.grey[600]} display="flex" alignItems="center" justifyContent="center">
+                <Box backgroundColor={colors.grey[600]} display="flex" alignItems="center" justifyContent="center">
                     <StatBox title={stats.dropout} subtitle="Dropout" />
                 </Box>
-                <Box gridColumn="span 2" backgroundColor="#1e1e1e" display="flex" alignItems="center" justifyContent="center">
+                <Box backgroundColor="#1e1e1e" display="flex" alignItems="center" justifyContent="center">
                     <StatBox title={stats.died} subtitle="Died" />
                 </Box>
             </Box>
