@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, useTheme, Card, CardContent, FormControl, InputLabel, Select, MenuItem, TextField, Button, Skeleton } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 import { tokens } from '../../theme';
 import Header from '../../components/Header';
 import axios from 'axios';
@@ -13,6 +14,7 @@ export const AttendanceTakerDashboard = () => {
     const colors = tokens(theme.palette.mode);
     const storedUser = JSON.parse(localStorage.getItem('userData'));
     const API_URL = `${import.meta.env.VITE_API_URL}/api/v1`;
+    const navigate = useNavigate();
 
     const [stats, setStats] = useState({ totalStudents: 0, total: 0, absent: 0, present: 0, transferred: 0, dropout: 0, died: 0 });
     const [trend, setTrend] = useState({});
@@ -154,6 +156,15 @@ export const AttendanceTakerDashboard = () => {
 
                 <Button variant="contained" color="info" sx={{ ml: 2 }} onClick={() => setIsCompareModalOpen(true)}>
                     Compare Performance
+                </Button>
+
+                <Button 
+                    variant="contained" 
+                    color="success" 
+                    sx={{ ml: 2 }} 
+                    onClick={() => navigate('/attendance-taker-dashboard/take-school-attendance')}
+                >
+                    Take School-Based Attendance
                 </Button>
             </Box>
 

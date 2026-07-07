@@ -139,6 +139,14 @@ const StudentSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    enrollmentStatus: {
+      type: String,
+      enum: ['active', 'transferred', 'dropout', 'deceased'],
+      default: 'active',
+    },
+    enrollmentStatusDate: {
+      type: Date,
+    },
 
     src: {
       type: String,

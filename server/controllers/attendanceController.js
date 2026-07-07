@@ -1,4 +1,4 @@
-import { Student, NewAttendance, AllSchools } from '../models/index.js'
+import { Student, NewAttendance, AllSchools, SchoolAttendance } from '../models/index.js'
 import * as XLSX from 'xlsx'
 import express from 'express'
 import fs from 'fs'
@@ -565,7 +565,7 @@ export const getStudentsForAttendance = async (req, res) => {
     console.log("getStudentsForAttendance matchQuery:", matchQuery);
 
     // Only get students with an account number and specific class
-    const students = await Student.find(matchQuery).sort({ surname: 1 }).select('_id surname firstname middlename accountNumber isActive');
+    const students = await Student.find(matchQuery).sort({ surname: 1 }).select('_id surname firstname middlename accountNumber isActive presentClass');
     
     console.log(`getStudentsForAttendance found ${students.length} students`);
 
@@ -783,3 +783,51 @@ export const getAverageChartData = async (req, res) => {
     res.status(500).json({ message: 'Error fetching chart data' });
   }
 };
+
+// -----------------------------------------------------------------------------
+// School-Based Daily Attendance
+// -----------------------------------------------------------------------------
+
+export const submitSchoolDailyAttendance = async (req, res) => {
+  try {
+    const { schoolId, date, term, session, absentees } = req.body;
+
+    if (!schoolId || !date || !term || !session || !Array.isArray(absentees)) {
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
+
+    const attendanceDate = new Date(date);
+    const year = attendanceDate.getUTCFullYear();
+    const month = attendanceDate.getUTCMonth() + 1; // 1-12
+
+    // Get active students count for the school to compute totalEnrolled
+    const activeStudentsCount = await Student.countDocuments({
+      schoolId,
+      isActive: true,
+    });
+
+    const record = await SchoolAttendance.findOneAndUpdate(
+      { schoolId, date: attendanceDate, term, session },
+      {
+        $set: {
+          year,
+          month,
+          attendanceTaken: true,
+          totalEnrolled: activeStudentsCount,
+          absentees,
+          submittedBy: req.user.userId,
+        },
+      },
+      { new: true, upsert: true }
+    );
+
+    res.status(200).json({
+      message: 'School daily attendance saved successfully',
+      record,
+    });
+  } catch (err) {
+    console.error('Error in submitSchoolDailyAttendance:', err);
+    res.status(500).json({ message: 'Failed to submit school attendance' });
+  }
+};
+

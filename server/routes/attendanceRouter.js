@@ -10,7 +10,8 @@ import {
   exportEmptyAverageSheet,
   importAverageRecords,
   exportAverageRecords,
-  getAverageChartData
+  getAverageChartData,
+  submitSchoolDailyAttendance
 } from '../controllers/index.js'
 import express from 'express'
 
@@ -26,6 +27,12 @@ router.post(
   authMiddleware,
   authorizePermission(['handle_registrars', 'handle_payments', 'handle_attendance']),
   createOrUpdateAttendance
+)
+router.post(
+  '/school-daily',
+  authMiddleware,
+  authorizePermission(['handle_registrars', 'handle_payments', 'handle_attendance']),
+  submitSchoolDailyAttendance
 )
 router.get(
   '/',

@@ -57,6 +57,7 @@ import { UpdateAttendanceSheet } from './scenes/manage-accounts/updateAttendance
 import { RecycleBin } from './scenes/manage-accounts/recycleBin.jsx'
 import { UpdateParentRelationship } from './scenes/manage-accounts/updateParentRelationship'
 import { TakeAttendance } from './scenes/attendanceTaker/TakeAttendance.jsx'
+import { TakeSchoolAttendance } from './scenes/attendanceTaker/TakeSchoolAttendance.jsx'
 import { TermlyAverage } from './scenes/attendanceTaker/TermlyAverage.jsx'
 
 import {
@@ -566,6 +567,10 @@ function App() {
                         <Route
                           path="/attendance-taker-dashboard/take-attendance"
                           element={<TakeAttendance />}
+                        />
+                        <Route
+                          path="/attendance-taker-dashboard/take-school-attendance"
+                          element={<TakeSchoolAttendance />}
                         />
                         <Route
                           path="/attendance-taker-dashboard/termly-average"
