@@ -105,7 +105,9 @@ import {
   importAverageRecords,
   exportAverageRecords,
   getAverageChartData,
-  submitSchoolDailyAttendance
+  submitSchoolDailyAttendance,
+  getSchoolBasedAttendanceAnalytics,
+  getSchoolBasedMonthlyTrend
 } from './attendanceController.js'
 
 export {
@@ -199,4 +201,6 @@ export {
   exportAverageRecords,
   getAverageChartData,
   submitSchoolDailyAttendance,
+  getSchoolBasedAttendanceAnalytics,
+  getSchoolBasedMonthlyTrend,
 }

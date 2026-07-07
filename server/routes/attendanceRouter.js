@@ -11,7 +11,9 @@ import {
   importAverageRecords,
   exportAverageRecords,
   getAverageChartData,
-  submitSchoolDailyAttendance
+  submitSchoolDailyAttendance,
+  getSchoolBasedAttendanceAnalytics,
+  getSchoolBasedMonthlyTrend
 } from '../controllers/index.js'
 import express from 'express'
 
@@ -72,10 +74,22 @@ router.get(
   getAttendanceAnalytics
 )
 router.get(
+  '/school-analytics',
+  authMiddleware,
+  authorizePermission(['handle_registrars', 'handle_payments', 'handle_attendance']),
+  getSchoolBasedAttendanceAnalytics
+)
+router.get(
   '/monthly-trend',
   authMiddleware,
   authorizePermission(['handle_registrars', 'handle_payments', 'handle_attendance']),
   getMonthlyAttendanceTrend
+)
+router.get(
+  '/school-monthly-trend',
+  authMiddleware,
+  authorizePermission(['handle_registrars', 'handle_payments', 'handle_attendance']),
+  getSchoolBasedMonthlyTrend
 )
 
 // Result Average Features

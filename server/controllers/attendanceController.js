@@ -3,6 +3,7 @@ import * as XLSX from 'xlsx'
 import express from 'express'
 import fs from 'fs'
 import path from 'path'
+import { isSchoolDay, getValidSchoolDaysInMonth } from '../utils/schoolDays.js'
 
 // ✅ Create NewAttendance
 // export const createAttendance = async (req, res) => {
@@ -828,6 +829,120 @@ export const submitSchoolDailyAttendance = async (req, res) => {
   } catch (err) {
     console.error('Error in submitSchoolDailyAttendance:', err);
     res.status(500).json({ message: 'Failed to submit school attendance' });
+  }
+};
+
+export const getSchoolBasedAttendanceAnalytics = async (req, res) => {
+  try {
+    const { schoolId, term, session, fromDate, toDate } = req.query;
+
+    const matchQuery = {};
+    if (schoolId && schoolId !== 'all') {
+      if (schoolId.includes(',')) {
+        matchQuery.schoolId = { $in: schoolId.split(',') };
+      } else {
+        matchQuery.schoolId = schoolId;
+      }
+    }
+    if (term) matchQuery.term = term;
+    if (session) matchQuery.session = session;
+    if (fromDate || toDate) {
+      matchQuery.date = {};
+      if (fromDate) matchQuery.date.$gte = new Date(fromDate);
+      if (toDate) matchQuery.date.$lte = new Date(toDate);
+    }
+
+    const attendanceRecords = await SchoolAttendance.find(matchQuery).lean();
+
+    const stats = {
+      totalStudents: 0,
+      total: 0,
+      absent: 0,
+      present: 0,
+      transferred: 0, // Not tracked in this schema natively for attendance
+      dropout: 0,     // Not tracked in this schema natively for attendance
+      died: 0         // Not tracked in this schema natively for attendance
+    };
+
+    // Calculate present and absent from the records
+    attendanceRecords.forEach(record => {
+      if (!record.attendanceTaken) return;
+      const enrolled = record.totalEnrolled || 0;
+      const absentCount = record.absentees ? record.absentees.length : 0;
+      const presentCount = Math.max(0, enrolled - absentCount);
+      
+      stats.absent += absentCount;
+      stats.present += presentCount;
+    });
+
+    stats.total = stats.present + stats.absent;
+
+    // approximate totalStudents by picking the most recent totalEnrolled
+    if (attendanceRecords.length > 0) {
+       attendanceRecords.sort((a,b) => new Date(b.date) - new Date(a.date));
+       stats.totalStudents = attendanceRecords[0].totalEnrolled || 0;
+    }
+
+    res.status(200).json({ stats });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Error fetching analytics' });
+  }
+};
+
+export const getSchoolBasedMonthlyTrend = async (req, res) => {
+  try {
+    const { schoolId, month, year } = req.query; // month is 1-12
+    if (!month || !year) {
+      return res.status(400).json({ message: 'Missing month or year' });
+    }
+
+    const m = Number(month) - 1; // 0-indexed for Date
+    const y = Number(year);
+
+    const startOfMonth = new Date(Date.UTC(y, m, 1));
+    const endOfMonth = new Date(Date.UTC(y, m + 1, 1));
+
+    const matchQuery = {
+      date: { $gte: startOfMonth, $lt: endOfMonth }
+    };
+    if (schoolId && schoolId !== 'all') {
+      if (schoolId.includes(',')) {
+        matchQuery.schoolId = { $in: schoolId.split(',') };
+      } else {
+        matchQuery.schoolId = schoolId;
+      }
+    }
+
+    const attendanceRecords = await SchoolAttendance.find(matchQuery).lean();
+
+    const trend = {};
+    const daysInMonth = new Date(y, m + 1, 0).getDate();
+
+    for (let i = 1; i <= daysInMonth; i++) {
+      const d = new Date(Date.UTC(y, m, i));
+      if (isSchoolDay(d)) {
+        trend[i] = { present: 0, absent: 0, total: 0 };
+      }
+    }
+
+    attendanceRecords.forEach(record => {
+      const day = new Date(record.date).getUTCDate();
+      if (trend[day] && record.attendanceTaken) {
+        const enrolled = record.totalEnrolled || 0;
+        const absentCount = record.absentees ? record.absentees.length : 0;
+        const presentCount = Math.max(0, enrolled - absentCount);
+        
+        trend[day].present += presentCount;
+        trend[day].absent += absentCount;
+        trend[day].total += enrolled;
+      }
+    });
+
+    res.status(200).json({ trend });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Error fetching monthly trend' });
   }
 };
 

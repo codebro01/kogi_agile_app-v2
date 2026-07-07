@@ -46,7 +46,7 @@ export const AttendanceTakerDashboard = () => {
             const assignedSchools = storedUser?.assignedSchools || [];
             const querySchoolId = schoolId === 'all' ? assignedSchools.map(s => s._id).join(',') : schoolId;
             
-            const res = await axios.get(`${API_URL}/attendance/analytics`, {
+            const res = await axios.get(`${API_URL}/attendance/school-analytics`, {
                 params: { schoolId: querySchoolId, cohort, fromDate, toDate, term, session },
                 headers: { Authorization: `Bearer ${token}` },
                 withCredentials: true
@@ -66,7 +66,7 @@ export const AttendanceTakerDashboard = () => {
             const assignedSchools = storedUser?.assignedSchools || [];
             const querySchoolId = schoolId === 'all' ? assignedSchools.map(s => s._id).join(',') : schoolId;
 
-            const res = await axios.get(`${API_URL}/attendance/monthly-trend`, {
+            const res = await axios.get(`${API_URL}/attendance/school-monthly-trend`, {
                 params: { schoolId: querySchoolId, month, year },
                 headers: { Authorization: `Bearer ${token}` },
                 withCredentials: true
