@@ -24,9 +24,9 @@ export const TakeSchoolAttendance = () => {
     const [absentees, setAbsentees] = useState([]); // Array of { student, presentClass, reason, specialStatus, note }
     
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-    const [term, setTerm] = useState('First');
+    const [term, setTerm] = useState('First Term');
     const [session, setSession] = useState('2025/2026');
-    const SESSION_OPTIONS = ['2025/2026', '2026/2027', '2027/2028', '2028/2029'];
+    const SESSION_OPTIONS = ['2024/2025', '2025/2026', '2026/2027', '2027/2028', '2028/2029', '2029/2030'];
     
     const [isSaving, setIsSaving] = useState(false);
     const [message, setMessage] = useState({ text: '', type: 'success', open: false });

@@ -893,8 +893,12 @@ export const getSchoolBasedAttendanceAnalytics = async (req, res) => {
         attendanceMatchQuery.schoolId = new mongoose.Types.ObjectId(schoolId);
       }
     }
-    // Normalize term: accept "First" or "First Term"
-    if (term) attendanceMatchQuery.term = term.includes('Term') ? term : `${term} Term`;
+    // Normalize term — match both "First" and "First Term" formats to handle legacy records
+    if (term) {
+      const normalized = term.includes('Term') ? term : `${term} Term`;
+      const short = normalized.replace(' Term', '');
+      attendanceMatchQuery.term = { $in: [normalized, short] };
+    }
     if (session) attendanceMatchQuery.session = session;
     if (fromDate || toDate) {
       attendanceMatchQuery.date = {};
@@ -911,13 +915,26 @@ export const getSchoolBasedAttendanceAnalytics = async (req, res) => {
         statusMatchQuery.schoolId = new mongoose.Types.ObjectId(schoolId);
       }
     }
-    if (term) statusMatchQuery.term = term.includes('Term') ? term : `${term} Term`;
+    if (term) {
+      const normalized = term.includes('Term') ? term : `${term} Term`;
+      const short = normalized.replace(' Term', '');
+      statusMatchQuery.term = { $in: [normalized, short] };
+    }
     if (session) statusMatchQuery.session = session;
 
-    // --- If cohort filter is set, get the list of student IDs in that cohort ---
+    // --- If cohort filter is set, get the list of student IDs in that cohort (scoped to school) ---
     let cohortStudentIds = null;
     if (cohort) {
-      const cohortStudents = await Student.find({ cohort: Number(cohort) }, '_id').lean();
+      const cohortStudentQuery = { cohort: Number(cohort) };
+      // Also scope by school so the school filter is respected
+      if (schoolId && schoolId !== 'all') {
+        if (schoolId.includes(',')) {
+          cohortStudentQuery.schoolId = { $in: schoolId.split(',').map(id => new mongoose.Types.ObjectId(id.trim())) };
+        } else {
+          cohortStudentQuery.schoolId = new mongoose.Types.ObjectId(schoolId);
+        }
+      }
+      const cohortStudents = await Student.find(cohortStudentQuery, '_id').lean();
       cohortStudentIds = new Set(cohortStudents.map(s => s._id.toString()));
     }
 

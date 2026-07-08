@@ -132,13 +132,15 @@ export const AttendanceTakerDashboard = () => {
                     </Select>
                 </FormControl>
 
-                <TextField
-                    variant="filled"
-                    label="Session"
-                    value={session}
-                    onChange={(e) => setSession(e.target.value)}
-                    placeholder="e.g. 2025/2026"
-                />
+                <FormControl variant="filled" sx={{ minWidth: 150 }}>
+                    <InputLabel>Session</InputLabel>
+                    <Select value={session} onChange={(e) => setSession(e.target.value)}>
+                        <MenuItem value="">All Sessions</MenuItem>
+                        {['2024/2025', '2025/2026', '2026/2027', '2027/2028', '2028/2029', '2029/2030'].map(s => (
+                            <MenuItem key={s} value={s}>{s}</MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
 
                 <Button variant="contained" color="secondary" sx={{ ml: 2 }} onClick={() => {
                     const csvContent = "data:text/csv;charset=utf-8," 
