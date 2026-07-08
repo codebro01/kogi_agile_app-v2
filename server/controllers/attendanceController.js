@@ -1,3 +1,4 @@
+import mongoose from 'mongoose'
 import { Student, NewAttendance, AllSchools, SchoolAttendance, StudentStatusEvent } from '../models/index.js'
 import * as XLSX from 'xlsx'
 import express from 'express'
@@ -886,9 +887,9 @@ export const getSchoolBasedAttendanceAnalytics = async (req, res) => {
     const matchQuery = {};
     if (schoolId && schoolId !== 'all') {
       if (schoolId.includes(',')) {
-        matchQuery.schoolId = { $in: schoolId.split(',') };
+        matchQuery.schoolId = { $in: schoolId.split(',').map(id => new mongoose.Types.ObjectId(id.trim())) };
       } else {
-        matchQuery.schoolId = schoolId;
+        matchQuery.schoolId = new mongoose.Types.ObjectId(schoolId);
       }
     }
     if (term) matchQuery.term = term;
