@@ -126,9 +126,9 @@ export const AttendanceTakerDashboard = () => {
                     <InputLabel>Term</InputLabel>
                     <Select value={term} onChange={(e) => setTerm(e.target.value)}>
                         <MenuItem value="">All Terms</MenuItem>
-                        <MenuItem value="First">First</MenuItem>
-                        <MenuItem value="Second">Second</MenuItem>
-                        <MenuItem value="Third">Third</MenuItem>
+                        <MenuItem value="First Term">First Term</MenuItem>
+                        <MenuItem value="Second Term">Second Term</MenuItem>
+                        <MenuItem value="Third Term">Third Term</MenuItem>
                     </Select>
                 </FormControl>
 

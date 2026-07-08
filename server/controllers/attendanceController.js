@@ -882,25 +882,46 @@ export const submitSchoolDailyAttendance = async (req, res) => {
 
 export const getSchoolBasedAttendanceAnalytics = async (req, res) => {
   try {
-    const { schoolId, term, session, fromDate, toDate } = req.query;
+    const { schoolId, term, session, fromDate, toDate, cohort } = req.query;
 
-    const matchQuery = {};
+    // --- Build attendance match query ---
+    const attendanceMatchQuery = {};
     if (schoolId && schoolId !== 'all') {
       if (schoolId.includes(',')) {
-        matchQuery.schoolId = { $in: schoolId.split(',').map(id => new mongoose.Types.ObjectId(id.trim())) };
+        attendanceMatchQuery.schoolId = { $in: schoolId.split(',').map(id => new mongoose.Types.ObjectId(id.trim())) };
       } else {
-        matchQuery.schoolId = new mongoose.Types.ObjectId(schoolId);
+        attendanceMatchQuery.schoolId = new mongoose.Types.ObjectId(schoolId);
       }
     }
-    if (term) matchQuery.term = term;
-    if (session) matchQuery.session = session;
+    // Normalize term: accept "First" or "First Term"
+    if (term) attendanceMatchQuery.term = term.includes('Term') ? term : `${term} Term`;
+    if (session) attendanceMatchQuery.session = session;
     if (fromDate || toDate) {
-      matchQuery.date = {};
-      if (fromDate) matchQuery.date.$gte = new Date(fromDate);
-      if (toDate) matchQuery.date.$lte = new Date(toDate);
+      attendanceMatchQuery.date = {};
+      if (fromDate) attendanceMatchQuery.date.$gte = new Date(fromDate);
+      if (toDate) attendanceMatchQuery.date.$lte = new Date(new Date(toDate).setHours(23, 59, 59, 999));
     }
 
-    const attendanceRecords = await SchoolAttendance.find(matchQuery).lean();
+    // --- Build status events match query (separate from attendance) ---
+    const statusMatchQuery = {};
+    if (schoolId && schoolId !== 'all') {
+      if (schoolId.includes(',')) {
+        statusMatchQuery.schoolId = { $in: schoolId.split(',').map(id => new mongoose.Types.ObjectId(id.trim())) };
+      } else {
+        statusMatchQuery.schoolId = new mongoose.Types.ObjectId(schoolId);
+      }
+    }
+    if (term) statusMatchQuery.term = term.includes('Term') ? term : `${term} Term`;
+    if (session) statusMatchQuery.session = session;
+
+    // --- If cohort filter is set, get the list of student IDs in that cohort ---
+    let cohortStudentIds = null;
+    if (cohort) {
+      const cohortStudents = await Student.find({ cohort: Number(cohort) }, '_id').lean();
+      cohortStudentIds = new Set(cohortStudents.map(s => s._id.toString()));
+    }
+
+    const attendanceRecords = await SchoolAttendance.find(attendanceMatchQuery).lean();
 
     const stats = {
       totalStudents: 0,
@@ -912,8 +933,11 @@ export const getSchoolBasedAttendanceAnalytics = async (req, res) => {
       died: 0
     };
 
-    const statusEvents = await StudentStatusEvent.find(matchQuery).lean();
+    // Status events (transferred, dropout, deceased)
+    const statusEvents = await StudentStatusEvent.find(statusMatchQuery).lean();
     statusEvents.forEach(event => {
+      // If cohort filter active, only count events for students in that cohort
+      if (cohortStudentIds && !cohortStudentIds.has(event.studentId?.toString())) return;
       if (event.status === 'transferred') stats.transferred++;
       if (event.status === 'dropout') stats.dropout++;
       if (event.status === 'deceased') stats.died++;
@@ -922,19 +946,37 @@ export const getSchoolBasedAttendanceAnalytics = async (req, res) => {
     // Calculate present and absent from the records
     attendanceRecords.forEach(record => {
       if (!record.attendanceTaken) return;
-      const enrolled = record.totalEnrolled || 0;
-      const absentCount = record.absentees ? record.absentees.length : 0;
-      const presentCount = Math.max(0, enrolled - absentCount);
-      
-      stats.absent += absentCount;
-      stats.present += presentCount;
+
+      if (cohortStudentIds) {
+        // Cohort filter: count absentees only in that cohort
+        const cohortAbsentCount = (record.absentees || []).filter(a =>
+          cohortStudentIds.has((a.studentId || a.student)?.toString())
+        ).length;
+        // For cohort present count, we need cohort total enrolled in this school
+        // Use absentee cohort field if available, else fall back to full cohort list
+        const cohortAbsenteesWithCohort = (record.absentees || []).filter(a => String(a.cohort) === String(cohort));
+        const cohortAbsentFinal = cohortAbsenteesWithCohort.length || cohortAbsentCount;
+        // Present = cohortStudents in this school - absent
+        // We approximate: total cohort students - absent cohort students
+        const schoolCohortTotal = [...cohortStudentIds].length; // total cohort students across filter
+        stats.absent += cohortAbsentFinal;
+        stats.present += Math.max(0, schoolCohortTotal - cohortAbsentFinal);
+      } else {
+        const enrolled = record.totalEnrolled || 0;
+        const absentCount = (record.absentees || []).length;
+        const presentCount = Math.max(0, enrolled - absentCount);
+        stats.absent += absentCount;
+        stats.present += presentCount;
+      }
     });
 
     stats.total = stats.present + stats.absent;
 
-    // approximate totalStudents by picking the most recent totalEnrolled
-    if (attendanceRecords.length > 0) {
-       attendanceRecords.sort((a,b) => new Date(b.date) - new Date(a.date));
+    // Get totalStudents from most recent record (or cohort size if filtered)
+    if (cohortStudentIds) {
+      stats.totalStudents = cohortStudentIds.size;
+    } else if (attendanceRecords.length > 0) {
+       attendanceRecords.sort((a, b) => new Date(b.date) - new Date(a.date));
        stats.totalStudents = attendanceRecords[0].totalEnrolled || 0;
     }
 
