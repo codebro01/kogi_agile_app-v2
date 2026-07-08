@@ -360,13 +360,13 @@ const Sidebar = ({ isSidebar }) => {
                 />
 
                 <Item
-                  title="Exp. Attendance record"
+                  title="Export School Attendance"
                   to={
                     userPermissions.includes('handle_registrars')
-                      ? '/admin-dashboard/update-attendance-sheet'
+                      ? '/admin-dashboard/export-school-attendance'
                       : 'enumerator-dashboard/view-all-students-data'
                   }
-                  icon={<NoteAddIcon />}
+                  icon={<EventNoteIcon />}
                   selected={selected}
                   setSelected={setSelected}
                 />
@@ -565,16 +565,17 @@ const Sidebar = ({ isSidebar }) => {
                   />
 
                   <Item
-                    title="Exp. Attendance record"
+                    title="Export School Attendance"
                     to={
                       userPermissions.includes('handle_registrars')
-                        ? '/admin-dashboard/update-attendance-sheet'
+                        ? '/admin-dashboard/export-school-attendance'
                         : 'enumerator-dashboard/view-all-students-data'
                     }
-                    icon={<NoteAddIcon />}
+                    icon={<EventNoteIcon />}
                     selected={selected}
                     setSelected={setSelected}
                   />
+
                   <Item
                     title="Manage Enumerators"
                     to={

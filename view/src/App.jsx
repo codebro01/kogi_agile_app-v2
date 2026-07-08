@@ -49,6 +49,7 @@ import { ManageDuplicateRecords } from './scenes/manage-accounts/manageDuplicate
 import { PrintIdCard } from './scenes/manage-accounts/printIDCards.jsx'
 import { PreselectForm } from './components/preSelectform.jsx'
 import { UpdateBankAccountInfo } from './scenes/manage-accounts/updateBankAccountInfo.jsx'
+import { ExportSchoolAttendance } from './scenes/manage-accounts/exportSchoolAttendance.jsx'
 import { UpdateSchool } from './scenes/manage-accounts/updateSchool.jsx'
 // import { FormComponent } from "./components/FormComponent.jsx";
 import { EditManyStudents } from './scenes/manage-accounts/EditManyStudents.jsx'
@@ -161,6 +162,10 @@ function App() {
                         <Route
                           path="/admin-dashboard/admin-export-attendance-sheet"
                           element={<AttendanceSheet />}
+                        />
+                        <Route
+                          path="/admin-dashboard/export-school-attendance"
+                          element={<ExportSchoolAttendance />}
                         />
                         <Route
                           path="/admin-dashboard/update-attendance-sheet"

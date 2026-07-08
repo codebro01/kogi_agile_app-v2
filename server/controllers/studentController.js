@@ -4,6 +4,7 @@ import {
   Registrar,
   PayrollSpecialist,
   Attendance,
+  SchoolAttendance,
   Verification,
   Payment,
   DeletedStudents,
@@ -1221,7 +1222,6 @@ export const adminDeleteAttendances = async (req, res, next) => {
   }
 }
 
-// ! Get and export  Students attendance record
 export const getStudentsAttendance = async (req, res, next) => {
   try {
     const { userID, permissions } = req.user
@@ -1232,478 +1232,222 @@ export const getStudentsAttendance = async (req, res, next) => {
       ward,
       lgaOfEnrollment,
       presentClass,
-      week,
       schoolId,
-      paymentType,
       percentage,
       dateFrom,
       dateTo,
       withBankDetails,
+      session,
+      term,
+      cohort,
     } = req.query
-    const page = parseInt(req.query.page) || 1
-    const limit = parseInt(req.query.limit) || 200
-    const skip = (page - 1) * limit
-    // lgaOfEnrollment = lgaOfEnrollment.toLowerCase();
-    // ward = ward.toLowerCase();
-    // Filter conditions
-    let basket = {}
-    let createdBy
-    // if (!permissions.includes('handle_registrars')) {
-    //     basket.enumeratorId = userID;
-    // }
-
-    if (withBankDetails == 'true') {
-      withBankDetails = true
-    } else {
-      withBankDetails = false
+    
+    // 1. First, find all students matching demographic criteria
+    const studentMatchQuery = {
+       isActive: { $ne: false },
+       enrollmentStatus: { $nin: ['dropout', 'transferred', 'deceased'] }
+    };
+    if (school || schoolId) studentMatchQuery.schoolId = new ObjectId(school || schoolId);
+    if (ward) studentMatchQuery.ward = { $regex: new RegExp(ward, 'i') };
+    if (lgaOfEnrollment) studentMatchQuery.lgaOfEnrollment = { $regex: new RegExp(lgaOfEnrollment, 'i') };
+    if (presentClass) studentMatchQuery.presentClass = presentClass;
+    if (cohort) studentMatchQuery.cohort = cohort;
+    
+    if (withBankDetails === 'true') {
+      studentMatchQuery.bankName = { $nin: [null, ''] };
+      studentMatchQuery.accountNumber = { $nin: [null, ''] };
+    } else if (withBankDetails === 'false') {
+      studentMatchQuery.bankName = { $in: [null, ''] };
+      studentMatchQuery.accountNumber = { $in: [null, ''] };
     }
+    
     if (permissions.includes('handle_students') && permissions.length === 1) {
-      basket = { createdBy: userID }
-    } else {
-      basket = {}
+       studentMatchQuery.createdBy = userID;
     }
-
-    if (year) basket.year = parseInt(year, 10) // Ensure year is numeric
-    if (month) basket.month = parseInt(month, 10) // Ensure week is numeric
-    if (school) basket.schoolId = school // Ensure month is numeric
-    if (presentClass) basket.presentClass = presentClass
-    if (ward) basket.ward = ward
-    if (week) basket.attdWeek = week
-    if (lgaOfEnrollment) basket.lgaOfEnrollment = lgaOfEnrollment
-
-    // console.log('getting query and url');
-
-    // console.log(withBankDetails)
-    // return
-    // console.log(req.url)
-    let attendance
-
-    attendance = await Attendance.aggregate([
-      {
-        $lookup: {
-          from: 'students', // Collection name for Student schema
-          localField: 'studentRandomId', // Field in Attendance
-          foreignField: 'randomId', // Field in Student schema
-          as: 'studentDetails', // Output field for joined data
-        },
-      },
-      {
-        $unwind: {
-          path: '$studentDetails', // Flatten joined data
-        },
-      },
-      {
-        $lookup: {
-          from: 'allschools', // Collection name for School schema
-          localField: 'studentDetails.schoolId', // Field in Student schema
-          foreignField: '_id', // Field in School schema
-          as: 'schoolDetails', // Output field for joined data
-        },
-      },
-      {
-        $unwind: {
-          path: '$schoolDetails', // Flatten joined school data
-          preserveNullAndEmptyArrays: true, // Keep student data even if no school match
-        },
-      },
-
-      {
-        $match: {
-          enumeratorId: userID, // Replace with the registrar's ID or identifier
-          lockStatus: false,
-          ...(week && { attdWeek: Number(week) }), // Corrected from 'attWeek'
-          ...(ward && { 'studentDetails.ward': ward }),
-          ...(lgaOfEnrollment && {
-            'studentDetails.lgaOfEnrollment': lgaOfEnrollment,
-          }),
-          ...(presentClass && { 'studentDetails.presentClass': presentClass }),
-          ...(school && { 'studentDetails.schoolId': new ObjectId(school) }),
-          ...(month && { month: Number(month) }),
-          ...(year && { year: Number(year) }),
-        },
-      },
-
-      {
-        $project: {
-          _id: 0, // Exclude MongoDB's `_id`
-          year: 1,
-          attdWeek: 1,
-          month: 1,
-          class: 1,
-          studentRandomId: 1,
-          AttendanceScore: 1,
-          'studentDetails.surname': 1,
-          'studentDetails.firstname': 1,
-          'studentDetails.middlename': 1,
-          'studentDetails.ward': 1,
-          'studentDetails.lgaOfEnrollment': 1,
-          'studentDetails.presentClass': 1,
-          'studentDetails.state': 1,
-          'studentDetails.accountNumber': 1,
-          'studentDetails.bankName': 1,
-          'schoolDetails.schoolName': 1,
-          'schoolDetails._id': 1,
-          'studentDetails.presentClass': 1,
-        },
-      },
-      {
-        $sort: { createdAt: -1 }, // Sort by createdAt in descending order
-      },
-      {
-        $facet: {
-          metadata: [{ $count: 'total' }], // Count total documents
-          data: [{ $skip: skip }, { $limit: limit }], // Paginate results
-        },
-      },
-      {
-        $unwind: '$metadata',
-      },
-      {
-        $project: {
-          total: '$metadata.total',
-          data: 1,
-        },
-      },
-    ])
-
-    if (
-      permissions.includes('handle_payments') ||
-      permissions.includes('handle_registrars')
-    ) {
-      // const findStudent = await Student.find({ schoolId });
-      // console.log('foundStudent', findStudent);
-      attendance = await Attendance.aggregate([
-        {
-          $lookup: {
-            from: 'students', // Collection name for Student schema
-            localField: 'studentRandomId', // Field in Attendance
-            foreignField: 'randomId', // Field in Student schema
-            as: 'studentDetails', // Output field for joined data
-          },
-        },
-        {
-          $unwind: {
-            path: '$studentDetails', // Flatten joined data
-          },
-        },
-        {
-          $lookup: {
-            from: 'allschools', // Collection name for School schema
-            localField: 'studentDetails.schoolId', // Field in Student schema
-            foreignField: '_id', // Field in School schema
-            as: 'schoolDetails', // Output field for joined data
-          },
-        },
-        {
-          $unwind: {
-            path: '$schoolDetails', // Flatten joined school data
-            preserveNullAndEmptyArrays: true, // Keep student data even if no school match
-          },
-        },
-
-        {
-          $group: {
-            _id: {
-              student: '$studentRandomId',
-              month: '$month',
-              year: '$year',
-            }, // Group by student and month-year
-            studentDetails: { $first: '$studentDetails' },
-            schoolDetails: { $first: '$schoolDetails' },
-            lockStatus: { $first: false },
-            studentRandomId: { $first: '$studentRandomId' },
-            createdAt: { $first: '$createdAt' },
-            month: { $first: '$month' },
-            year: { $first: '$year' },
-            totalAttendanceScore: { $sum: '$AttendanceScore' }, // Sum attendance score for the month
-            totalWeeks: { $sum: 1 }, // Count records (weeks)
-          },
-        },
-        {
-          $addFields: {
-            totalPossibleMarks: { $multiply: ['$totalWeeks', 25] }, // Assuming 25 marks per week
-            attendancePercentage: {
-              $multiply: [
-                {
-                  $cond: [
-                    { $eq: ['$totalPossibleMarks', 0] },
-                    0,
-                    {
-                      $divide: ['$totalAttendanceScore', '$totalPossibleMarks'],
-                    },
-                  ],
-                },
-                100,
-              ],
-            },
-            date: '$createdAt',
-          },
-        },
-        {
-          $match: {
-            lockStatus: false,
-            ...(month && { month: Number(month) }),
-            ...(year && { year: Number(year) }),
-            ...(ward && {
-              'studentDetails.ward': { $regex: new RegExp(ward, 'i') },
-            }),
-            ...(lgaOfEnrollment && {
-              'studentDetails.lgaOfEnrollment': {
-                $regex: new RegExp(lgaOfEnrollment, 'i'),
-              },
-            }),
-            ...(presentClass && {
-              'studentDetails.presentClass': presentClass,
-            }),
-            ...(schoolId && {
-              'studentDetails.schoolId': new ObjectId(schoolId),
-            }),
-            ...(percentage && {
-              totalAttendanceScore: { $gte: parseInt(percentage) },
-            }),
-            ...(withBankDetails === true && {
-              'studentDetails.bankName': { $nin: [null, ''] },
-              'studentDetails.accountNumber': { $nin: [null, ''] },
-            }),
-            ...(withBankDetails === false && {
-              'studentDetails.bankName': { $in: [null, ''] },
-              'studentDetails.accountNumber': { $in: [null, ''] },
-            }),
-            ...(dateFrom || dateTo
-              ? {
-                date: {
-                  ...(dateFrom ? { $gte: new Date(dateFrom) } : {}),
-                  ...(dateTo
-                    ? {
-                      $lte: new Date(
-                        new Date(dateTo).setHours(23, 59, 59, 999)
-                      ),
-                    }
-                    : {}),
-                },
-              }
-              : {}),
-          },
-        },
-
-        {
-          $project: {
-            _id: 0, // Exclude MongoDB's `_id`
-            date: 1,
-            year: 1,
-            month: 1,
-            createdAt: 1,
-            class: 1,
-            studentRandomId: 1,
-            AttendanceScore: 1,
-            'studentDetails.surname': 1,
-            'studentDetails.firstname': 1,
-            'studentDetails.middlename': 1,
-            'studentDetails.ward': 1,
-            'studentDetails.lgaOfEnrollment': 1,
-            'studentDetails.presentClass': 1,
-            'studentDetails.state': 1,
-            'studentDetails.accountNumber': 1,
-            'studentDetails.bankName': 1,
-            'schoolDetails.schoolName': 1,
-            'schoolDetails._id': 1,
-            'studentDetails.presentClass': 1,
-            totalAttendanceScore: 1,
-            totalWeeks: 1,
-            totalPossibleMarks: 1,
-            attendancePercentage: { $round: ['$attendancePercentage', 2] },
-          },
-        },
-        {
-          $sort: { createdAt: -1 }, // Sort by createdAt in descending order
-        },
-      ])
+    
+    const students = await Student.aggregate([
+       { $match: studentMatchQuery },
+       {
+         $lookup: {
+           from: 'allschools',
+           localField: 'schoolId',
+           foreignField: '_id',
+           as: 'schoolDetails'
+         }
+       },
+       { $unwind: { path: '$schoolDetails', preserveNullAndEmptyArrays: true } }
+    ]).allowDiskUse(true);
+    
+    if (!students || students.length === 0) {
+       return next(new NotFoundError('No record found for students'));
     }
-
-    // console.log(Number(month), Number(year))
-    if (attendance.length < 1) return next(new NotFoundError('No record found'))
-
+    
+    // 2. Find all SchoolAttendance records matching the time criteria
+    const attendanceMatchQuery = {};
+    if (school || schoolId) attendanceMatchQuery.schoolId = new ObjectId(school || schoolId);
+    
+    if (dateFrom || dateTo || (month && year)) {
+       attendanceMatchQuery.date = {};
+       if (dateFrom) {
+         attendanceMatchQuery.date.$gte = new Date(dateFrom);
+       } else if (month && year) {
+         attendanceMatchQuery.date.$gte = new Date(parseInt(year, 10), parseInt(month, 10) - 1, 1);
+       }
+       if (dateTo) {
+         attendanceMatchQuery.date.$lte = new Date(new Date(dateTo).setHours(23, 59, 59, 999));
+       } else if (month && year) {
+         attendanceMatchQuery.date.$lte = new Date(parseInt(year, 10), parseInt(month, 10), 0, 23, 59, 59, 999);
+       }
+    }
+    
+    if (session) attendanceMatchQuery.session = session;
+    if (term) attendanceMatchQuery.term = term;
+    
+    const schoolAttendances = await SchoolAttendance.find(attendanceMatchQuery);
+    const totalSchoolDays = schoolAttendances.length;
+    
+    // 3. Map absences per student
+    const studentAbsenceCount = {};
+    for (const record of schoolAttendances) {
+       for (const absentee of record.absentees) {
+          const sId = (absentee?.student || absentee?._id || absentee)?.toString();
+          if (!sId || sId === '[object Object]') continue;
+          studentAbsenceCount[sId] = (studentAbsenceCount[sId] || 0) + 1;
+       }
+    }
+    
+    // 4. Calculate for each student
+    let results = students.map(student => {
+       const sId = student._id.toString();
+       const absentDays = studentAbsenceCount[sId] || 0;
+       const presentDays = Math.max(0, totalSchoolDays - absentDays);
+       const attendancePercentage = totalSchoolDays > 0 ? ((presentDays / totalSchoolDays) * 100).toFixed(2) : 0;
+       
+       return {
+         ...student,
+         totalSchoolDays,
+         absentDays,
+         presentDays,
+         attendancePercentage: parseFloat(attendancePercentage)
+       };
+    });
+    
+    // filter by percentage if needed
+    if (percentage) {
+      const minPercentage = parseInt(percentage, 10);
+      results = results.filter(r => r.attendancePercentage >= minPercentage);
+    }
+    
+    if (results.length === 0) {
+      return next(new NotFoundError('No record found after attendance calculation'));
+    }
+    
     if (permissions.includes('handle_students') && permissions.length === 1) {
-      return res.status(200).json({ attendance })
-    } else {
-      // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-      const aggregatedData = attendance.reduce((acc, curr) => {
-        const {
-          studentRandomId,
-          totalAttendanceScore,
-          month,
-          year,
-          studentDetails,
-          schoolDetails,
-          attendancePercentage,
-        } = curr
-
-        const key = `${studentRandomId}-${month}-${year}`
-        if (!acc[key]) {
-          acc[key] = {
-            studentRandomId,
-            month,
-            year,
-            totalAttendanceScore,
-            attendancePercentage,
-            surname: studentDetails.surname,
-            firstname: studentDetails.firstname,
-            ward: studentDetails.ward,
-            lgaOfEnrollment: studentDetails.lgaOfEnrollment,
-            presentClass: studentDetails.presentClass,
-            bankName: studentDetails.bankName,
-            accountNumber: studentDetails.accountNumber,
-            schoolName: schoolDetails.schoolName,
-          }
-        }
-
-        // acc[key].totalAttendanceScore += parseInt(AttendanceScore, 10); // Sum attendance scores
-        return acc
-      }, {})
-
-      // console.log(attendance);
-
-      const checkPaymentType = (paymentType) => {
-        switch (paymentType) {
-          case 'Registration':
-            return { name: 'Registration', amount: 15000 }
-          case 'Transition':
-            return { name: 'Transition', amount: 25000 }
-          case 'Registration and Transition':
-            return { name: 'Registration and Transition', amount: 40000 }
-          case 'Second Term':
-            return { name: 'Second Term', amount: 10000 }
-          case 'Third Term':
-            return { name: 'Third Term', amount: 10000 }
-          default:
-            return null // Handle unexpected payment types
-        }
-      }
-
-      const monthOptions = [
-        { name: 'January', value: 1 },
-        { name: 'February', value: 2 },
-        { name: 'March', value: 3 },
-        { name: 'April', value: 4 },
-        { name: 'May', value: 5 },
-        { name: 'June', value: 6 },
-        { name: 'July', value: 7 },
-        { name: 'August', value: 8 },
-        { name: 'September', value: 9 },
-        { name: 'October', value: 10 },
-        { name: 'November', value: 11 },
-        { name: 'December', value: 12 },
-      ]
-
-      const getMonthName = (inputedMonth) => {
-        const monthValue = monthOptions.find(
-          (month) => month.value === inputedMonth
-        )
-        return monthValue.name
-      }
-
-      const paymentDetails = checkPaymentType(paymentType)
-
-      const toUpperCaseStrings = (obj) => {
-        return Object.fromEntries(
-          Object.entries(obj).map(([key, value]) => [
-            key,
-            key === 'StudentID'
-              ? value
-              : typeof value === 'string'
-                ? value.toUpperCase()
-                : value,
-          ])
-        )
-      }
-
-      const formattedData = Object.values(aggregatedData).map(
-        (student, index) =>
-          toUpperCaseStrings({
-            'S/N': index + 1, // Add serial number starting from 1
-            SchoolName: student.schoolName,
-            StudentID: student.studentRandomId,
-            Surname: student.surname,
-            Firstname: student.firstname,
-            Middlename: student.middlename || '', // Include middlename, default to empty string if missing
-            Month: getMonthName(student.month),
-            Year: student.year,
-            TotalAttendanceScore: student.totalAttendanceScore,
-            // AttendancePercentage: `${student.attendancePercentage}%`,
-            Ward: student.ward,
-            LGA: student.lgaOfEnrollment,
-            Class: student.presentClass,
-            BankName: student.bankName,
-            AccountNumber: student.accountNumber,
-            // paymentType: paymentDetails?.name || '',
-            amount: '',
-            status: '',
-          })
-      )
-
-      const workbook = XLSX.utils.book_new()
-      const worksheet = XLSX.utils.json_to_sheet([]) // Start with an empty worksheet
-
-      // Add a custom heading that spans across columns
-      const heading = [['Student Attendance Summary']]
-      XLSX.utils.sheet_add_aoa(worksheet, heading, { origin: 'A1' })
-
-      // Merge cells for the heading
-      worksheet['!merges'] = [
-        {
-          s: { r: 0, c: 0 },
-          e: { r: 0, c: Object.keys(formattedData[0]).length - 1 },
-        }, // Merge heading across all columns
-      ]
-
-      // Add a blank row for spacing
-      XLSX.utils.sheet_add_aoa(worksheet, [[]], { origin: 'A2' })
-
-      // Add the actual data with headers starting from row 3
-      XLSX.utils.sheet_add_json(worksheet, formattedData, {
-        origin: 'A3',
-        header: Object.keys(formattedData[0]),
-      })
-
-      // Append the worksheet to the workbook
-      XLSX.utils.book_append_sheet(workbook, worksheet, 'Students')
-
-      // Create a buffer for the Excel file
-      const buffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'buffer' })
-
-      // Create a readable stream from the buffer
-      const stream = Readable.from(buffer)
-
-      // Set headers for file download
-      res.setHeader('Content-Disposition', `attachment; filename=students.xlsx`)
-      res.setHeader(
-        'Content-Type',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-      )
-
-      // Pipe the stream to the response
-      stream.pipe(res)
-
-      // Optional: Handle error during streaming
-      stream.on('error', (err) => {
-        console.error('Stream error:', err)
-        res.status(500).send('Error generating file')
-      })
-
-      // End the response once the stream is finished
-      stream.on('end', () => {
-        console.log('File sent successfully')
-        // Ensure the file exists before attempting deletion
-        fs.unlink('../server/utils/uploads/students.xlsx', (err) => {
-          if (err) {
-            console.error('Error deleting file:', err)
-          } else {
-            console.log('File deleted successfully')
-          }
-        })
-      })
+       // Return JSON for enumerator web view
+       return res.status(200).json({ attendance: results });
     }
+    
+    // Generate Excel for Admins
+    const toUpperCaseStrings = (obj) => {
+      return Object.fromEntries(
+        Object.entries(obj).map(([key, value]) => [
+          key,
+          key === 'StudentID'
+            ? value
+            : typeof value === 'string'
+              ? value.toUpperCase()
+              : value,
+        ])
+      )
+    }
+
+    const monthOptions = [
+      { name: 'January', value: 1 },
+      { name: 'February', value: 2 },
+      { name: 'March', value: 3 },
+      { name: 'April', value: 4 },
+      { name: 'May', value: 5 },
+      { name: 'June', value: 6 },
+      { name: 'July', value: 7 },
+      { name: 'August', value: 8 },
+      { name: 'September', value: 9 },
+      { name: 'October', value: 10 },
+      { name: 'November', value: 11 },
+      { name: 'December', value: 12 },
+    ]
+    const getMonthName = (inputedMonth) => {
+      if (!inputedMonth) return '';
+      const monthValue = monthOptions.find(
+        (m) => m.value === parseInt(inputedMonth, 10)
+      )
+      return monthValue ? monthValue.name : '';
+    }
+
+    let reportPeriod = '';
+    if (month && year) {
+       reportPeriod = `${getMonthName(month)} ${year}`;
+    } else if (dateFrom || dateTo) {
+       reportPeriod = `${dateFrom || 'Start'} to ${dateTo || 'End'}`;
+    } else if (term && session) {
+       reportPeriod = `${term} Term, ${session} Session`;
+    } else {
+       reportPeriod = 'All Time';
+    }
+
+    const formattedData = results.map((student, index) =>
+       toUpperCaseStrings({
+          'S/N': index + 1,
+          SchoolName: student.schoolDetails?.schoolName || '',
+          StudentID: student.randomId,
+          Surname: student.surname,
+          Firstname: student.firstname,
+          Middlename: student.middlename || '',
+          ReportPeriod: reportPeriod,
+          TotalSchoolDays: student.totalSchoolDays,
+          PresentDays: student.presentDays,
+          AbsentDays: student.absentDays,
+          'Attendance (%)': `${student.attendancePercentage}%`,
+          Ward: student.ward,
+          LGA: student.lgaOfEnrollment,
+          Class: student.presentClass,
+          BankName: student.bankName || '',
+          AccountNumber: student.accountNumber || '',
+       })
+    );
+
+    const workbook = XLSX.utils.book_new()
+    const worksheet = XLSX.utils.json_to_sheet([])
+
+    const heading = [['Student Attendance Summary (Daily)']];
+    XLSX.utils.sheet_add_aoa(worksheet, heading, { origin: 'A1' });
+    worksheet['!merges'] = [
+      {
+        s: { r: 0, c: 0 },
+        e: { r: 0, c: Object.keys(formattedData[0]).length - 1 },
+      },
+    ];
+
+    XLSX.utils.sheet_add_aoa(worksheet, [[]], { origin: 'A2' });
+    XLSX.utils.sheet_add_json(worksheet, formattedData, {
+      origin: 'A3',
+      header: Object.keys(formattedData[0]),
+    });
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Students');
+    const buffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'buffer' });
+    const stream = Readable.from(buffer);
+
+    res.setHeader('Content-Disposition', `attachment; filename=students_attendance.xlsx`);
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    );
+    stream.pipe(res);
+    stream.on('error', (err) => {
+      console.error('Stream error:', err);
+      res.status(500).send('Error generating file');
+    });
+    
   } catch (err) {
     console.error(err)
     return next(err)

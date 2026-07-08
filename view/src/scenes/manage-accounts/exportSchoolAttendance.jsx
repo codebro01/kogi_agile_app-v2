@@ -23,7 +23,7 @@ import FormControlLabel from '@mui/material/FormControlLabel'
 import Checkbox from '@mui/material/Checkbox'
 import { SpinnerLoader } from '../../components/spinnerLoader'
 
-export const ExportAttendanceSheetPayroll = () => {
+export const ExportSchoolAttendance = () => {
   const studentsState = useSelector((state) => state.allStudents)
   const schoolState = useSelector((state) => state.schools)
   const dashboardStatState = useSelector((state) => state.dashboardStat)
@@ -70,6 +70,7 @@ export const ExportAttendanceSheetPayroll = () => {
     year: '',
     session: '',
     term: '',
+    cohort: '',
     percentage: '',
     dateFrom: '',
     dateTo: '',
@@ -157,6 +158,7 @@ export const ExportAttendanceSheetPayroll = () => {
     year: filters.year,
     session: filters.session,
     term: filters.term,
+    cohort: filters.cohort,
     percentage: filters.percentage,
     dateFrom: filters.dateFrom,
     dateTo: filters.dateTo,
@@ -582,6 +584,36 @@ export const ExportAttendanceSheetPayroll = () => {
             {['First', 'Second', 'Third'].map((term, index) => (
               <MenuItem key={index} value={term}>
                 {term}
+              </MenuItem>
+            ))}
+          </Select>
+        </Grid>
+
+        {/* Select Cohort */}
+        <Grid item xs={12} sm={6}>
+          <Select
+            name="cohort"
+            value={filters.cohort}
+            onChange={(e) => handleSelectChange(e, { name: 'cohort' })}
+            displayEmpty
+            fullWidth
+            size="medium"
+            labelId="cohort-label"
+            sx={{
+              borderRadius: 2,
+              '& .MuiOutlinedInput-root': {
+                '& fieldset': { borderColor: '#4caf50' },
+                '&:hover fieldset': { borderColor: '#2e7d32' },
+                '&.Mui-focused fieldset': { borderColor: '#1b5e20', borderWidth: 2 },
+              },
+            }}
+          >
+            <MenuItem value="">
+              <em>Select Cohort</em>
+            </MenuItem>
+            {['1', '2', '3', '4'].map((cohort, index) => (
+              <MenuItem key={index} value={cohort}>
+                {cohort}
               </MenuItem>
             ))}
           </Select>
