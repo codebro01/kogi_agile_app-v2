@@ -897,10 +897,17 @@ export const getSchoolBasedAttendanceAnalytics = async (req, res) => {
       total: 0,
       absent: 0,
       present: 0,
-      transferred: 0, // Not tracked in this schema natively for attendance
-      dropout: 0,     // Not tracked in this schema natively for attendance
-      died: 0         // Not tracked in this schema natively for attendance
+      transferred: 0,
+      dropout: 0,
+      died: 0
     };
+
+    const statusEvents = await StudentStatusEvent.find(matchQuery).lean();
+    statusEvents.forEach(event => {
+      if (event.status === 'transferred') stats.transferred++;
+      if (event.status === 'dropout') stats.dropout++;
+      if (event.status === 'deceased') stats.died++;
+    });
 
     // Calculate present and absent from the records
     attendanceRecords.forEach(record => {
