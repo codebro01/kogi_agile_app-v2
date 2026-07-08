@@ -16,6 +16,7 @@ import { DeletedStudents } from "./deletedStudentSchema.js";
 import { AttendanceTaker } from "./attendanceTakerSchema.js";
 import { TermlyAverage } from "./termlyAverageSchema.js";
 import { SchoolAttendance } from "./schoolAttendance.js";
+import { StudentStatusEvent } from "./studentStatusEventSchema.js";
 
 
 export {
@@ -37,4 +38,5 @@ export {
   AttendanceTaker,
   TermlyAverage,
   SchoolAttendance,
+  StudentStatusEvent,
 }

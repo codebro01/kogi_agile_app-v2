@@ -1,4 +1,4 @@
-import { Student, NewAttendance, AllSchools, SchoolAttendance } from '../models/index.js'
+import { Student, NewAttendance, AllSchools, SchoolAttendance, StudentStatusEvent } from '../models/index.js'
 import * as XLSX from 'xlsx'
 import express from 'express'
 import fs from 'fs'
@@ -556,7 +556,9 @@ export const getStudentsForAttendance = async (req, res) => {
 
     const matchQuery = {
       schoolId,
-      accountNumber: { $nin: [null, '', ' '] }
+      accountNumber: { $nin: [null, '', ' '] },
+      isActive: { $ne: false },
+      enrollmentStatus: { $nin: ['dropout', 'transferred', 'deceased'] }
     };
     
     if (presentClass) {
@@ -807,20 +809,53 @@ export const submitSchoolDailyAttendance = async (req, res) => {
       isActive: true,
     });
 
-    const record = await SchoolAttendance.findOneAndUpdate(
-      { schoolId, date: attendanceDate, term, session },
-      {
-        $set: {
-          year,
-          month,
-          attendanceTaken: true,
-          totalEnrolled: activeStudentsCount,
-          absentees,
-          submittedBy: req.user.userId,
-        },
-      },
-      { new: true, upsert: true }
-    );
+    // Check if attendance is already taken
+    const existing = await SchoolAttendance.findOne({ schoolId, date: attendanceDate });
+    if (existing) {
+      return res.status(400).json({ message: 'Attendance has already been taken for this school on this day.' });
+    }
+
+    const record = await SchoolAttendance.create({
+      schoolId,
+      date: attendanceDate,
+      term,
+      session,
+      year,
+      month,
+      attendanceTaken: true,
+      totalEnrolled: activeStudentsCount,
+      absentees: absentees.map(a => ({
+        studentId: a.studentId,
+        presentClass: a.presentClass,
+        reason: a.reason || '0',
+        note: a.note
+      })),
+      submittedBy: req.user.userID,
+    });
+
+    // Process special statuses (dropout, transferred, deceased)
+    const specialAbsentees = absentees.filter(a => ['dropout', 'transferred', 'deceased'].includes(a.specialStatus));
+    
+    for (const a of specialAbsentees) {
+      await StudentStatusEvent.create({
+        studentId: a.studentId,
+        schoolId,
+        presentClass: a.presentClass,
+        status: a.specialStatus,
+        term,
+        session,
+        year,
+        month,
+        date: attendanceDate,
+        submittedBy: req.user.userID
+      });
+
+      await Student.findByIdAndUpdate(a.studentId, {
+        isActive: false,
+        enrollmentStatus: a.specialStatus,
+        enrollmentStatusDate: new Date()
+      });
+    }
 
     res.status(200).json({
       message: 'School daily attendance saved successfully',
@@ -828,7 +863,10 @@ export const submitSchoolDailyAttendance = async (req, res) => {
     });
   } catch (err) {
     console.error('Error in submitSchoolDailyAttendance:', err);
-    res.status(500).json({ message: 'Failed to submit school attendance' });
+    if (err.code === 11000) {
+      return res.status(400).json({ message: 'Attendance record for this school and date already exists with conflicting data.' });
+    }
+    res.status(500).json({ message: 'Failed to submit school attendance. Please try again.' });
   }
 };
 

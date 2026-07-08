@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { 
     Box, Typography, Select, MenuItem, FormControl, InputLabel, 
     Button, TextField, Paper, Snackbar, Alert, Autocomplete, 
-    IconButton, Divider 
+    IconButton, Divider, Dialog, DialogActions, DialogContent, 
+    DialogContentText, DialogTitle
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import axios from 'axios';
@@ -20,7 +21,7 @@ export const TakeSchoolAttendance = () => {
     const [selectedSchool, setSelectedSchool] = useState('');
     const [selectedClass, setSelectedClass] = useState('');
     const [students, setStudents] = useState([]); // Students for selected class
-    const [absentees, setAbsentees] = useState([]); // Array of { student, reason, note }
+    const [absentees, setAbsentees] = useState([]); // Array of { student, presentClass, reason, specialStatus, note }
     
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [term, setTerm] = useState('First');
@@ -29,6 +30,7 @@ export const TakeSchoolAttendance = () => {
     
     const [isSaving, setIsSaving] = useState(false);
     const [message, setMessage] = useState({ text: '', type: 'success', open: false });
+    const [confirmOpen, setConfirmOpen] = useState(false);
     
     const [selectedStudentToAdd, setSelectedStudentToAdd] = useState(null);
 
@@ -75,7 +77,7 @@ export const TakeSchoolAttendance = () => {
 
         setAbsentees([
             ...absentees,
-            { student: selectedStudentToAdd, presentClass: selectedClass, reason: '0', note: '' }
+            { student: selectedStudentToAdd, presentClass: selectedClass, reason: '0', specialStatus: 'none', note: '' }
         ]);
         setSelectedStudentToAdd(null);
     };
@@ -90,12 +92,22 @@ export const TakeSchoolAttendance = () => {
         ));
     };
 
-    const handleSave = async () => {
+    const handleUpdateSpecialStatus = (studentId, specialStatus) => {
+        setAbsentees(absentees.map(a => 
+            a.student._id === studentId ? { ...a, specialStatus } : a
+        ));
+    };
+
+    const handleInitiateSave = () => {
         if (!selectedSchool || !date || !term || !session) {
             setMessage({ text: 'Please fill in all required fields (School, Date, Term, Session).', type: 'warning', open: true });
             return;
         }
+        setConfirmOpen(true);
+    };
 
+    const handleConfirmSave = async () => {
+        setConfirmOpen(false);
         setIsSaving(true);
         
         const payload = {
@@ -107,6 +119,7 @@ export const TakeSchoolAttendance = () => {
                 studentId: a.student._id,
                 presentClass: a.presentClass,
                 reason: a.reason,
+                specialStatus: a.specialStatus === 'none' ? null : a.specialStatus,
                 note: a.note
             }))
         };
@@ -118,6 +131,7 @@ export const TakeSchoolAttendance = () => {
             });
             setMessage({ text: 'School attendance saved successfully!', type: 'success', open: true });
             setAbsentees([]); // Clear absentees on success
+            fetchSchoolStudents(); // Refresh students to immediately hide dropouts/transfers
         } catch (err) {
             console.error(err);
             setMessage({ text: err.response?.data?.message || 'Failed to save attendance', type: 'error', open: true });
@@ -237,13 +251,27 @@ export const TakeSchoolAttendance = () => {
                                     </Typography>
                                 </Box>
                                 
+                                <FormControl size="small" sx={{ width: 180 }}>
+                                    <InputLabel>Status</InputLabel>
+                                    <Select
+                                        value={item.specialStatus}
+                                        label="Status"
+                                        onChange={(e) => handleUpdateSpecialStatus(item.student._id, e.target.value)}
+                                    >
+                                        <MenuItem value="none">Absent (Default)</MenuItem>
+                                        <MenuItem value="dropout">Dropout</MenuItem>
+                                        <MenuItem value="transferred">Transferred</MenuItem>
+                                        <MenuItem value="deceased">Deceased (Dead)</MenuItem>
+                                    </Select>
+                                </FormControl>
+
                                 <TextField 
                                     label="Note (Optional)"
                                     variant="outlined"
                                     size="small"
                                     value={item.note}
                                     onChange={(e) => handleUpdateNote(item.student._id, e.target.value)}
-                                    sx={{ width: 300 }}
+                                    sx={{ width: 250 }}
                                 />
 
                                 <IconButton color="error" onClick={() => handleRemoveAbsentee(item.student._id)}>
@@ -259,13 +287,28 @@ export const TakeSchoolAttendance = () => {
                         variant="contained" 
                         color="success" 
                         size="large" 
-                        onClick={handleSave} 
+                        onClick={handleInitiateSave} 
                         disabled={isSaving || !selectedSchool}
                     >
                         {isSaving ? 'Submitting...' : 'Submit School Attendance'}
                     </Button>
                 </Box>
             </Paper>
+
+            <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)}>
+                <DialogTitle>Confirm Attendance Submission</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        Are you sure you want to submit the attendance for this day? 
+                        <br/><br/>
+                        <strong>Warning: You cannot resubmit or edit attendance for this day once it is submitted.</strong> Make sure your absentee list is correct!
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setConfirmOpen(false)} color="inherit">Cancel</Button>
+                    <Button onClick={handleConfirmSave} color="success" variant="contained">Yes, Submit</Button>
+                </DialogActions>
+            </Dialog>
 
             <Snackbar open={message.open} autoHideDuration={6000} onClose={() => setMessage({ ...message, open: false })}>
                 <Alert severity={message.type} sx={{ width: '100%' }}>
