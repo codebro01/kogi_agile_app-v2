@@ -61,6 +61,9 @@ const schoolAttendanceSchema = new Schema(
         presentClass: {
           type: String,
         },
+        cohort: {
+          type: String,
+        },
         reason: {
           type: String,
           enum: ["0"], // 0: absent (stored as string for now in Mongoose or castable)

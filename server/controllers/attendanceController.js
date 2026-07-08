@@ -809,6 +809,14 @@ export const submitSchoolDailyAttendance = async (req, res) => {
       isActive: true,
     });
 
+    // Fetch cohort data for absentees
+    const absenteeStudentIds = absentees.map(a => a.studentId);
+    const absenteeStudents = await Student.find({ _id: { $in: absenteeStudentIds } }, 'cohort').lean();
+    const cohortMap = {};
+    absenteeStudents.forEach(st => {
+      cohortMap[st._id.toString()] = st.cohort;
+    });
+
     // Check if attendance is already taken
     const existing = await SchoolAttendance.findOne({ schoolId, date: attendanceDate });
     if (existing) {
@@ -827,6 +835,7 @@ export const submitSchoolDailyAttendance = async (req, res) => {
       absentees: absentees.map(a => ({
         studentId: a.studentId,
         presentClass: a.presentClass,
+        cohort: cohortMap[a.studentId?.toString()] || '',
         reason: a.reason || '0',
         note: a.note
       })),

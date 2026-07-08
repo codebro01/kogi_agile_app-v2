@@ -208,6 +208,14 @@ StudentSchema.virtual('verificationInfo', {
 StudentSchema.set('toObject', { virtuals: true })
 StudentSchema.set('toJSON', { virtuals: true })
 
+// Compound index covering all export attendance filter fields
+StudentSchema.index({ isActive: 1, enrollmentStatus: 1, schoolId: 1, cohort: 1, presentClass: 1, ward: 1, lgaOfEnrollment: 1 })
+StudentSchema.index({ isActive: 1, enrollmentStatus: 1, schoolId: 1 })
+StudentSchema.index({ isActive: 1, enrollmentStatus: 1, cohort: 1 })
+StudentSchema.index({ isActive: 1, enrollmentStatus: 1, presentClass: 1 })
+StudentSchema.index({ isActive: 1, enrollmentStatus: 1, ward: 1 })
+StudentSchema.index({ isActive: 1, enrollmentStatus: 1, lgaOfEnrollment: 1 })
+StudentSchema.index({ isActive: 1, enrollmentStatus: 1, bankName: 1, accountNumber: 1 })
 StudentSchema.index({ randomId: 1, lga: 1, presentClass: 1, accountNumber: 1 })
 StudentSchema.index({ accountNumber: 1 })
 StudentSchema.index({ schoolId: 1 })

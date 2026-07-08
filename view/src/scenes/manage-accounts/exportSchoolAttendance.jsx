@@ -581,7 +581,7 @@ export const ExportSchoolAttendance = () => {
             <MenuItem value="">
               <em>Select Term</em>
             </MenuItem>
-            {['First', 'Second', 'Third'].map((term, index) => (
+            {['First Term', 'Second Term', 'Third Term'].map((term, index) => (
               <MenuItem key={index} value={term}>
                 {term}
               </MenuItem>

@@ -1251,7 +1251,7 @@ export const getStudentsAttendance = async (req, res, next) => {
     if (ward) studentMatchQuery.ward = { $regex: new RegExp(ward, 'i') };
     if (lgaOfEnrollment) studentMatchQuery.lgaOfEnrollment = { $regex: new RegExp(lgaOfEnrollment, 'i') };
     if (presentClass) studentMatchQuery.presentClass = presentClass;
-    if (cohort) studentMatchQuery.cohort = cohort;
+    if (cohort) studentMatchQuery.cohort = Number(cohort);
     
     if (withBankDetails === 'true') {
       studentMatchQuery.bankName = { $nin: [null, ''] };
@@ -1268,6 +1268,30 @@ export const getStudentsAttendance = async (req, res, next) => {
     const students = await Student.aggregate([
        { $match: studentMatchQuery },
        {
+         $project: {
+           _id: 1,
+           randomId: 1,
+           surname: 1,
+           firstname: 1,
+           middlename: 1,
+           ward: 1,
+           presentClass: 1,
+           cohort: 1,
+           bankName: 1,
+           accountNumber: 1,
+           lgaOfEnrollment: 1,
+           gender: 1,
+           dob: 1,
+           parentName: 1,
+           parentPhone: 1,
+           schoolId: 1,
+           enrollmentStatus: 1,
+           isActive: 1,
+           createdBy: 1,
+         }
+       },
+       { $sort: { _id: 1 } },
+       {
          $lookup: {
            from: 'allschools',
            localField: 'schoolId',
@@ -1282,10 +1306,10 @@ export const getStudentsAttendance = async (req, res, next) => {
        return next(new NotFoundError('No record found for students'));
     }
     
-    // 2. Find all SchoolAttendance records matching the time criteria
+    // 2. Find all SchoolAttendance records matching the time/term/session criteria
     const attendanceMatchQuery = {};
     if (school || schoolId) attendanceMatchQuery.schoolId = new ObjectId(school || schoolId);
-    
+
     if (dateFrom || dateTo || (month && year)) {
        attendanceMatchQuery.date = {};
        if (dateFrom) {
@@ -1299,30 +1323,42 @@ export const getStudentsAttendance = async (req, res, next) => {
          attendanceMatchQuery.date.$lte = new Date(parseInt(year, 10), parseInt(month, 10), 0, 23, 59, 59, 999);
        }
     }
-    
+
     if (session) attendanceMatchQuery.session = session;
-    if (term) attendanceMatchQuery.term = term;
-    
-    const schoolAttendances = await SchoolAttendance.find(attendanceMatchQuery);
-    const totalSchoolDays = schoolAttendances.length;
-    
-    // 3. Map absences per student
+    if (term) attendanceMatchQuery.term = term.includes('Term') ? term : `${term} Term`;
+
+    const schoolAttendances = await SchoolAttendance.find(attendanceMatchQuery, 'schoolId absentees').lean();
+
+    // 3. Build per-school day count map: { schoolIdStr -> numberOfDaysAttendanceTaken }
+    const schoolDaysMap = {};
+    // Build per-student absence count map: { studentIdStr -> absenceCount }
     const studentAbsenceCount = {};
+
     for (const record of schoolAttendances) {
+       const schId = record.schoolId?.toString();
+       if (!schId) continue;
+       // Count this day for this school
+       schoolDaysMap[schId] = (schoolDaysMap[schId] || 0) + 1;
+
+       // Count absences per student
        for (const absentee of record.absentees) {
-          const sId = (absentee?.student || absentee?._id || absentee)?.toString();
+          // absentee.studentId is the correct field from the schema
+          const sId = (absentee?.studentId || absentee?.student)?.toString();
           if (!sId || sId === '[object Object]') continue;
           studentAbsenceCount[sId] = (studentAbsenceCount[sId] || 0) + 1;
        }
     }
-    
-    // 4. Calculate for each student
+
+    // 4. Calculate per student using their OWN school's total days
     let results = students.map(student => {
        const sId = student._id.toString();
+       const schId = student.schoolId?.toString();
+       // Use this student's school's day count — not a global total
+       const totalSchoolDays = schoolDaysMap[schId] || 0;
        const absentDays = studentAbsenceCount[sId] || 0;
        const presentDays = Math.max(0, totalSchoolDays - absentDays);
        const attendancePercentage = totalSchoolDays > 0 ? ((presentDays / totalSchoolDays) * 100).toFixed(2) : 0;
-       
+
        return {
          ...student,
          totalSchoolDays,
@@ -1389,7 +1425,8 @@ export const getStudentsAttendance = async (req, res, next) => {
     } else if (dateFrom || dateTo) {
        reportPeriod = `${dateFrom || 'Start'} to ${dateTo || 'End'}`;
     } else if (term && session) {
-       reportPeriod = `${term} Term, ${session} Session`;
+       const displayTerm = term.includes('Term') ? term : `${term} Term`;
+       reportPeriod = `${displayTerm}, ${session} Session`;
     } else {
        reportPeriod = 'All Time';
     }
