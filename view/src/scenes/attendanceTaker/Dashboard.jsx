@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Box, Typography, useTheme, Card, CardContent, FormControl, InputLabel, Select, MenuItem, TextField, Button, Skeleton } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { tokens } from '../../theme';
@@ -8,6 +8,8 @@ import { AttendanceCharts } from './AttendanceCharts';
 import { CompareAttendanceModal } from './CompareAttendanceModal';
 import StatBox from '../../components/StatBox';
 import EmailIcon from '@mui/icons-material/Email';
+
+const SESSION_YEARS = ['2024/2025', '2025/2026', '2026/2027', '2027/2028', '2028/2029', '2029/2030'];
 
 export const AttendanceTakerDashboard = () => {
     const theme = useTheme();
@@ -34,12 +36,15 @@ export const AttendanceTakerDashboard = () => {
     const [session, setSession] = useState('');
     const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
 
-    useEffect(() => {
-        fetchAnalytics();
-        fetchTrend();
-    }, [schoolId, cohort, fromDate, toDate, month, year, term, session]);
+    // Abort controller refs so we can cancel stale requests
+    const analyticsAbortRef = useRef(null);
+    const trendAbortRef = useRef(null);
 
-    const fetchAnalytics = async () => {
+    const fetchAnalytics = useCallback(async () => {
+        // Cancel any previous in-flight request
+        if (analyticsAbortRef.current) analyticsAbortRef.current.abort();
+        analyticsAbortRef.current = new AbortController();
+
         setIsLoadingStats(true);
         try {
             const token = localStorage.getItem("token");
@@ -49,17 +54,22 @@ export const AttendanceTakerDashboard = () => {
             const res = await axios.get(`${API_URL}/attendance/school-analytics`, {
                 params: { schoolId: querySchoolId, cohort, fromDate, toDate, term, session },
                 headers: { Authorization: `Bearer ${token}` },
-                withCredentials: true
+                withCredentials: true,
+                signal: analyticsAbortRef.current.signal,
             });
             setStats(res.data.stats);
         } catch (err) {
+            if (axios.isCancel(err) || err.name === 'CanceledError') return; // Ignore cancelled requests
             console.error(err);
         } finally {
             setIsLoadingStats(false);
         }
-    };
+    }, [schoolId, cohort, fromDate, toDate, term, session]);
 
-    const fetchTrend = async () => {
+    const fetchTrend = useCallback(async () => {
+        if (trendAbortRef.current) trendAbortRef.current.abort();
+        trendAbortRef.current = new AbortController();
+
         setIsLoadingTrend(true);
         try {
             const token = localStorage.getItem("token");
@@ -69,15 +79,29 @@ export const AttendanceTakerDashboard = () => {
             const res = await axios.get(`${API_URL}/attendance/school-monthly-trend`, {
                 params: { schoolId: querySchoolId, month, year },
                 headers: { Authorization: `Bearer ${token}` },
-                withCredentials: true
+                withCredentials: true,
+                signal: trendAbortRef.current.signal,
             });
             setTrend(res.data.trend);
         } catch (err) {
+            if (axios.isCancel(err) || err.name === 'CanceledError') return;
             console.error(err);
         } finally {
             setIsLoadingTrend(false);
         }
-    };
+    }, [schoolId, month, year]);
+
+    // Debounce analytics fetch — waits 600ms after last filter change
+    useEffect(() => {
+        const timer = setTimeout(() => { fetchAnalytics(); }, 600);
+        return () => clearTimeout(timer);
+    }, [fetchAnalytics]);
+
+    // Debounce trend fetch — waits 600ms after last filter change
+    useEffect(() => {
+        const timer = setTimeout(() => { fetchTrend(); }, 600);
+        return () => clearTimeout(timer);
+    }, [fetchTrend]);
 
     const assignedSchools = storedUser?.assignedSchools || [];
 
