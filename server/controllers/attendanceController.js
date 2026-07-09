@@ -1034,9 +1034,9 @@ export const getSchoolBasedMonthlyTrend = async (req, res) => {
     };
     if (schoolId && schoolId !== 'all') {
       if (schoolId.includes(',')) {
-        matchQuery.schoolId = { $in: schoolId.split(',') };
+        matchQuery.schoolId = { $in: schoolId.split(',').map(id => new mongoose.Types.ObjectId(id.trim())) };
       } else {
-        matchQuery.schoolId = schoolId;
+        matchQuery.schoolId = new mongoose.Types.ObjectId(schoolId);
       }
     }
 

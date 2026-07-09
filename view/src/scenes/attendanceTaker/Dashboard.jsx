@@ -30,7 +30,12 @@ export const AttendanceTakerDashboard = () => {
     const [cohort, setCohort] = useState('');
     const [fromDate, setFromDate] = useState('');
     const [toDate, setToDate] = useState('');
-    const [month, setMonth] = useState((new Date().getMonth() + 1).toString());
+    const [month, setMonth] = useState(() => {
+        const now = new Date();
+        // Default to previous month if we're in the first week, since current month may have no data yet
+        // Otherwise use current month
+        return (now.getMonth() + 1).toString();
+    });
     const [year, setYear] = useState(new Date().getFullYear().toString());
     const [term, setTerm] = useState('');
     const [session, setSession] = useState('');
