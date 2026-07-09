@@ -3,8 +3,12 @@ import {
     Box, Typography, Select, MenuItem, FormControl, InputLabel, 
     Button, TextField, Paper, Snackbar, Alert, Autocomplete, 
     IconButton, Divider, Dialog, DialogActions, DialogContent, 
-    DialogContentText, DialogTitle
+    DialogContentText, DialogTitle, Chip, LinearProgress
 } from '@mui/material';
+import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
+import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CancelIcon from '@mui/icons-material/Cancel';
 import DeleteIcon from '@mui/icons-material/Delete';
 import axios from 'axios';
 import Header from '../../components/Header';
@@ -33,6 +37,7 @@ export const TakeSchoolAttendance = () => {
     const [confirmOpen, setConfirmOpen] = useState(false);
     
     const [selectedStudentToAdd, setSelectedStudentToAdd] = useState(null);
+    const [currentStudentIndex, setCurrentStudentIndex] = useState(0);
 
     const CLASS_OPTIONS = ['Primary 1', 'Primary 2', 'Primary 3', 'Primary 4', 'Primary 5', 'Primary 6', 'JSS 1', 'JSS 2', 'JSS 3', 'SSS 1', 'SSS 2', 'SSS 3'];
 
@@ -52,6 +57,11 @@ export const TakeSchoolAttendance = () => {
             setStudents([]);
         }
     }, [selectedSchool, selectedClass]);
+
+    // Reset navigator index when students list changes
+    useEffect(() => {
+        setCurrentStudentIndex(0);
+    }, [students]);
 
     const fetchSchoolStudents = async () => {
         try {
@@ -195,7 +205,7 @@ export const TakeSchoolAttendance = () => {
             </Paper>
 
             <Paper sx={{ p: 3, backgroundColor: colors.primary[400] }}>
-                <Typography variant="h5" mb={2}>Select Absent Students</Typography>
+                {/* <Typography variant="h5" mb={2}>Select Absent Students</Typography>
                 <Typography variant="body2" color="textSecondary" mb={2}>
                     By default, all active students are marked as PRESENT. Only add students who are ABSENT today.
                 </Typography>
@@ -231,7 +241,142 @@ export const TakeSchoolAttendance = () => {
                     >
                         Add to Absentees
                     </Button>
-                </Box>
+                </Box> */}
+
+                {/* --- Student-by-Student Navigator --- */}
+                {students.length > 0 && (() => {
+                    const sortedStudents = [...students].sort((a, b) => {
+                        const nameA = `${a.surname} ${a.firstname}`.toLowerCase();
+                        const nameB = `${b.surname} ${b.firstname}`.toLowerCase();
+                        return nameA.localeCompare(nameB);
+                    });
+                    const currentStudent = sortedStudents[currentStudentIndex];
+                    const isAbsent = !!absentees.find(a => a.student._id === currentStudent._id);
+
+                    const handleToggleAbsent = () => {
+                        if (isAbsent) {
+                            handleRemoveAbsentee(currentStudent._id);
+                        } else {
+                            if (!absentees.find(a => a.student._id === currentStudent._id)) {
+                                setAbsentees(prev => [
+                                    ...prev,
+                                    { student: currentStudent, presentClass: selectedClass, reason: '0', specialStatus: 'none', note: '' }
+                                ]);
+                            }
+                        }
+                    };
+
+                    return (
+                        <Box mt={3} mb={1}>
+                            <Divider sx={{ mb: 2 }} />
+                            <Typography variant="h6" mb={2} fontWeight="bold">
+                                Student Navigator &nbsp;
+                                <Chip label={`${currentStudentIndex + 1} / ${sortedStudents.length}`} size="small" color="secondary" />
+                            </Typography>
+
+                            {/* Progress bar */}
+                            <LinearProgress
+                                variant="determinate"
+                                value={((currentStudentIndex + 1) / sortedStudents.length) * 100}
+                                sx={{ mb: 2, height: 6, borderRadius: 4 }}
+                                color="secondary"
+                            />
+
+                            {/* Student Card */}
+                            <Paper
+                                elevation={4}
+                                sx={{
+                                    p: 3,
+                                    borderRadius: 3,
+                                    border: isAbsent ? `2px solid #f44336` : `2px solid #4caf50`,
+                                    background: isAbsent
+                                        ? 'rgba(244,67,54,0.07)'
+                                        : 'rgba(76,175,80,0.07)',
+                                    transition: 'all 0.3s ease',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: 1.5
+                                }}
+                            >
+                                {/* Name & Status Chip */}
+                                <Box display="flex" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={1}>
+                                    <Box>
+                                        <Typography variant="h5" fontWeight="bold">
+                                            {currentStudent.surname} {currentStudent.firstname} {currentStudent.middlename}
+                                        </Typography>
+                                        <Typography variant="body2" color="textSecondary">
+                                            Class: {currentStudent.presentClass} &nbsp;|&nbsp; Account: {currentStudent.accountNumber || 'N/A'}
+                                        </Typography>
+                                    </Box>
+                                    <Chip
+                                        icon={isAbsent ? <CancelIcon /> : <CheckCircleIcon />}
+                                        label={isAbsent ? 'ABSENT' : 'PRESENT'}
+                                        color={isAbsent ? 'error' : 'success'}
+                                        variant="filled"
+                                        sx={{ fontWeight: 'bold', fontSize: '14px', px: 1 }}
+                                    />
+                                </Box>
+
+                                {/* Status dropdown (only visible when absent) */}
+                                {isAbsent && (
+                                    <FormControl size="small" sx={{ maxWidth: 220, mt: 1 }}>
+                                        <InputLabel>Absence Status</InputLabel>
+                                        <Select
+                                            value={absentees.find(a => a.student._id === currentStudent._id)?.specialStatus || 'none'}
+                                            label="Absence Status"
+                                            onChange={(e) => handleUpdateSpecialStatus(currentStudent._id, e.target.value)}
+                                        >
+                                            <MenuItem value="none">Absent (Default)</MenuItem>
+                                            <MenuItem value="dropout">Dropout</MenuItem>
+                                            <MenuItem value="transferred">Transferred</MenuItem>
+                                            <MenuItem value="deceased">Deceased (Dead)</MenuItem>
+                                        </Select>
+                                    </FormControl>
+                                )}
+
+                                {/* Mark Absent / Present toggle button */}
+                                <Box display="flex" gap={2} mt={1}>
+                                    <Button
+                                        variant="contained"
+                                        color={isAbsent ? 'success' : 'error'}
+                                        onClick={handleToggleAbsent}
+                                        startIcon={isAbsent ? <CheckCircleIcon /> : <CancelIcon />}
+                                        sx={{ borderRadius: 2 }}
+                                    >
+                                        {isAbsent ? 'Mark as Present' : 'Mark as Absent'}
+                                    </Button>
+                                </Box>
+                            </Paper>
+
+                            {/* Prev / Next buttons */}
+                            <Box display="flex" justifyContent="space-between" alignItems="center" mt={2}>
+                                <Button
+                                    variant="outlined"
+                                    startIcon={<ArrowBackIosNewIcon />}
+                                    disabled={currentStudentIndex === 0}
+                                    onClick={() => setCurrentStudentIndex(i => i - 1)}
+                                    sx={{ borderRadius: 2 }}
+                                >
+                                    Prev
+                                </Button>
+                                <Typography variant="body2" color="textSecondary">
+                                    {sortedStudents[currentStudentIndex]?.surname?.charAt(0).toUpperCase()} &nbsp;—&nbsp;
+                                    Absentees: <strong>{absentees.length}</strong>
+                                </Typography>
+                                <Button
+                                    variant="outlined"
+                                    endIcon={<ArrowForwardIosIcon />}
+                                    disabled={currentStudentIndex === sortedStudents.length - 1}
+                                    onClick={() => setCurrentStudentIndex(i => i + 1)}
+                                    sx={{ borderRadius: 2 }}
+                                    color="secondary"
+                                >
+                                    Next
+                                </Button>
+                            </Box>
+                        </Box>
+                    );
+                })()}
 
                 <Divider sx={{ my: 2 }} />
 
