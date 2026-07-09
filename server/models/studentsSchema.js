@@ -221,6 +221,8 @@ StudentSchema.index({ accountNumber: 1 })
 StudentSchema.index({ schoolId: 1 })
 StudentSchema.index({ presentClass: 1 })
 StudentSchema.index({ cohort: 1 })
+StudentSchema.index({ createdAt: -1 })
+StudentSchema.index({ updatedAt: -1 })
 
 StudentSchema.pre('save', function (next) {
   if (this.isModified('lastLogged')) {

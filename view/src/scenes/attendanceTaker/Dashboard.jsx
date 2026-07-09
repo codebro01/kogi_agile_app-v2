@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Box, Typography, useTheme, Card, CardContent, FormControl, InputLabel, Select, MenuItem, TextField, Button, Skeleton } from '@mui/material';
+import { Box, Typography, useTheme, Card, CardContent, FormControl, InputLabel, Select, MenuItem, TextField, Button, Skeleton, Autocomplete } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { tokens } from '../../theme';
 import Header from '../../components/Header';
@@ -8,6 +8,9 @@ import { AttendanceCharts } from './AttendanceCharts';
 import { CompareAttendanceModal } from './CompareAttendanceModal';
 import StatBox from '../../components/StatBox';
 import EmailIcon from '@mui/icons-material/Email';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchSchools } from '../../components/schoolsSlice';
+import { useAuth } from '../auth/authContext.jsx';
 
 const SESSION_YEARS = ['2024/2025', '2025/2026', '2026/2027', '2027/2028', '2028/2029', '2029/2030'];
 
@@ -15,8 +18,14 @@ export const AttendanceTakerDashboard = () => {
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
     const storedUser = JSON.parse(localStorage.getItem('userData'));
+    const { userPermissions } = useAuth();
+    const isAdminOrCct = Array.isArray(userPermissions) && (userPermissions.includes('handle_admins') || userPermissions.includes('handle_payments') || userPermissions.includes('handle_registrars'));
     const API_URL = `${import.meta.env.VITE_API_URL}/api/v1`;
     const navigate = useNavigate();
+    
+    const dispatch = useDispatch();
+    const schoolState = useSelector((state) => state.schools);
+    const { data: schoolsData, loading: schoolsLoading } = schoolState;
 
     const [stats, setStats] = useState({ totalStudents: 0, total: 0, absent: 0, present: 0, transferred: 0, dropout: 0, died: 0 });
     const [trend, setTrend] = useState({});
@@ -54,7 +63,10 @@ export const AttendanceTakerDashboard = () => {
         try {
             const token = localStorage.getItem("token");
             const assignedSchools = storedUser?.assignedSchools || [];
-            const querySchoolId = schoolId === 'all' ? assignedSchools.map(s => s._id).join(',') : schoolId;
+            let querySchoolId = schoolId;
+            if (schoolId === 'all') {
+                querySchoolId = isAdminOrCct ? 'all' : assignedSchools.map(s => s._id).join(',');
+            }
             
             const res = await axios.get(`${API_URL}/attendance/school-analytics`, {
                 params: { schoolId: querySchoolId, cohort, fromDate, toDate, term, session },
@@ -79,7 +91,10 @@ export const AttendanceTakerDashboard = () => {
         try {
             const token = localStorage.getItem("token");
             const assignedSchools = storedUser?.assignedSchools || [];
-            const querySchoolId = schoolId === 'all' ? assignedSchools.map(s => s._id).join(',') : schoolId;
+            let querySchoolId = schoolId;
+            if (schoolId === 'all') {
+                querySchoolId = isAdminOrCct ? 'all' : assignedSchools.map(s => s._id).join(',');
+            }
 
             const res = await axios.get(`${API_URL}/attendance/school-monthly-trend`, {
                 params: { schoolId: querySchoolId, month, year },
@@ -102,6 +117,12 @@ export const AttendanceTakerDashboard = () => {
         return () => clearTimeout(timer);
     }, [fetchAnalytics]);
 
+    useEffect(() => {
+        if (isAdminOrCct) {
+            dispatch(fetchSchools({ schoolType: '', lgaOfEnrollment: '' }));
+        }
+    }, [dispatch, isAdminOrCct]);
+
     // Debounce trend fetch — waits 600ms after last filter change
     useEffect(() => {
         const timer = setTimeout(() => { fetchTrend(); }, 600);
@@ -109,20 +130,39 @@ export const AttendanceTakerDashboard = () => {
     }, [fetchTrend]);
 
     const assignedSchools = storedUser?.assignedSchools || [];
+    const displaySchools = isAdminOrCct ? schoolsData : assignedSchools;
 
     return (
         <Box m="20px">
             <Header title={`WELCOME, ${storedUser?.fullName?.toUpperCase()}`} subtitle="Attendance Taker Dashboard" />
             
             <Box mb="20px" display="flex" gap="10px" flexWrap="wrap">
-                <FormControl variant="filled" sx={{ minWidth: 200 }}>
-                    <InputLabel>School</InputLabel>
-                    <Select value={schoolId} onChange={(e) => setSchoolId(e.target.value)}>
-                        <MenuItem value="all">All Assigned Schools</MenuItem>
-                        {assignedSchools.map(s => (
-                            <MenuItem key={s._id} value={s._id}>{s.schoolName}</MenuItem>
-                        ))}
-                    </Select>
+                <FormControl variant="filled" sx={{ minWidth: 250 }}>
+                    <Autocomplete
+                        options={[
+                            { _id: 'all', schoolName: isAdminOrCct ? 'All Schools' : 'All Assigned Schools' },
+                            ...(displaySchools || [])
+                        ]}
+                        getOptionLabel={(option) => option.schoolName || ''}
+                        isOptionEqualToValue={(option, value) => (option._id || option.schoolId) === (value._id || value.schoolId)}
+                        value={
+                            schoolId === 'all' 
+                                ? { _id: 'all', schoolName: isAdminOrCct ? 'All Schools' : 'All Assigned Schools' } 
+                                : (displaySchools || []).find(s => (s._id || s.schoolId) === schoolId) || null
+                        }
+                        onChange={(event, newValue) => {
+                            setSchoolId(newValue ? (newValue._id || newValue.schoolId) : 'all');
+                        }}
+                        renderInput={(params) => (
+                            <TextField 
+                                {...params} 
+                                label="School" 
+                                variant="filled" 
+                                placeholder="Search School" 
+                            />
+                        )}
+                        disableClearable
+                    />
                 </FormControl>
 
                 <TextField

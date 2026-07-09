@@ -430,6 +430,7 @@ export const filterAndDownload = async (req, res, next) => {
       .populate('createdBy')
       .populate('verificationInfo')
       .sort(sort)
+      .allowDiskUse(true)
       .collation({ locale: 'en', strength: 2 })
       .lean()
 

@@ -1,4 +1,5 @@
 import { useContext, useEffect, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { StudentsContext, SchoolsContext } from '../../components/dataContext'
 import {
@@ -10,6 +11,7 @@ import {
   Typography,
   TextField,
   Autocomplete,
+  Button,
 } from '@mui/material'
 import { useState } from 'react'
 import { ExportSubmitButton } from '../../components/exportButton'
@@ -49,6 +51,7 @@ export const ExportSchoolAttendance = () => {
   const schools = schoolsData
 
   const dispatch = useDispatch()
+  const navigate = useNavigate()
   const [schoolId, setSchoolId] = useState('') // Correctly destructured
   const [isSubmitting, setIsSubmitting] = useState(false)
   const API_URL = `${import.meta.env.VITE_API_URL}/api/v1`
@@ -294,6 +297,26 @@ export const ExportSchoolAttendance = () => {
         padding: '0px 20px',
       }}
     >
+
+  
+        <Grid
+          style={{
+            textAlign: 'center',
+            marginTop: '20px',
+            marginLeft: '35px',
+            width: '100%',
+          }}
+        >
+          <Button
+            variant="contained"
+            color="info"
+            sx={{ ml: 2, padding: '10px 20px', fontSize: '14px' }}
+            onClick={() => navigate('/admin-dashboard/attendance-analytics')}
+          >
+            See Attendance Analytics
+          </Button>
+        </Grid>
+    
       <Grid container spacing={4} sx={{ width: '100%' }}>
         {/* Select School */}
         {/* <Grid item xs={12} sm={6}>
@@ -742,6 +765,14 @@ export const ExportSchoolAttendance = () => {
           }}
         >
           <ExportSubmitButton label="Export attendance sheet to Excel" />
+          <Button
+            variant="contained"
+            color="info"
+            sx={{ ml: 2, padding: '10px 20px', fontSize: '14px' }}
+            onClick={() => navigate('/admin-dashboard/attendance-analytics')}
+          >
+            See Attendance Analytics
+          </Button>
         </Grid>
       )}
       <>

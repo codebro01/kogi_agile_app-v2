@@ -687,6 +687,13 @@ const Sidebar = ({ isSidebar }) => {
                     selected={selected}
                     setSelected={setSelected}
                   />
+                  <Item
+                    title="Attendance Analytics"
+                    to={'/payroll-specialist-dashboard/attendance-analytics'}
+                    icon={<BarChartOutlinedIcon />}
+                    selected={selected}
+                    setSelected={setSelected}
+                  />
                   {/* <Item
                     title="Export Attendance"
                     to={'/payroll-specialist-dashboard/update-attendance-sheet'}

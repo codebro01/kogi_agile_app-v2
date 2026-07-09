@@ -168,6 +168,10 @@ function App() {
                           element={<ExportSchoolAttendance />}
                         />
                         <Route
+                          path="/admin-dashboard/attendance-analytics"
+                          element={<AttendanceTakerDashboard />}
+                        />
+                        <Route
                           path="/admin-dashboard/update-attendance-sheet"
                           element={<UpdateAttendanceSheet />}
                         />
@@ -427,6 +431,10 @@ function App() {
                         <Route
                           path="/export-attendance-sheet/"
                           element={<AttendanceSheet />}
+                        />
+                        <Route
+                          path="/payroll-specialist-dashboard/attendance-analytics"
+                          element={<AttendanceTakerDashboard />}
                         />
                         <Route
                           path="/payroll-specialist-dashboard/update-attendance-sheet"

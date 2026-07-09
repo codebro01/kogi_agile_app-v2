@@ -265,14 +265,14 @@ export const TakeSchoolAttendance = () => {
                                     </Select>
                                 </FormControl>
 
-                                <TextField 
+                                {/* <TextField 
                                     label="Note (Optional)"
                                     variant="outlined"
                                     size="small"
                                     value={item.note}
                                     onChange={(e) => handleUpdateNote(item.student._id, e.target.value)}
                                     sx={{ width: 250 }}
-                                />
+                                /> */}
 
                                 <IconButton color="error" onClick={() => handleRemoveAbsentee(item.student._id)}>
                                     <DeleteIcon />
