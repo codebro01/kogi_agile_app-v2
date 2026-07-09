@@ -921,6 +921,11 @@ export const getSchoolBasedAttendanceAnalytics = async (req, res) => {
       statusMatchQuery.term = { $in: [normalized, short] };
     }
     if (session) statusMatchQuery.session = session;
+    if (fromDate || toDate) {
+      statusMatchQuery.date = {};
+      if (fromDate) statusMatchQuery.date.$gte = new Date(fromDate);
+      if (toDate) statusMatchQuery.date.$lte = new Date(new Date(toDate).setHours(23, 59, 59, 999));
+    }
 
     // --- If cohort filter is set, get the list of student IDs in that cohort (scoped to school) ---
     let cohortStudentIds = null;
@@ -938,7 +943,9 @@ export const getSchoolBasedAttendanceAnalytics = async (req, res) => {
       cohortStudentIds = new Set(cohortStudents.map(s => s._id.toString()));
     }
 
-    const attendanceRecords = await SchoolAttendance.find(attendanceMatchQuery).lean();
+    const attendanceRecords = await SchoolAttendance.find(attendanceMatchQuery)
+      .select('date totalEnrolled attendanceTaken absentees.studentId absentees.student absentees.cohort')
+      .lean();
 
     const stats = {
       totalStudents: 0,
@@ -995,8 +1002,13 @@ export const getSchoolBasedAttendanceAnalytics = async (req, res) => {
     } else if (attendanceRecords.length > 0) {
        attendanceRecords.sort((a, b) => new Date(b.date) - new Date(a.date));
        stats.totalStudents = attendanceRecords[0].totalEnrolled || 0;
+    } else {
+       // If date filter matched 0 records, fetch the most recent record overall to get totalStudents
+       const fallbackQuery = { ...attendanceMatchQuery };
+       delete fallbackQuery.date; // Remove date filter
+       const mostRecent = await SchoolAttendance.findOne(fallbackQuery).sort({ date: -1 }).select('totalEnrolled').lean();
+       stats.totalStudents = mostRecent ? mostRecent.totalEnrolled : 0;
     }
-
     res.status(200).json({ stats });
   } catch (err) {
     console.error(err);
@@ -1028,7 +1040,9 @@ export const getSchoolBasedMonthlyTrend = async (req, res) => {
       }
     }
 
-    const attendanceRecords = await SchoolAttendance.find(matchQuery).lean();
+    const attendanceRecords = await SchoolAttendance.find(matchQuery)
+      .select('date totalEnrolled attendanceTaken absentees.studentId')
+      .lean();
 
     const trend = {};
     const daysInMonth = new Date(y, m + 1, 0).getDate();
