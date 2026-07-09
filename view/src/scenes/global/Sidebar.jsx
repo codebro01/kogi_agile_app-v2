@@ -760,13 +760,13 @@ const Sidebar = ({ isSidebar }) => {
                     selected={selected}
                     setSelected={setSelected}
                   />
-                  <Item
+                  {/* <Item
                     title="Take Attendance"
                     to={'/attendance-taker-dashboard/take-attendance'}
                     icon={<EventNoteIcon />}
                     selected={selected}
                     setSelected={setSelected}
-                  />
+                  /> */}
                   <Item
                     title="Termly Average"
                     to={'/attendance-taker-dashboard/termly-average'}
