@@ -1424,7 +1424,7 @@ export const getStudentsAttendance = async (req, res, next) => {
       reportPeriod = `${dateFrom || 'Start'} to ${dateTo || 'End'}`;
     } 
     else if (term) {
-      reportPeriod = `${term} Term`;
+      reportPeriod = `${term}`;
     }
     else if (term && session) {
       const displayTerm = term.includes('Term') ? term : `${term} Term`;
