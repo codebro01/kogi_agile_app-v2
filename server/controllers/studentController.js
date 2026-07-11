@@ -1242,18 +1242,15 @@ export const getStudentsAttendance = async (req, res, next) => {
       term,
       cohort,
     } = req.query
-    
+
     // 1. First, find all students matching demographic criteria
-    const studentMatchQuery = {
-       isActive: { $ne: false },
-       enrollmentStatus: { $nin: ['dropout', 'transferred', 'deceased'] }
-    };
+    const studentMatchQuery = {};
     if (school || schoolId) studentMatchQuery.schoolId = new ObjectId(school || schoolId);
     if (ward) studentMatchQuery.ward = { $regex: new RegExp(ward, 'i') };
     if (lgaOfEnrollment) studentMatchQuery.lgaOfEnrollment = { $regex: new RegExp(lgaOfEnrollment, 'i') };
     if (presentClass) studentMatchQuery.presentClass = presentClass;
     if (cohort) studentMatchQuery.cohort = Number(cohort);
-    
+
     if (withBankDetails === 'true') {
       studentMatchQuery.bankName = { $nin: [null, ''] };
       studentMatchQuery.accountNumber = { $nin: [null, ''] };
@@ -1261,68 +1258,68 @@ export const getStudentsAttendance = async (req, res, next) => {
       studentMatchQuery.bankName = { $in: [null, ''] };
       studentMatchQuery.accountNumber = { $in: [null, ''] };
     }
-    
+
     if (permissions.includes('handle_students') && permissions.length === 1) {
-       studentMatchQuery.createdBy = userID;
+      studentMatchQuery.createdBy = userID;
     }
-    
+
     const students = await Student.aggregate([
-       { $match: studentMatchQuery },
-       {
-         $project: {
-           _id: 1,
-           randomId: 1,
-           surname: 1,
-           firstname: 1,
-           middlename: 1,
-           ward: 1,
-           presentClass: 1,
-           cohort: 1,
-           bankName: 1,
-           accountNumber: 1,
-           lgaOfEnrollment: 1,
-           gender: 1,
-           dob: 1,
-           parentName: 1,
-           parentPhone: 1,
-           schoolId: 1,
-           enrollmentStatus: 1,
-           isActive: 1,
-           createdBy: 1,
-         }
-       },
-       { $sort: { _id: 1 } },
-       {
-         $lookup: {
-           from: 'allschools',
-           localField: 'schoolId',
-           foreignField: '_id',
-           as: 'schoolDetails'
-         }
-       },
-       { $unwind: { path: '$schoolDetails', preserveNullAndEmptyArrays: true } }
+      { $match: studentMatchQuery },
+      {
+        $project: {
+          _id: 1,
+          randomId: 1,
+          surname: 1,
+          firstname: 1,
+          middlename: 1,
+          ward: 1,
+          presentClass: 1,
+          cohort: 1,
+          bankName: 1,
+          accountNumber: 1,
+          lgaOfEnrollment: 1,
+          gender: 1,
+          dob: 1,
+          parentName: 1,
+          parentPhone: 1,
+          schoolId: 1,
+          enrollmentStatus: 1,
+          isActive: 1,
+          createdBy: 1,
+        }
+      },
+      { $sort: { _id: 1 } },
+      {
+        $lookup: {
+          from: 'allschools',
+          localField: 'schoolId',
+          foreignField: '_id',
+          as: 'schoolDetails'
+        }
+      },
+      { $unwind: { path: '$schoolDetails', preserveNullAndEmptyArrays: true } }
     ]).allowDiskUse(true);
-    
+
     if (!students || students.length === 0) {
-       return next(new NotFoundError('No record found for students'));
+      return next(new NotFoundError('No record found for students'));
     }
-    
+
     // 2. Find all SchoolAttendance records matching the time/term/session criteria
     const attendanceMatchQuery = {};
     if (school || schoolId) attendanceMatchQuery.schoolId = new ObjectId(school || schoolId);
 
     if (dateFrom || dateTo || (month && year)) {
-       attendanceMatchQuery.date = {};
-       if (dateFrom) {
-         attendanceMatchQuery.date.$gte = new Date(dateFrom);
-       } else if (month && year) {
-         attendanceMatchQuery.date.$gte = new Date(parseInt(year, 10), parseInt(month, 10) - 1, 1);
-       }
-       if (dateTo) {
-         attendanceMatchQuery.date.$lte = new Date(new Date(dateTo).setHours(23, 59, 59, 999));
-       } else if (month && year) {
-         attendanceMatchQuery.date.$lte = new Date(parseInt(year, 10), parseInt(month, 10), 0, 23, 59, 59, 999);
-       }
+      attendanceMatchQuery.date = {};
+      if (dateFrom) {
+        attendanceMatchQuery.date.$gte = new Date(dateFrom);
+      } else if (month && year) {
+        attendanceMatchQuery.date.$gte = new Date(parseInt(year, 10), parseInt(month, 10) - 1, 1);
+      }
+      if (dateTo) {
+        attendanceMatchQuery.date.$lte = new Date(new Date(dateTo).setHours(23, 59, 59, 999));
+      } else if (month && year) {
+        attendanceMatchQuery.date.$lte = new Date(parseInt(year, 10), parseInt(month, 10), 0, 23, 59, 59, 999);
+      }
     }
 
     if (session) attendanceMatchQuery.session = session;
@@ -1336,54 +1333,54 @@ export const getStudentsAttendance = async (req, res, next) => {
     const studentAbsenceCount = {};
 
     for (const record of schoolAttendances) {
-       const schId = record.schoolId?.toString();
-       if (!schId) continue;
-       // Count this day for this school
-       schoolDaysMap[schId] = (schoolDaysMap[schId] || 0) + 1;
+      const schId = record.schoolId?.toString();
+      if (!schId) continue;
+      // Count this day for this school
+      schoolDaysMap[schId] = (schoolDaysMap[schId] || 0) + 1;
 
-       // Count absences per student
-       for (const absentee of record.absentees) {
-          // absentee.studentId is the correct field from the schema
-          const sId = (absentee?.studentId || absentee?.student)?.toString();
-          if (!sId || sId === '[object Object]') continue;
-          studentAbsenceCount[sId] = (studentAbsenceCount[sId] || 0) + 1;
-       }
+      // Count absences per student
+      for (const absentee of record.absentees) {
+        // absentee.studentId is the correct field from the schema
+        const sId = (absentee?.studentId || absentee?.student)?.toString();
+        if (!sId || sId === '[object Object]') continue;
+        studentAbsenceCount[sId] = (studentAbsenceCount[sId] || 0) + 1;
+      }
     }
 
     // 4. Calculate per student using their OWN school's total days
     let results = students.map(student => {
-       const sId = student._id.toString();
-       const schId = student.schoolId?.toString();
-       // Use this student's school's day count — not a global total
-       const totalSchoolDays = schoolDaysMap[schId] || 0;
-       const absentDays = studentAbsenceCount[sId] || 0;
-       const presentDays = Math.max(0, totalSchoolDays - absentDays);
-       const attendancePercentage = totalSchoolDays > 0 ? ((presentDays / totalSchoolDays) * 100).toFixed(2) : 0;
+      const sId = student._id.toString();
+      const schId = student.schoolId?.toString();
+      // Use this student's school's day count — not a global total
+      const totalSchoolDays = schoolDaysMap[schId] || 0;
+      const absentDays = studentAbsenceCount[sId] || 0;
+      const presentDays = Math.max(0, totalSchoolDays - absentDays);
+      const attendancePercentage = totalSchoolDays > 0 ? ((presentDays / totalSchoolDays) * 100).toFixed(2) : 0;
 
-       return {
-         ...student,
-         totalSchoolDays,
-         absentDays,
-         presentDays,
-         attendancePercentage: parseFloat(attendancePercentage)
-       };
+      return {
+        ...student,
+        totalSchoolDays,
+        absentDays,
+        presentDays,
+        attendancePercentage: parseFloat(attendancePercentage)
+      };
     });
-    
+
     // filter by percentage if needed
     if (percentage) {
       const minPercentage = parseInt(percentage, 10);
       results = results.filter(r => r.attendancePercentage >= minPercentage);
     }
-    
+
     if (results.length === 0) {
       return next(new NotFoundError('No record found after attendance calculation'));
     }
-    
+
     if (permissions.includes('handle_students') && permissions.length === 1) {
-       // Return JSON for enumerator web view
-       return res.status(200).json({ attendance: results });
+      // Return JSON for enumerator web view
+      return res.status(200).json({ attendance: results });
     }
-    
+
     // Generate Excel for Admins
     const toUpperCaseStrings = (obj) => {
       return Object.fromEntries(
@@ -1422,35 +1419,35 @@ export const getStudentsAttendance = async (req, res, next) => {
 
     let reportPeriod = '';
     if (month && year) {
-       reportPeriod = `${getMonthName(month)} ${year}`;
+      reportPeriod = `${getMonthName(month)} ${year}`;
     } else if (dateFrom || dateTo) {
-       reportPeriod = `${dateFrom || 'Start'} to ${dateTo || 'End'}`;
+      reportPeriod = `${dateFrom || 'Start'} to ${dateTo || 'End'}`;
     } else if (term && session) {
-       const displayTerm = term.includes('Term') ? term : `${term} Term`;
-       reportPeriod = `${displayTerm}, ${session} Session`;
+      const displayTerm = term.includes('Term') ? term : `${term} Term`;
+      reportPeriod = `${displayTerm}, ${session} Session`;
     } else {
-       reportPeriod = 'All Time';
+      reportPeriod = 'All Time';
     }
 
     const formattedData = results.map((student, index) =>
-       toUpperCaseStrings({
-          'S/N': index + 1,
-          SchoolName: student.schoolDetails?.schoolName || '',
-          StudentID: student.randomId,
-          Surname: student.surname,
-          Firstname: student.firstname,
-          Middlename: student.middlename || '',
-          ReportPeriod: reportPeriod,
-          TotalSchoolDays: student.totalSchoolDays,
-          PresentDays: student.presentDays,
-          AbsentDays: student.absentDays,
-          'Attendance (%)': `${student.attendancePercentage}%`,
-          Ward: student.ward,
-          LGA: student.lgaOfEnrollment,
-          Class: student.presentClass,
-          BankName: student.bankName || '',
-          AccountNumber: student.accountNumber || '',
-       })
+      toUpperCaseStrings({
+        'S/N': index + 1,
+        SchoolName: student.schoolDetails?.schoolName || '',
+        StudentID: student.randomId,
+        Surname: student.surname,
+        Firstname: student.firstname,
+        Middlename: student.middlename || '',
+        ReportPeriod: reportPeriod,
+        TotalSchoolDays: student.totalSchoolDays,
+        PresentDays: student.presentDays,
+        AbsentDays: student.absentDays,
+        'Attendance (%)': `${student.attendancePercentage}%`,
+        Ward: student.ward,
+        LGA: student.lgaOfEnrollment,
+        Class: student.presentClass,
+        BankName: student.bankName || '',
+        AccountNumber: student.accountNumber || '',
+      })
     );
 
     const workbook = XLSX.utils.book_new()
@@ -1485,7 +1482,7 @@ export const getStudentsAttendance = async (req, res, next) => {
       console.error('Stream error:', err);
       res.status(500).send('Error generating file');
     });
-    
+
   } catch (err) {
     console.error(err)
     return next(err)

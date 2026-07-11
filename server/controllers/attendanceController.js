@@ -501,6 +501,7 @@ export const getMonthlyAttendanceTrend = async (req, res) => {
 
     const studentMatch = {};
     if (schoolId && schoolId !== 'all') {
+      
       if (schoolId.includes(',')) {
         studentMatch.schoolId = { $in: schoolId.split(',') };
       } else {
