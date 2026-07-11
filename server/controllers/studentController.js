@@ -1422,10 +1422,15 @@ export const getStudentsAttendance = async (req, res, next) => {
       reportPeriod = `${getMonthName(month)} ${year}`;
     } else if (dateFrom || dateTo) {
       reportPeriod = `${dateFrom || 'Start'} to ${dateTo || 'End'}`;
-    } else if (term && session) {
+    } 
+    else if (term) {
+      reportPeriod = `${term} Term`;
+    }
+    else if (term && session) {
       const displayTerm = term.includes('Term') ? term : `${term} Term`;
       reportPeriod = `${displayTerm}, ${session} Session`;
-    } else {
+    }
+     else {
       reportPeriod = 'All Time';
     }
 
