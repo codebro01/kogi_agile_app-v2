@@ -20,8 +20,8 @@ export const CompareAttendanceModal = ({ open, onClose, schoolsData }) => {
             const token = localStorage.getItem("token");
             
             const [resA, resB] = await Promise.all([
-                axios.get(`${API_URL}/attendance/analytics`, { params: groupA, headers: { Authorization: `Bearer ${token}` }, withCredentials: true }),
-                axios.get(`${API_URL}/attendance/analytics`, { params: groupB, headers: { Authorization: `Bearer ${token}` }, withCredentials: true })
+                axios.get(`${API_URL}/attendance/school-analytics`, { params: groupA, headers: { Authorization: `Bearer ${token}` }, withCredentials: true }),
+                axios.get(`${API_URL}/attendance/school-analytics`, { params: groupB, headers: { Authorization: `Bearer ${token}` }, withCredentials: true })
             ]);
 
             const groupALabel = `A: ${schoolsData.find(s => s._id === groupA.schoolId)?.schoolName || 'All Schools'} ${groupA.presentClass ? `(${groupA.presentClass})` : ''}`;
