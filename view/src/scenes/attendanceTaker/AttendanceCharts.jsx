@@ -114,22 +114,62 @@ export const AttendanceCharts = ({ type, data }) => {
 
     if (type === 'bar' && data.groupA && data.groupB) {
         const labels = ['Present', 'Absent', 'Transferred', 'Dropout', 'Died'];
+        
+        const totalA = data.groupA.present + data.groupA.absent + data.groupA.transferred + data.groupA.dropout + data.groupA.died;
+        const totalB = data.groupB.present + data.groupB.absent + data.groupB.transferred + data.groupB.dropout + data.groupB.died;
+        
+        const getPct = (val, total) => total > 0 ? Number(((val / total) * 100).toFixed(1)) : 0;
+
         const chartData = {
             labels,
             datasets: [
                 {
                     label: data.groupALabel || 'Group A',
-                    data: [data.groupA.present, data.groupA.absent, data.groupA.transferred, data.groupA.dropout, data.groupA.died],
+                    data: [
+                        getPct(data.groupA.present, totalA),
+                        getPct(data.groupA.absent, totalA),
+                        getPct(data.groupA.transferred, totalA),
+                        getPct(data.groupA.dropout, totalA),
+                        getPct(data.groupA.died, totalA)
+                    ],
                     backgroundColor: colors.blueAccent[500],
                 },
                 {
                     label: data.groupBLabel || 'Group B',
-                    data: [data.groupB.present, data.groupB.absent, data.groupB.transferred, data.groupB.dropout, data.groupB.died],
+                    data: [
+                        getPct(data.groupB.present, totalB),
+                        getPct(data.groupB.absent, totalB),
+                        getPct(data.groupB.transferred, totalB),
+                        getPct(data.groupB.dropout, totalB),
+                        getPct(data.groupB.died, totalB)
+                    ],
                     backgroundColor: colors.greenAccent[500],
                 }
             ],
         };
-        return <Bar data={chartData} options={{ maintainAspectRatio: false }} />;
+        
+        const options = {
+            maintainAspectRatio: false,
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.dataset.label}: ${context.raw}%`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: (v) => v + '%'
+                    }
+                }
+            }
+        };
+
+        return <Bar data={chartData} options={options} />;
     }
 
     if (type === 'monthly-bar') {
