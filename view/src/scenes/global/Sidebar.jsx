@@ -311,7 +311,7 @@ const Sidebar = ({ isSidebar }) => {
                   setSelected={setSelected}
                 />
 
-                <Item
+                {/* <Item
                   title="View Attendance Record"
                   to={
                     userPermissions.includes('handle_registrars')
@@ -321,7 +321,7 @@ const Sidebar = ({ isSidebar }) => {
                   icon={<LibraryBooksIcon />}
                   selected={selected}
                   setSelected={setSelected}
-                />
+                /> */}
                 <Item
                   title="Update Bank Record"
                   to={'/admin-dashboard/update-bank-record'}
@@ -347,7 +347,7 @@ const Sidebar = ({ isSidebar }) => {
                   selected={selected}
                   setSelected={setSelected}
                 /> */}
-                <Item
+                {/* <Item
                   title="Exp. Attendance Sheet"
                   to={
                     userPermissions.includes('handle_registrars')
@@ -357,7 +357,7 @@ const Sidebar = ({ isSidebar }) => {
                   icon={<EventNoteIcon />}
                   selected={selected}
                   setSelected={setSelected}
-                />
+                /> */}
 
                 <Item
                   title="Export School Attendance"
@@ -510,7 +510,7 @@ const Sidebar = ({ isSidebar }) => {
 
                   {/* new routes start here */}
 
-                  <Item
+                  {/* <Item
                     title="View Attendance Record"
                     to={
                       userPermissions.includes('handle_registrars')
@@ -520,7 +520,7 @@ const Sidebar = ({ isSidebar }) => {
                     icon={<LibraryBooksIcon />}
                     selected={selected}
                     setSelected={setSelected}
-                  />
+                  /> */}
                   <Item
                     title="Update Bank Record"
                     to={'/admin-dashboard/update-bank-record'}
@@ -552,7 +552,7 @@ const Sidebar = ({ isSidebar }) => {
                     setSelected={setSelected}
                   />
 
-                  <Item
+                  {/* <Item
                     title="Exp. Attendance Sheet"
                     to={
                       userPermissions.includes('handle_registrars')
@@ -562,7 +562,7 @@ const Sidebar = ({ isSidebar }) => {
                     icon={<EventNoteIcon />}
                     selected={selected}
                     setSelected={setSelected}
-                  />
+                  /> */}
 
                   <Item
                     title="Export School Attendance"

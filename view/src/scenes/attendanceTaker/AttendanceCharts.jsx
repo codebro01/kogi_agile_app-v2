@@ -28,7 +28,26 @@ export const AttendanceCharts = ({ type, data }) => {
                 },
             ],
         };
-        return <Pie data={chartData} options={{ maintainAspectRatio: false }} />;
+        const pieOptions = {
+            maintainAspectRatio: false,
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const value = context.raw;
+                            const percentage = total > 0 ? ((value / total) * 100).toFixed(1) + '%' : '0%';
+                            return label + value.toLocaleString() + ' (' + percentage + ')';
+                        }
+                    }
+                }
+            }
+        };
+        return <Pie data={chartData} options={pieOptions} />;
     }
 
     if (type === 'line') {

@@ -955,8 +955,11 @@ export const getSchoolBasedAttendanceAnalytics = async (req, res) => {
       present: 0,
       transferred: 0,
       dropout: 0,
-      died: 0
+      died: 0,
+      daysOpened: 0
     };
+
+    const uniqueDays = new Set();
 
     // Status events (transferred, dropout, deceased)
     const statusEvents = await StudentStatusEvent.find(statusMatchQuery).lean();
@@ -971,6 +974,9 @@ export const getSchoolBasedAttendanceAnalytics = async (req, res) => {
     // Calculate present and absent from the records
     attendanceRecords.forEach(record => {
       if (!record.attendanceTaken) return;
+
+      const dateStr = new Date(record.date).toISOString().split('T')[0];
+      uniqueDays.add(dateStr);
 
       if (cohortStudentIds) {
         // Cohort filter: count absentees only in that cohort
@@ -996,6 +1002,7 @@ export const getSchoolBasedAttendanceAnalytics = async (req, res) => {
     });
 
     stats.total = stats.present + stats.absent;
+    stats.daysOpened = uniqueDays.size;
 
     // Get totalStudents from most recent record (or cohort size if filtered)
     if (cohortStudentIds) {

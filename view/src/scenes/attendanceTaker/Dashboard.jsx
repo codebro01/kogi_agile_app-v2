@@ -22,18 +22,18 @@ export const AttendanceTakerDashboard = () => {
     const isAdminOrCct = Array.isArray(userPermissions) && (userPermissions.includes('handle_admins') || userPermissions.includes('handle_payments') || userPermissions.includes('handle_registrars'));
     const API_URL = `${import.meta.env.VITE_API_URL}/api/v1`;
     const navigate = useNavigate();
-    
+
     const dispatch = useDispatch();
     const schoolState = useSelector((state) => state.schools);
     const { data: schoolsData, loading: schoolsLoading } = schoolState;
 
-    const [stats, setStats] = useState({ totalStudents: 0, total: 0, absent: 0, present: 0, transferred: 0, dropout: 0, died: 0 });
+    const [stats, setStats] = useState({ totalStudents: 0, total: 0, absent: 0, present: 0, transferred: 0, dropout: 0, died: 0, daysOpened: 0 });
     const [trend, setTrend] = useState({});
-    
+
     // Loading states
     const [isLoadingStats, setIsLoadingStats] = useState(false);
     const [isLoadingTrend, setIsLoadingTrend] = useState(false);
-    
+
     // Filters
     const [schoolId, setSchoolId] = useState('all');
     const [cohort, setCohort] = useState('');
@@ -67,7 +67,7 @@ export const AttendanceTakerDashboard = () => {
             if (schoolId === 'all') {
                 querySchoolId = isAdminOrCct ? 'all' : assignedSchools.map(s => s._id).join(',');
             }
-            
+
             const res = await axios.get(`${API_URL}/attendance/school-analytics`, {
                 params: { schoolId: querySchoolId, cohort, fromDate, toDate, term, session },
                 headers: { Authorization: `Bearer ${token}` },
@@ -135,7 +135,7 @@ export const AttendanceTakerDashboard = () => {
     return (
         <Box m="20px">
             <Header title={`WELCOME, ${storedUser?.fullName?.toUpperCase()}`} subtitle="Attendance Taker Dashboard" />
-            
+
             <Box mb="20px" display="flex" gap="10px" flexWrap="wrap">
                 <FormControl variant="filled" sx={{ minWidth: 250 }}>
                     <Autocomplete
@@ -146,19 +146,19 @@ export const AttendanceTakerDashboard = () => {
                         getOptionLabel={(option) => option.schoolName || ''}
                         isOptionEqualToValue={(option, value) => (option._id || option.schoolId) === (value._id || value.schoolId)}
                         value={
-                            schoolId === 'all' 
-                                ? { _id: 'all', schoolName: isAdminOrCct ? 'All Schools' : 'All Assigned Schools' } 
+                            schoolId === 'all'
+                                ? { _id: 'all', schoolName: isAdminOrCct ? 'All Schools' : 'All Assigned Schools' }
                                 : (displaySchools || []).find(s => (s._id || s.schoolId) === schoolId) || null
                         }
                         onChange={(event, newValue) => {
                             setSchoolId(newValue ? (newValue._id || newValue.schoolId) : 'all');
                         }}
                         renderInput={(params) => (
-                            <TextField 
-                                {...params} 
-                                label="School" 
-                                variant="filled" 
-                                placeholder="Search School" 
+                            <TextField
+                                {...params}
+                                label="School"
+                                variant="filled"
+                                placeholder="Search School"
                             />
                         )}
                         disableClearable
@@ -212,9 +212,9 @@ export const AttendanceTakerDashboard = () => {
                 </FormControl>
 
                 <Button variant="contained" color="secondary" sx={{ ml: 2 }} onClick={() => {
-                    const csvContent = "data:text/csv;charset=utf-8," 
-                        + "Total Records,Present,Absent,Transferred,Dropout,Died\n"
-                        + `${stats.total},${stats.present},${stats.absent},${stats.transferred},${stats.dropout},${stats.died}`;
+                    const csvContent = "data:text/csv;charset=utf-8,"
+                        + "Total Records,Days Opened,Present,Absent,Transferred,Dropout,Died\n"
+                        + `${stats.total},${stats.daysOpened || 0},${stats.present},${stats.absent},${stats.transferred},${stats.dropout},${stats.died}`;
                     const encodedUri = encodeURI(csvContent);
                     const link = document.createElement("a");
                     link.setAttribute("href", encodedUri);
@@ -229,10 +229,10 @@ export const AttendanceTakerDashboard = () => {
                     Compare Performance
                 </Button>
 
-                <Button 
-                    variant="contained" 
-                    color="success" 
-                    sx={{ ml: 2 }} 
+                <Button
+                    variant="contained"
+                    color="success"
+                    sx={{ ml: 2 }}
                     onClick={() => navigate('/attendance-taker-dashboard/take-school-attendance')}
                 >
                     Take School-Based Attendance
@@ -240,26 +240,29 @@ export const AttendanceTakerDashboard = () => {
             </Box>
 
             <Box display="grid" gridTemplateColumns="repeat(auto-fit, minmax(150px, 1fr))" gap="20px" mb="20px">
-                <Box backgroundColor={colors.primary[400]} display="flex" alignItems="center" justifyContent="center">
-                    <StatBox title={isLoadingStats ? <Skeleton variant="text" width={60} /> : (stats.totalStudents || 0)} subtitle="Total Students" />
+                <Box backgroundColor="#f4f6f8" display="flex" alignItems="center" justifyContent="center" borderRadius="8px" boxShadow="0px 2px 4px rgba(0,0,0,0.1)">
+                    <StatBox title={isLoadingStats ? <Skeleton variant="text" width={60} /> : (stats.totalStudents || 0).toLocaleString()} subtitle="Total Students" titleColor="#0288d1" subtitleColor="#424242" />
                 </Box>
-                <Box backgroundColor={colors.primary[400]} display="flex" alignItems="center" justifyContent="center">
-                    <StatBox title={isLoadingStats ? <Skeleton variant="text" width={60} /> : stats.total} subtitle="Total Records" />
+                <Box backgroundColor="#f4f6f8" display="flex" alignItems="center" justifyContent="center" borderRadius="8px" boxShadow="0px 2px 4px rgba(0,0,0,0.1)">
+                    <StatBox title={isLoadingStats ? <Skeleton variant="text" width={60} /> : (stats.total || 0).toLocaleString()} subtitle="Expected Records" titleColor="#1976d2" subtitleColor="#424242" />
                 </Box>
-                <Box backgroundColor={colors.greenAccent[600]} display="flex" alignItems="center" justifyContent="center">
-                    <StatBox title={isLoadingStats ? <Skeleton variant="text" width={60} /> : stats.present} subtitle="Present" />
+                <Box backgroundColor="#f4f6f8" display="flex" alignItems="center" justifyContent="center" borderRadius="8px" boxShadow="0px 2px 4px rgba(0,0,0,0.1)">
+                    <StatBox title={isLoadingStats ? <Skeleton variant="text" width={60} /> : (stats.daysOpened || 0).toLocaleString()} subtitle="Days Opened" titleColor="#7b1fa2" subtitleColor="#424242" />
                 </Box>
-                <Box backgroundColor={colors.redAccent[600]} display="flex" alignItems="center" justifyContent="center">
-                    <StatBox title={isLoadingStats ? <Skeleton variant="text" width={60} /> : stats.absent} subtitle="Absent" />
+                <Box backgroundColor="#f4f6f8" display="flex" alignItems="center" justifyContent="center" borderRadius="8px" boxShadow="0px 2px 4px rgba(0,0,0,0.1)">
+                    <StatBox title={isLoadingStats ? <Skeleton variant="text" width={60} /> : (stats.present || 0).toLocaleString()} subtitle="Present" titleColor="#388e3c" subtitleColor="#424242" />
                 </Box>
-                <Box backgroundColor={colors.blueAccent[600]} display="flex" alignItems="center" justifyContent="center">
-                    <StatBox title={isLoadingStats ? <Skeleton variant="text" width={60} /> : stats.transferred} subtitle="Transferred" />
+                <Box backgroundColor="#f4f6f8" display="flex" alignItems="center" justifyContent="center" borderRadius="8px" boxShadow="0px 2px 4px rgba(0,0,0,0.1)">
+                    <StatBox title={isLoadingStats ? <Skeleton variant="text" width={60} /> : (stats.absent || 0).toLocaleString()} subtitle="Absent" titleColor="#d32f2f" subtitleColor="#424242" />
                 </Box>
-                <Box backgroundColor={colors.grey[600]} display="flex" alignItems="center" justifyContent="center">
-                    <StatBox title={isLoadingStats ? <Skeleton variant="text" width={60} /> : stats.dropout} subtitle="Dropout" />
+                <Box backgroundColor="#f4f6f8" display="flex" alignItems="center" justifyContent="center" borderRadius="8px" boxShadow="0px 2px 4px rgba(0,0,0,0.1)">
+                    <StatBox title={isLoadingStats ? <Skeleton variant="text" width={60} /> : (stats.transferred || 0).toLocaleString()} subtitle="Transferred" titleColor="#f57c00" subtitleColor="#424242" />
                 </Box>
-                <Box backgroundColor="#1e1e1e" display="flex" alignItems="center" justifyContent="center">
-                    <StatBox title={isLoadingStats ? <Skeleton variant="text" width={60} /> : stats.died} subtitle="Died" />
+                <Box backgroundColor="#f4f6f8" display="flex" alignItems="center" justifyContent="center" borderRadius="8px" boxShadow="0px 2px 4px rgba(0,0,0,0.1)">
+                    <StatBox title={isLoadingStats ? <Skeleton variant="text" width={60} /> : (stats.dropout || 0).toLocaleString()} subtitle="Dropout" titleColor="#8d6e63" subtitleColor="#424242" />
+                </Box>
+                <Box backgroundColor="#f4f6f8" display="flex" alignItems="center" justifyContent="center" borderRadius="8px" boxShadow="0px 2px 4px rgba(0,0,0,0.1)">
+                    <StatBox title={isLoadingStats ? <Skeleton variant="text" width={60} /> : (stats.died || 0).toLocaleString()} subtitle="Died" titleColor="#455a64" subtitleColor="#424242" />
                 </Box>
             </Box>
 
@@ -275,7 +278,7 @@ export const AttendanceTakerDashboard = () => {
                     </Box>
                 </Box>
 
-                <Box flex="2" backgroundColor={colors.primary[400]} p="20px" borderRadius="8px">
+                {/* <Box flex="2" backgroundColor={colors.primary[400]} p="20px" borderRadius="8px">
                     <Box display="flex" justifyContent="space-between" mb="20px">
                         <Typography variant="h5" fontWeight="600">Monthly Trend</Typography>
                         <Box display="flex" gap="10px">
@@ -304,12 +307,12 @@ export const AttendanceTakerDashboard = () => {
                             <AttendanceCharts type="line" data={trend} />
                         )}
                     </Box>
-                </Box>
+                </Box> */}
             </Box>
 
-            <CompareAttendanceModal 
-                open={isCompareModalOpen} 
-                onClose={() => setIsCompareModalOpen(false)} 
+            <CompareAttendanceModal
+                open={isCompareModalOpen}
+                onClose={() => setIsCompareModalOpen(false)}
                 assignedSchools={assignedSchools}
             />
         </Box>
