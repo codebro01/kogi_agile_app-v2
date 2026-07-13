@@ -13,7 +13,8 @@ import {
   getAverageChartData,
   submitSchoolDailyAttendance,
   getSchoolBasedAttendanceAnalytics,
-  getSchoolBasedMonthlyTrend
+  getSchoolBasedMonthlyTrend,
+  getSchoolMonthlyBarChart
 } from '../controllers/index.js'
 import express from 'express'
 
@@ -90,6 +91,12 @@ router.get(
   authMiddleware,
   authorizePermission(['handle_registrars', 'handle_payments', 'handle_attendance']),
   getSchoolBasedMonthlyTrend
+)
+router.get(
+  '/school-monthly-bar',
+  authMiddleware,
+  authorizePermission(['handle_registrars', 'handle_payments', 'handle_attendance']),
+  getSchoolMonthlyBarChart
 )
 
 // Result Average Features

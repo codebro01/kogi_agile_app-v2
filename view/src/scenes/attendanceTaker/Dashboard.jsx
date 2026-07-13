@@ -29,10 +29,12 @@ export const AttendanceTakerDashboard = () => {
 
     const [stats, setStats] = useState({ totalStudents: 0, total: 0, absent: 0, present: 0, transferred: 0, dropout: 0, died: 0, daysOpened: 0 });
     const [trend, setTrend] = useState({});
+    const [monthlyBarData, setMonthlyBarData] = useState([]);
 
     // Loading states
     const [isLoadingStats, setIsLoadingStats] = useState(false);
     const [isLoadingTrend, setIsLoadingTrend] = useState(false);
+    const [isLoadingBar, setIsLoadingBar] = useState(false);
 
     // Filters
     const [schoolId, setSchoolId] = useState('all');
@@ -53,6 +55,7 @@ export const AttendanceTakerDashboard = () => {
     // Abort controller refs so we can cancel stale requests
     const analyticsAbortRef = useRef(null);
     const trendAbortRef = useRef(null);
+    const barAbortRef = useRef(null);
 
     const fetchAnalytics = useCallback(async () => {
         // Cancel any previous in-flight request
@@ -80,6 +83,33 @@ export const AttendanceTakerDashboard = () => {
             console.error(err);
         } finally {
             setIsLoadingStats(false);
+        }
+    }, [schoolId, cohort, fromDate, toDate, term, session]);
+
+    const fetchMonthlyBar = useCallback(async () => {
+        if (barAbortRef.current) barAbortRef.current.abort();
+        barAbortRef.current = new AbortController();
+
+        setIsLoadingBar(true);
+        try {
+            const token = localStorage.getItem('token');
+            const assignedSchools = storedUser?.assignedSchools || [];
+            let querySchoolId = schoolId;
+            if (schoolId === 'all') {
+                querySchoolId = isAdminOrCct ? 'all' : assignedSchools.map(s => s._id).join(',');
+            }
+            const res = await axios.get(`${API_URL}/attendance/school-monthly-bar`, {
+                params: { schoolId: querySchoolId, cohort, fromDate, toDate, term, session },
+                headers: { Authorization: `Bearer ${token}` },
+                withCredentials: true,
+                signal: barAbortRef.current.signal,
+            });
+            setMonthlyBarData(res.data.monthlyData || []);
+        } catch (err) {
+            if (axios.isCancel(err) || err.name === 'CanceledError') return;
+            console.error(err);
+        } finally {
+            setIsLoadingBar(false);
         }
     }, [schoolId, cohort, fromDate, toDate, term, session]);
 
@@ -116,6 +146,11 @@ export const AttendanceTakerDashboard = () => {
         const timer = setTimeout(() => { fetchAnalytics(); }, 600);
         return () => clearTimeout(timer);
     }, [fetchAnalytics]);
+
+    useEffect(() => {
+        const timer = setTimeout(() => { fetchMonthlyBar(); }, 600);
+        return () => clearTimeout(timer);
+    }, [fetchMonthlyBar]);
 
     useEffect(() => {
         if (isAdminOrCct) {
@@ -266,8 +301,8 @@ export const AttendanceTakerDashboard = () => {
                 </Box>
             </Box>
 
-            <Box display="flex" gap="20px">
-                <Box flex="1" backgroundColor={colors.primary[400]} p="20px" borderRadius="8px">
+            <Box display="flex" gap="20px" flexWrap="wrap">
+                <Box flex="1" minWidth="280px" backgroundColor={colors.primary[400]} p="20px" borderRadius="8px">
                     <Typography variant="h5" fontWeight="600" mb="20px">Attendance Analysis</Typography>
                     <Box height="300px">
                         {isLoadingStats ? (
@@ -278,36 +313,20 @@ export const AttendanceTakerDashboard = () => {
                     </Box>
                 </Box>
 
-                {/* <Box flex="2" backgroundColor={colors.primary[400]} p="20px" borderRadius="8px">
-                    <Box display="flex" justifyContent="space-between" mb="20px">
-                        <Typography variant="h5" fontWeight="600">Monthly Trend</Typography>
-                        <Box display="flex" gap="10px">
-                            <FormControl variant="filled" size="small">
-                                <InputLabel>Month</InputLabel>
-                                <Select value={month} onChange={(e) => setMonth(e.target.value)}>
-                                    {[...Array(12).keys()].map(m => (
-                                        <MenuItem key={m + 1} value={m + 1}>{m + 1}</MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
-                            <TextField
-                                variant="filled"
-                                size="small"
-                                label="Year"
-                                type="number"
-                                value={year}
-                                onChange={(e) => setYear(e.target.value)}
-                            />
-                        </Box>
-                    </Box>
+                <Box flex="2" minWidth="320px" backgroundColor={colors.primary[400]} p="20px" borderRadius="8px">
+                    <Typography variant="h5" fontWeight="600" mb="20px">Monthly Attendance Trend</Typography>
                     <Box height="300px">
-                        {isLoadingTrend ? (
+                        {isLoadingBar ? (
                             <Skeleton variant="rectangular" width="100%" height="100%" />
+                        ) : monthlyBarData.length === 0 ? (
+                            <Box display="flex" alignItems="center" justifyContent="center" height="100%">
+                                <Typography color="textSecondary">No monthly data for selected filters.</Typography>
+                            </Box>
                         ) : (
-                            <AttendanceCharts type="line" data={trend} />
+                            <AttendanceCharts type="monthly-bar" data={monthlyBarData} />
                         )}
                     </Box>
-                </Box> */}
+                </Box>
             </Box>
 
             <CompareAttendanceModal

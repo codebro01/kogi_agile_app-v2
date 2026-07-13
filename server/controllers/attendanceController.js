@@ -1082,3 +1082,91 @@ export const getSchoolBasedMonthlyTrend = async (req, res) => {
   }
 };
 
+// New: Monthly bar chart — aggregates present/absent per calendar month across full filter period
+export const getSchoolMonthlyBarChart = async (req, res) => {
+  try {
+    const { schoolId, cohort, fromDate, toDate, term, session } = req.query;
+
+    const matchQuery = {};
+
+    // School filter
+    if (schoolId && schoolId !== 'all') {
+      if (schoolId.includes(',')) {
+        matchQuery.schoolId = { $in: schoolId.split(',').map(id => new mongoose.Types.ObjectId(id.trim())) };
+      } else {
+        matchQuery.schoolId = new mongoose.Types.ObjectId(schoolId);
+      }
+    }
+
+    // Date range filter
+    if (fromDate || toDate) {
+      matchQuery.date = {};
+      if (fromDate) matchQuery.date.$gte = new Date(fromDate);
+      if (toDate) {
+        const end = new Date(toDate);
+        end.setDate(end.getDate() + 1);
+        matchQuery.date.$lt = end;
+      }
+    }
+
+    if (term) matchQuery.term = term;
+    if (session) matchQuery.session = session;
+
+    // Cohort student IDs if needed
+    let cohortStudentIds = null;
+    if (cohort) {
+      const cohortQuery = { cohort: Number(cohort) };
+      if (schoolId && schoolId !== 'all') {
+        if (schoolId.includes(',')) {
+          cohortQuery.schoolId = { $in: schoolId.split(',').map(id => new mongoose.Types.ObjectId(id.trim())) };
+        } else {
+          cohortQuery.schoolId = new mongoose.Types.ObjectId(schoolId);
+        }
+      }
+      const cohortStudents = await Student.find(cohortQuery, '_id').lean();
+      cohortStudentIds = new Set(cohortStudents.map(s => s._id.toString()));
+    }
+
+    const records = await SchoolAttendance.find(matchQuery)
+      .select('date totalEnrolled attendanceTaken absentees.studentId absentees.cohort')
+      .lean();
+
+    const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthlyMap = {}; // key: "YYYY-MM"
+
+    records.forEach(record => {
+      if (!record.attendanceTaken) return;
+
+      const d = new Date(record.date);
+      const key = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
+      const label = `${MONTH_NAMES[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+
+      if (!monthlyMap[key]) {
+        monthlyMap[key] = { label, present: 0, absent: 0 };
+      }
+
+      if (cohortStudentIds) {
+        const cohortAbsent = (record.absentees || []).filter(a =>
+          cohortStudentIds.has((a.studentId || a.student)?.toString())
+        ).length;
+        const cohortTotal = cohortStudentIds.size;
+        monthlyMap[key].absent += cohortAbsent;
+        monthlyMap[key].present += Math.max(0, cohortTotal - cohortAbsent);
+      } else {
+        const enrolled = record.totalEnrolled || 0;
+        const absentCount = (record.absentees || []).length;
+        monthlyMap[key].absent += absentCount;
+        monthlyMap[key].present += Math.max(0, enrolled - absentCount);
+      }
+    });
+
+    // Sort chronologically
+    const sortedKeys = Object.keys(monthlyMap).sort();
+    const monthlyData = sortedKeys.map(k => monthlyMap[k]);
+
+    res.status(200).json({ monthlyData });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Error fetching monthly bar chart data' });
+  }
+};

@@ -97,5 +97,62 @@ export const AttendanceCharts = ({ type, data }) => {
         return <Bar data={chartData} options={{ maintainAspectRatio: false }} />;
     }
 
+    if (type === 'monthly-bar') {
+        // data is an array of { label, present, absent }
+        const labels = (data || []).map(d => d.label);
+        const presentData = (data || []).map(d => d.present);
+        const absentData = (data || []).map(d => d.absent);
+
+        const chartData = {
+            labels,
+            datasets: [
+                {
+                    label: 'Present',
+                    data: presentData,
+                    backgroundColor: 'rgba(56,142,60,0.82)',
+                    borderColor: '#388e3c',
+                    borderWidth: 1,
+                    borderRadius: 4,
+                },
+                {
+                    label: 'Absent',
+                    data: absentData,
+                    backgroundColor: 'rgba(211,47,47,0.78)',
+                    borderColor: '#d32f2f',
+                    borderWidth: 1,
+                    borderRadius: 4,
+                },
+            ],
+        };
+
+        const barOptions = {
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'top' },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.dataset.label}: ${context.raw.toLocaleString()}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: { maxRotation: 45, minRotation: 30 },
+                    grid: { display: false }
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: (v) => v.toLocaleString()
+                    }
+                }
+            }
+        };
+
+        return <Bar data={chartData} options={barOptions} />;
+    }
+
     return null;
 };
