@@ -885,6 +885,12 @@ export const getSchoolBasedAttendanceAnalytics = async (req, res) => {
   try {
     const { schoolId, term, session, fromDate, toDate, cohort } = req.query;
 
+    if (schoolId === '') {
+      return res.status(200).json({
+        stats: { totalStudents: 0, total: 0, absent: 0, present: 0, transferred: 0, dropout: 0, died: 0, daysOpened: 0 }
+      });
+    }
+
     // --- Build attendance match query ---
     const attendanceMatchQuery = {};
     if (schoolId && schoolId !== 'all') {
@@ -945,7 +951,7 @@ export const getSchoolBasedAttendanceAnalytics = async (req, res) => {
     }
 
     const attendanceRecords = await SchoolAttendance.find(attendanceMatchQuery)
-      .select('date totalEnrolled attendanceTaken absentees.studentId absentees.student absentees.cohort')
+      .select('schoolId date totalEnrolled attendanceTaken absentees.studentId absentees.student absentees.cohort')
       .lean();
 
     const stats = {
@@ -960,6 +966,7 @@ export const getSchoolBasedAttendanceAnalytics = async (req, res) => {
     };
 
     const uniqueDays = new Set();
+    const latestPerSchool = {};
 
     // Status events (transferred, dropout, deceased)
     const statusEvents = await StudentStatusEvent.find(statusMatchQuery).lean();
@@ -974,6 +981,14 @@ export const getSchoolBasedAttendanceAnalytics = async (req, res) => {
     // Calculate present and absent from the records
     attendanceRecords.forEach(record => {
       if (!record.attendanceTaken) return;
+
+      // Track latest record per school for totalStudents
+      const sid = record.schoolId?.toString();
+      if (sid) {
+        if (!latestPerSchool[sid] || new Date(record.date) > new Date(latestPerSchool[sid].date)) {
+          latestPerSchool[sid] = record;
+        }
+      }
 
       const dateStr = new Date(record.date).toISOString().split('T')[0];
       uniqueDays.add(dateStr);
@@ -1004,18 +1019,14 @@ export const getSchoolBasedAttendanceAnalytics = async (req, res) => {
     stats.total = stats.present + stats.absent;
     stats.daysOpened = uniqueDays.size;
 
-    // Get totalStudents from most recent record (or cohort size if filtered)
     if (cohortStudentIds) {
       stats.totalStudents = cohortStudentIds.size;
-    } else if (attendanceRecords.length > 0) {
-       attendanceRecords.sort((a, b) => new Date(b.date) - new Date(a.date));
-       stats.totalStudents = attendanceRecords[0].totalEnrolled || 0;
     } else {
-       // If date filter matched 0 records, fetch the most recent record overall to get totalStudents
-       const fallbackQuery = { ...attendanceMatchQuery };
-       delete fallbackQuery.date; // Remove date filter
-       const mostRecent = await SchoolAttendance.findOne(fallbackQuery).sort({ date: -1 }).select('totalEnrolled').lean();
-       stats.totalStudents = mostRecent ? mostRecent.totalEnrolled : 0;
+      let totalEnrolledSum = 0;
+      Object.values(latestPerSchool).forEach(record => {
+        totalEnrolledSum += record.totalEnrolled || 0;
+      });
+      stats.totalStudents = totalEnrolledSum;
     }
     res.status(200).json({ stats });
   } catch (err) {
@@ -1029,6 +1040,9 @@ export const getSchoolBasedMonthlyTrend = async (req, res) => {
     const { schoolId, month, year } = req.query; // month is 1-12
     if (!month || !year) {
       return res.status(400).json({ message: 'Missing month or year' });
+    }
+    if (schoolId === '') {
+      return res.status(200).json({ trend: {} });
     }
 
     const m = Number(month) - 1; // 0-indexed for Date
@@ -1086,6 +1100,10 @@ export const getSchoolBasedMonthlyTrend = async (req, res) => {
 export const getSchoolMonthlyBarChart = async (req, res) => {
   try {
     const { schoolId, cohort, fromDate, toDate, term, session } = req.query;
+
+    if (schoolId === '') {
+      return res.status(200).json({ monthlyData: [] });
+    }
 
     const matchQuery = {};
 
