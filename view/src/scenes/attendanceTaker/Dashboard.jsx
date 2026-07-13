@@ -50,6 +50,7 @@ export const AttendanceTakerDashboard = () => {
     const [year, setYear] = useState(new Date().getFullYear().toString());
     const [term, setTerm] = useState('');
     const [session, setSession] = useState('');
+    const [trendSession, setTrendSession] = useState('');
     const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
 
     // Abort controller refs so we can cancel stale requests
@@ -99,7 +100,7 @@ export const AttendanceTakerDashboard = () => {
                 querySchoolId = isAdminOrCct ? 'all' : assignedSchools.map(s => s._id).join(',');
             }
             const res = await axios.get(`${API_URL}/attendance/school-monthly-bar`, {
-                params: { schoolId: querySchoolId, cohort, fromDate, toDate, term, session },
+                params: { schoolId: querySchoolId, cohort, fromDate, toDate, term, session: trendSession },
                 headers: { Authorization: `Bearer ${token}` },
                 withCredentials: true,
                 signal: barAbortRef.current.signal,
@@ -111,7 +112,7 @@ export const AttendanceTakerDashboard = () => {
         } finally {
             setIsLoadingBar(false);
         }
-    }, [schoolId, cohort, fromDate, toDate, term, session]);
+    }, [schoolId, cohort, fromDate, toDate, term, trendSession]);
 
     const fetchTrend = useCallback(async () => {
         if (trendAbortRef.current) trendAbortRef.current.abort();
@@ -314,7 +315,18 @@ export const AttendanceTakerDashboard = () => {
                 </Box>
 
                 <Box flex="2" minWidth="320px" backgroundColor={colors.primary[400]} p="20px" borderRadius="8px">
-                    <Typography variant="h5" fontWeight="600" mb="20px">Monthly Attendance Trend</Typography>
+                    <Box display="flex" justifyContent="space-between" alignItems="center" mb="20px">
+                        <Typography variant="h5" fontWeight="600">Monthly Attendance Trend</Typography>
+                        <FormControl variant="filled" size="small" sx={{ minWidth: 140 }}>
+                            <InputLabel>Session</InputLabel>
+                            <Select value={trendSession} onChange={(e) => setTrendSession(e.target.value)}>
+                                <MenuItem value="">All Sessions</MenuItem>
+                                {['2024/2025', '2025/2026', '2026/2027', '2027/2028', '2028/2029', '2029/2030'].map(s => (
+                                    <MenuItem key={s} value={s}>{s}</MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                    </Box>
                     <Box height="300px">
                         {isLoadingBar ? (
                             <Skeleton variant="rectangular" width="100%" height="100%" />
