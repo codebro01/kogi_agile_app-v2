@@ -19,6 +19,8 @@ import {
   Grid,
   InputLabel,
   Autocomplete,
+  Checkbox,
+  FormControlLabel,
 } from '@mui/material'
 import { StudentsContext } from '../../components/dataContext'
 import axios from 'axios'
@@ -79,6 +81,7 @@ export const AdminViewAllStudentsData = () => {
     schoolType: '',
     verified:'', 
     status: 'all',
+    beneficiaries: true,
   })
 
   // ! Redux toolkit consumption
@@ -150,6 +153,7 @@ export const AdminViewAllStudentsData = () => {
     status: filters.status,
     verified: filters.verified,
     cohort: filters.cohort,
+    beneficiaries: filters.beneficiaries,
   }
   const filteredParams = Object.entries(params)
     .filter(([_, value]) => value != null && value !== '') // Filter out empty values
@@ -245,8 +249,9 @@ export const AdminViewAllStudentsData = () => {
       yearOfEnrollment: '',
       yearOfAdmission: '',
       disabilitystatus: '',
-      status: 'active',
+      status: 'all',
       verified: '', 
+      beneficiaries: true,
     })
     // setStudentsData(studentsData);
     // dispatch(filterStudents(studentsData));
@@ -300,6 +305,14 @@ export const AdminViewAllStudentsData = () => {
       return updatedFilters
     })
   }, [])
+
+  const handleCheckboxChange = useCallback((e) => {
+    const { name, checked } = e.target;
+    setFilters((prevFilters) => ({
+      ...prevFilters,
+      [name]: checked,
+    }));
+  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -825,6 +838,20 @@ export const AdminViewAllStudentsData = () => {
                   variant="outlined"
                   size="small"
                   fullWidth
+                />
+              </Grid>
+              
+              <Grid item xs={12}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      name="beneficiaries"
+                      checked={filters.beneficiaries}
+                      onChange={handleCheckboxChange}
+                      color="primary"
+                    />
+                  }
+                  label="Beneficiaries (Only students with an account number)"
                 />
               </Grid>
             </Grid>

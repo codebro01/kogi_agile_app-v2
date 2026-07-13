@@ -380,6 +380,12 @@ export const filterAndDownload = async (req, res, next) => {
     if (disabilitystatus) basket.disabilitystatus = disabilitystatus
     if (enumerator) basket.createdBy = enumerator
 
+    const { beneficiaries } = req.query;
+    if (beneficiaries === 'true') {
+      basket.accountNumber = { $exists: true, $type: 'string', $ne: '' };
+    }
+
+
     if (dateFrom || dateTo) {
       basket.createdAt = {}
 
