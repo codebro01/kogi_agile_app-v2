@@ -278,9 +278,9 @@ export const AttendanceTakerDashboard = () => {
                 <Box backgroundColor="#f4f6f8" display="flex" alignItems="center" justifyContent="center" borderRadius="8px" boxShadow="0px 2px 4px rgba(0,0,0,0.1)">
                     <StatBox title={isLoadingStats ? <Skeleton variant="text" width={60} /> : (stats.totalStudents || 0).toLocaleString()} subtitle="Total Students" titleColor="#0288d1" subtitleColor="#424242" />
                 </Box>
-                <Box backgroundColor="#f4f6f8" display="flex" alignItems="center" justifyContent="center" borderRadius="8px" boxShadow="0px 2px 4px rgba(0,0,0,0.1)">
+                {/* <Box backgroundColor="#f4f6f8" display="flex" alignItems="center" justifyContent="center" borderRadius="8px" boxShadow="0px 2px 4px rgba(0,0,0,0.1)">
                     <StatBox title={isLoadingStats ? <Skeleton variant="text" width={60} /> : (stats.total || 0).toLocaleString()} subtitle="Expected Records" titleColor="#1976d2" subtitleColor="#424242" />
-                </Box>
+                </Box> */}
                 <Box backgroundColor="#f4f6f8" display="flex" alignItems="center" justifyContent="center" borderRadius="8px" boxShadow="0px 2px 4px rgba(0,0,0,0.1)">
                     <StatBox title={isLoadingStats ? <Skeleton variant="text" width={60} /> : (stats.daysOpened || 0).toLocaleString()} subtitle="Days Opened" titleColor="#7b1fa2" subtitleColor="#424242" />
                 </Box>
@@ -332,7 +332,7 @@ export const AttendanceTakerDashboard = () => {
             <CompareAttendanceModal
                 open={isCompareModalOpen}
                 onClose={() => setIsCompareModalOpen(false)}
-                assignedSchools={assignedSchools}
+                schoolsData={isAdminOrCct ? (schoolsData || []) : assignedSchools}
             />
         </Box>
     );

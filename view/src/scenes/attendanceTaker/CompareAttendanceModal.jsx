@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Box, Typography, FormControl, InputLabel, Select, MenuItem, TextField, Grid } from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Box, Typography, FormControl, InputLabel, Select, MenuItem, TextField, Grid, Autocomplete } from '@mui/material';
 import axios from 'axios';
 import { AttendanceCharts } from './AttendanceCharts';
 
 const CLASS_OPTIONS = ['Primary 1', 'Primary 2', 'Primary 3', 'Primary 4', 'Primary 5', 'Primary 6', 'JSS 1', 'JSS 2', 'JSS 3', 'SSS 1', 'SSS 2', 'SSS 3'];
 
-export const CompareAttendanceModal = ({ open, onClose, assignedSchools }) => {
+export const CompareAttendanceModal = ({ open, onClose, schoolsData }) => {
     const API_URL = `${import.meta.env.VITE_API_URL}/api/v1`;
 
     const [groupA, setGroupA] = useState({ schoolId: 'all', presentClass: '', session: '', fromDate: '', toDate: '' });
@@ -24,8 +24,8 @@ export const CompareAttendanceModal = ({ open, onClose, assignedSchools }) => {
                 axios.get(`${API_URL}/attendance/analytics`, { params: groupB, headers: { Authorization: `Bearer ${token}` }, withCredentials: true })
             ]);
 
-            const groupALabel = `A: ${assignedSchools.find(s => s._id === groupA.schoolId)?.schoolName || 'All Schools'} ${groupA.presentClass ? `(${groupA.presentClass})` : ''}`;
-            const groupBLabel = `B: ${assignedSchools.find(s => s._id === groupB.schoolId)?.schoolName || 'All Schools'} ${groupB.presentClass ? `(${groupB.presentClass})` : ''}`;
+            const groupALabel = `A: ${schoolsData.find(s => s._id === groupA.schoolId)?.schoolName || 'All Schools'} ${groupA.presentClass ? `(${groupA.presentClass})` : ''}`;
+            const groupBLabel = `B: ${schoolsData.find(s => s._id === groupB.schoolId)?.schoolName || 'All Schools'} ${groupB.presentClass ? `(${groupB.presentClass})` : ''}`;
 
             setChartData({
                 groupA: resA.data.stats,
@@ -44,15 +44,16 @@ export const CompareAttendanceModal = ({ open, onClose, assignedSchools }) => {
             <Typography variant="h6" mb={2}>{title}</Typography>
             <Grid container spacing={2}>
                 <Grid item xs={12}>
-                    <FormControl variant="filled" fullWidth>
-                        <InputLabel>School</InputLabel>
-                        <Select value={groupState.schoolId} onChange={(e) => setGroupState({ ...groupState, schoolId: e.target.value })}>
-                            <MenuItem value="all">All Assigned Schools</MenuItem>
-                            {assignedSchools.map(s => (
-                                <MenuItem key={s._id} value={s._id}>{s.schoolName}</MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
+                    <Autocomplete
+                        options={[{ _id: 'all', schoolName: 'All Schools' }, ...schoolsData]}
+                        getOptionLabel={(option) => option.schoolName || ''}
+                        value={[{ _id: 'all', schoolName: 'All Schools' }, ...schoolsData].find(o => o._id === groupState.schoolId) || null}
+                        onChange={(event, newValue) => {
+                            setGroupState({ ...groupState, schoolId: newValue ? newValue._id : 'all' });
+                        }}
+                        isOptionEqualToValue={(option, value) => option._id === value._id}
+                        renderInput={(params) => <TextField {...params} variant="filled" label="School" fullWidth />}
+                    />
                 </Grid>
                 <Grid item xs={12}>
                     <FormControl variant="filled" fullWidth>
