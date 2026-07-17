@@ -4,12 +4,14 @@ import axios from 'axios';
 import { AttendanceCharts } from './AttendanceCharts';
 
 const CLASS_OPTIONS = ['Primary 1', 'Primary 2', 'Primary 3', 'Primary 4', 'Primary 5', 'Primary 6', 'JSS 1', 'JSS 2', 'JSS 3', 'SSS 1', 'SSS 2', 'SSS 3'];
+const TERM_OPTIONS = ['First Term', 'Second Term', 'Third Term'];
+const SESSION_OPTIONS = ['2024/2025', '2025/2026', '2026/2027', '2027/2028', '2028/2029', '2029/2030'];
 
 export const CompareAttendanceModal = ({ open, onClose, schoolsData }) => {
     const API_URL = `${import.meta.env.VITE_API_URL}/api/v1`;
 
-    const [groupA, setGroupA] = useState({ schoolId: 'all', presentClass: '', session: '', fromDate: '', toDate: '' });
-    const [groupB, setGroupB] = useState({ schoolId: 'all', presentClass: '', session: '', fromDate: '', toDate: '' });
+    const [groupA, setGroupA] = useState({ schoolId: 'all', presentClass: '', term: '', session: '', fromDate: '', toDate: '' });
+    const [groupB, setGroupB] = useState({ schoolId: 'all', presentClass: '', term: '', session: '', fromDate: '', toDate: '' });
     
     const [chartData, setChartData] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -67,13 +69,26 @@ export const CompareAttendanceModal = ({ open, onClose, schoolsData }) => {
                     </FormControl>
                 </Grid>
                 <Grid item xs={12}>
-                    <TextField
-                        variant="filled"
-                        fullWidth
-                        label="Session (e.g., 2025/2026)"
-                        value={groupState.session}
-                        onChange={(e) => setGroupState({ ...groupState, session: e.target.value })}
-                    />
+                    <FormControl variant="filled" fullWidth>
+                        <InputLabel>Term</InputLabel>
+                        <Select value={groupState.term} onChange={(e) => setGroupState({ ...groupState, term: e.target.value })}>
+                            <MenuItem value="">All Terms</MenuItem>
+                            {TERM_OPTIONS.map(t => (
+                                <MenuItem key={t} value={t}>{t}</MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                </Grid>
+                <Grid item xs={12}>
+                    <FormControl variant="filled" fullWidth>
+                        <InputLabel>Session</InputLabel>
+                        <Select value={groupState.session} onChange={(e) => setGroupState({ ...groupState, session: e.target.value })}>
+                            <MenuItem value="">All Sessions</MenuItem>
+                            {SESSION_OPTIONS.map(s => (
+                                <MenuItem key={s} value={s}>{s}</MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
                 </Grid>
                 <Grid item xs={6}>
                     <TextField

@@ -288,42 +288,53 @@ export const AttendanceTakerDashboard = () => {
             </Box>
 
             {/* Loading progress bar */}
-            <Fade in={isAnyLoading} unmountOnExit>
-                <Box mb="16px">
-                    <LinearProgress
-                        sx={{
-                            height: 6,
-                            borderRadius: 3,
-                            '& .MuiLinearProgress-bar': {
-                                background: 'linear-gradient(90deg, #1976d2, #42a5f5, #1976d2)',
-                                backgroundSize: '200% 100%',
-                                animation: 'shimmer 1.5s infinite',
+            {isAnyLoading && (
+                <Box mb="16px" sx={{ position: 'relative' }}>
+                    {/* Track */}
+                    <Box sx={{ width: '100%', height: 10, borderRadius: 5, backgroundColor: '#e8f5e9', overflow: 'hidden', position: 'relative' }}>
+                        {/* Sliding bar 1 */}
+                        <Box sx={{
+                            position: 'absolute',
+                            top: 0,
+                            height: '100%',
+                            width: '40%',
+                            borderRadius: 5,
+                            background: 'linear-gradient(90deg, transparent, #388e3c, #66bb6a, #388e3c, transparent)',
+                            animation: 'slide1 1.8s ease-in-out infinite',
+                            '@keyframes slide1': {
+                                '0%': { left: '-45%' },
+                                '100%': { left: '110%' },
                             },
-                            '@keyframes shimmer': {
-                                '0%': { backgroundPosition: '200% 0' },
-                                '100%': { backgroundPosition: '-200% 0' },
+                        }} />
+                        {/* Sliding bar 2 — offset for overlap effect */}
+                        <Box sx={{
+                            position: 'absolute',
+                            top: 0,
+                            height: '100%',
+                            width: '25%',
+                            borderRadius: 5,
+                            background: 'linear-gradient(90deg, transparent, #66bb6a, #a5d6a7, transparent)',
+                            animation: 'slide2 1.8s ease-in-out 0.6s infinite',
+                            '@keyframes slide2': {
+                                '0%': { left: '-30%' },
+                                '100%': { left: '110%' },
                             },
-                        }}
-                    />
+                        }} />
+                    </Box>
                     <Typography
                         variant="body2"
                         sx={{
-                            mt: 1,
+                            mt: 1.5,
                             textAlign: 'center',
-                            color: '#1976d2',
+                            color: '#388e3c',
                             fontWeight: 600,
-                            letterSpacing: 0.5,
-                            animation: 'pulse 1.5s ease-in-out infinite',
-                            '@keyframes pulse': {
-                                '0%, 100%': { opacity: 1 },
-                                '50%': { opacity: 0.5 },
-                            },
+                            letterSpacing: 0.4,
                         }}
                     >
                         ⏳ Please wait while your attendance data is being prepared...
                     </Typography>
                 </Box>
-            </Fade>
+            )}
 
             {/* Top row: Total Students, Days Opened, Present */}
             <Box display="grid" gridTemplateColumns="repeat(3, 1fr)" gap="20px" mb="16px">
