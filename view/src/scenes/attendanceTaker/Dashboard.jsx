@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Box, Typography, useTheme, Card, CardContent, FormControl, InputLabel, Select, MenuItem, TextField, Button, Skeleton, Autocomplete } from '@mui/material';
+import { Box, Typography, useTheme, Card, CardContent, FormControl, InputLabel, Select, MenuItem, TextField, Button, Skeleton, Autocomplete, LinearProgress, Fade } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { tokens } from '../../theme';
 import Header from '../../components/Header';
@@ -169,6 +169,7 @@ export const AttendanceTakerDashboard = () => {
 
     const assignedSchools = storedUser?.assignedSchools || [];
     const displaySchools = isAdminOrCct ? schoolsData : assignedSchools;
+    const isAnyLoading = isLoadingStats || isLoadingBar || isLoadingTrend;
 
     return (
         <Box m="20px">
@@ -285,6 +286,44 @@ export const AttendanceTakerDashboard = () => {
                     Take School-Based Attendance
                 </Button>
             </Box>
+
+            {/* Loading progress bar */}
+            <Fade in={isAnyLoading} unmountOnExit>
+                <Box mb="16px">
+                    <LinearProgress
+                        sx={{
+                            height: 6,
+                            borderRadius: 3,
+                            '& .MuiLinearProgress-bar': {
+                                background: 'linear-gradient(90deg, #1976d2, #42a5f5, #1976d2)',
+                                backgroundSize: '200% 100%',
+                                animation: 'shimmer 1.5s infinite',
+                            },
+                            '@keyframes shimmer': {
+                                '0%': { backgroundPosition: '200% 0' },
+                                '100%': { backgroundPosition: '-200% 0' },
+                            },
+                        }}
+                    />
+                    <Typography
+                        variant="body2"
+                        sx={{
+                            mt: 1,
+                            textAlign: 'center',
+                            color: '#1976d2',
+                            fontWeight: 600,
+                            letterSpacing: 0.5,
+                            animation: 'pulse 1.5s ease-in-out infinite',
+                            '@keyframes pulse': {
+                                '0%, 100%': { opacity: 1 },
+                                '50%': { opacity: 0.5 },
+                            },
+                        }}
+                    >
+                        ⏳ Please wait while your attendance data is being prepared...
+                    </Typography>
+                </Box>
+            </Fade>
 
             {/* Top row: Total Students, Days Opened, Present */}
             <Box display="grid" gridTemplateColumns="repeat(3, 1fr)" gap="20px" mb="16px">
