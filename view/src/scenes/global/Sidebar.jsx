@@ -360,7 +360,7 @@ const Sidebar = ({ isSidebar }) => {
                 /> */}
 
                 <Item
-                  title="Export School Attendance"
+                  title="Tracking"
                   to={
                     userPermissions.includes('handle_registrars')
                       ? '/admin-dashboard/export-school-attendance'
@@ -565,7 +565,7 @@ const Sidebar = ({ isSidebar }) => {
                   /> */}
 
                   <Item
-                    title="Export School Attendance"
+                    title="Tracking"
                     to={
                       userPermissions.includes('handle_registrars')
                         ? '/admin-dashboard/export-school-attendance'
@@ -629,7 +629,7 @@ const Sidebar = ({ isSidebar }) => {
                     userPermissions.includes('handle_registrars')
                       ? '/admin-dashboard/role-selector'
                       : // : '/enumerator-dashboard/create-student-school-selector'
-                        '/enumerator-dashboard'
+                      '/enumerator-dashboard'
                   }
                   icon={<PeopleOutlinedIcon />}
                   selected={selected}

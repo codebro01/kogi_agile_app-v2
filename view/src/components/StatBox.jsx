@@ -15,20 +15,21 @@ const StatBox = ({ title, subtitle, icon, progress, increase, bgColor, titleColo
       <Box display="flex" justifyContent="center" alignItems={"center"} >
         <Box>
           <Typography
-            variant="h1"
+            variant="h3"
             fontWeight="bold"
             sx={{ 
               color: titleColor || "#fff",
-              fontSize : {
-                xs: '1.3rem', // Mobile
-                // sm: '1.2rem',   // Tablet
-                md: '2.0rem', // Medium screens
-                lg: '2.5rem',   // Large screens
-              } 
-              
-              }}
+              fontSize: {
+                xs: '1.1rem',
+                md: '1.5rem',
+                lg: '1.8rem',
+              },
+              lineHeight: 1.2,
+              wordBreak: 'break-word',
+              overflowWrap: 'break-word',
+              maxWidth: '100%',
+            }}
             textAlign={"center"}
-            
           >
             {title}
           </Typography>
