@@ -58,49 +58,45 @@ export const AttendanceTakerDashboard = () => {
     const trendAbortRef = useRef(null);
     const barAbortRef = useRef(null);
 
-    const fetchAnalytics = useCallback(async () => {
-        // Cancel any previous in-flight request
+    const fetchAnalytics = useCallback(async (filters) => {
         if (analyticsAbortRef.current) analyticsAbortRef.current.abort();
         analyticsAbortRef.current = new AbortController();
-
         setIsLoadingStats(true);
         try {
             const token = localStorage.getItem("token");
             const assignedSchools = storedUser?.assignedSchools || [];
-            let querySchoolId = schoolId;
-            if (schoolId === 'all') {
+            let querySchoolId = filters.schoolId;
+            if (filters.schoolId === 'all') {
                 querySchoolId = isAdminOrCct ? 'all' : assignedSchools.map(s => s._id).join(',');
             }
-
             const res = await axios.get(`${API_URL}/attendance/school-analytics`, {
-                params: { schoolId: querySchoolId, cohort, fromDate, toDate, term, session },
+                params: { schoolId: querySchoolId, cohort: filters.cohort, fromDate: filters.fromDate, toDate: filters.toDate, term: filters.term, session: filters.session },
                 headers: { Authorization: `Bearer ${token}` },
                 withCredentials: true,
                 signal: analyticsAbortRef.current.signal,
             });
             setStats(res.data.stats);
         } catch (err) {
-            if (axios.isCancel(err) || err.name === 'CanceledError') return; // Ignore cancelled requests
+            if (axios.isCancel(err) || err.name === 'CanceledError') return;
             console.error(err);
         } finally {
             setIsLoadingStats(false);
         }
-    }, [schoolId, cohort, fromDate, toDate, term, session]);
+    }, [isAdminOrCct, storedUser, API_URL]);
 
-    const fetchMonthlyBar = useCallback(async () => {
+    const fetchMonthlyBar = useCallback(async (filters) => {
         if (barAbortRef.current) barAbortRef.current.abort();
         barAbortRef.current = new AbortController();
-
         setIsLoadingBar(true);
         try {
             const token = localStorage.getItem('token');
             const assignedSchools = storedUser?.assignedSchools || [];
-            let querySchoolId = schoolId;
-            if (schoolId === 'all') {
+            let querySchoolId = filters.schoolId;
+            if (filters.schoolId === 'all') {
                 querySchoolId = isAdminOrCct ? 'all' : assignedSchools.map(s => s._id).join(',');
             }
             const res = await axios.get(`${API_URL}/attendance/school-monthly-bar`, {
-                params: { schoolId: querySchoolId, cohort, fromDate, toDate, term, session: trendSession },
+                params: { schoolId: querySchoolId, cohort: filters.cohort, fromDate: filters.fromDate, toDate: filters.toDate, term: filters.term, session: filters.trendSession },
                 headers: { Authorization: `Bearer ${token}` },
                 withCredentials: true,
                 signal: barAbortRef.current.signal,
@@ -112,23 +108,21 @@ export const AttendanceTakerDashboard = () => {
         } finally {
             setIsLoadingBar(false);
         }
-    }, [schoolId, cohort, fromDate, toDate, term, trendSession]);
+    }, [isAdminOrCct, storedUser, API_URL]);
 
-    const fetchTrend = useCallback(async () => {
+    const fetchTrend = useCallback(async (filters) => {
         if (trendAbortRef.current) trendAbortRef.current.abort();
         trendAbortRef.current = new AbortController();
-
         setIsLoadingTrend(true);
         try {
             const token = localStorage.getItem("token");
             const assignedSchools = storedUser?.assignedSchools || [];
-            let querySchoolId = schoolId;
-            if (schoolId === 'all') {
+            let querySchoolId = filters.schoolId;
+            if (filters.schoolId === 'all') {
                 querySchoolId = isAdminOrCct ? 'all' : assignedSchools.map(s => s._id).join(',');
             }
-
             const res = await axios.get(`${API_URL}/attendance/school-monthly-trend`, {
-                params: { schoolId: querySchoolId, month, year },
+                params: { schoolId: querySchoolId, month: filters.month, year: filters.year },
                 headers: { Authorization: `Bearer ${token}` },
                 withCredentials: true,
                 signal: trendAbortRef.current.signal,
@@ -140,30 +134,38 @@ export const AttendanceTakerDashboard = () => {
         } finally {
             setIsLoadingTrend(false);
         }
-    }, [schoolId, month, year]);
+    }, [isAdminOrCct, storedUser, API_URL]);
 
-    // Debounce analytics fetch — waits 600ms after last filter change
-    useEffect(() => {
-        const timer = setTimeout(() => { fetchAnalytics(); }, 600);
-        return () => clearTimeout(timer);
-    }, [fetchAnalytics]);
+    // Collect all current filter values into one object
+    const getCurrentFilters = useCallback(() => ({
+        schoolId, cohort, fromDate, toDate, term, session, trendSession, month, year
+    }), [schoolId, cohort, fromDate, toDate, term, session, trendSession, month, year]);
 
-    useEffect(() => {
-        const timer = setTimeout(() => { fetchMonthlyBar(); }, 600);
-        return () => clearTimeout(timer);
-    }, [fetchMonthlyBar]);
+    // Called when user clicks Apply Filters
+    const handleApplyFilters = useCallback(() => {
+        const filters = getCurrentFilters();
+        fetchAnalytics(filters);
+        fetchMonthlyBar(filters);
+        fetchTrend(filters);
+    }, [getCurrentFilters, fetchAnalytics, fetchMonthlyBar, fetchTrend]);
 
+    // Load schools list for admins
     useEffect(() => {
         if (isAdminOrCct) {
             dispatch(fetchSchools({ schoolType: '', lgaOfEnrollment: '' }));
         }
     }, [dispatch, isAdminOrCct]);
 
-    // Debounce trend fetch — waits 600ms after last filter change
+    // Initial load on mount only
     useEffect(() => {
-        const timer = setTimeout(() => { fetchTrend(); }, 600);
-        return () => clearTimeout(timer);
-    }, [fetchTrend]);
+        const filters = {
+            schoolId, cohort, fromDate, toDate, term, session, trendSession, month, year
+        };
+        fetchAnalytics(filters);
+        fetchMonthlyBar(filters);
+        fetchTrend(filters);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const assignedSchools = storedUser?.assignedSchools || [];
     const displaySchools = isAdminOrCct ? schoolsData : assignedSchools;
@@ -247,7 +249,16 @@ export const AttendanceTakerDashboard = () => {
                     </Select>
                 </FormControl>
 
-                <Button variant="contained" color="secondary" sx={{ ml: 2 }} onClick={() => {
+                <Button
+                    variant="contained"
+                    color="primary"
+                    sx={{ ml: 2, fontWeight: 'bold', px: 3 }}
+                    onClick={handleApplyFilters}
+                >
+                    Apply Filters
+                </Button>
+
+                <Button variant="contained" color="secondary" sx={{ ml: 1 }} onClick={() => {
                     const csvContent = "data:text/csv;charset=utf-8,"
                         + "Total Records,Days Opened,Present,Absent,Transferred,Dropout,Died\n"
                         + `${stats.total},${stats.daysOpened || 0},${stats.present},${stats.absent},${stats.transferred},${stats.dropout},${stats.died}`;
