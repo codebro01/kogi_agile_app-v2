@@ -805,10 +805,10 @@ export const submitSchoolDailyAttendance = async (req, res) => {
     const year = attendanceDate.getUTCFullYear();
     const month = attendanceDate.getUTCMonth() + 1; // 1-12
 
-    // Get active students count for the school to compute totalEnrolled
+    // Count students with an account number for this school — these are the enrolled beneficiaries
     const activeStudentsCount = await Student.countDocuments({
       schoolId,
-      isActive: true,
+      accountNumber: { $exists: true, $ne: '' },
     });
 
     // Fetch cohort data for absentees
@@ -862,7 +862,6 @@ export const submitSchoolDailyAttendance = async (req, res) => {
       });
 
       await Student.findByIdAndUpdate(a.studentId, {
-        isActive: false,
         enrollmentStatus: a.specialStatus,
         enrollmentStatusDate: new Date()
       });
