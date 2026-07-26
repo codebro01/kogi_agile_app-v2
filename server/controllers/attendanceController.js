@@ -559,7 +559,6 @@ export const getStudentsForAttendance = async (req, res) => {
     const matchQuery = {
       schoolId,
       accountNumber: { $nin: [null, '', ' '] },
-      isActive: { $ne: false },
       enrollmentStatus: { $nin: ['dropout', 'transferred', 'deceased'] }
     };
     
