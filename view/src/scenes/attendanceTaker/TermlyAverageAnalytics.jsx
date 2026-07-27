@@ -7,6 +7,7 @@ import { Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 import * as XLSX from 'xlsx';
 import { useSelector, useDispatch } from 'react-redux';
+import { fetchSchools } from '../../components/schoolsSlice';
 import { useAuth } from '../auth/authContext.jsx';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
@@ -25,8 +26,15 @@ export const TermlyAverageAnalytics = () => {
     const storedUser = JSON.parse(localStorage.getItem('userData'));
     const isAdminOrCct = Array.isArray(userPermissions) && (userPermissions.includes('handle_admins') || userPermissions.includes('handle_payments') || userPermissions.includes('handle_registrars'));
 
+    const dispatch = useDispatch();
     const schoolState = useSelector((state) => state.schools);
     const { data: schoolsData } = schoolState;
+
+    useEffect(() => {
+        if (!schoolsData || schoolsData.length === 0) {
+            dispatch(fetchSchools({ schoolType: '', lgaOfEnrollment: '' }));
+        }
+    }, [dispatch, schoolsData]);
 
     const [filters, setFilters] = useState({
         schoolId: 'all',
@@ -141,13 +149,13 @@ export const TermlyAverageAnalytics = () => {
         <Box m="20px">
             <Header title="Termly Average Analytics" subtitle="Analyze student result averages" />
             
-            <Box mb="20px" p="15px" backgroundColor={colors.primary[400]} borderRadius="8px">
+            <Box mb="20px" p="15px"  borderRadius="8px">
                 <Typography variant="h6" color={colors.grey[100]} mb="15px">Filters</Typography>
                 <Box display="grid" gridTemplateColumns="repeat(auto-fit, minmax(200px, 1fr))" gap="15px">
                     <Autocomplete
-                        options={[{ _id: 'all', schoolName: 'All Schools' }, ...schoolsData]}
+                        options={[{ _id: 'all', schoolName: 'All Schools' }, ...(schoolsData || [])]}
                         getOptionLabel={(option) => option.schoolName || ''}
-                        value={[{ _id: 'all', schoolName: 'All Schools' }, ...schoolsData].find(o => o._id === filters.schoolId) || null}
+                        value={[{ _id: 'all', schoolName: 'All Schools' }, ...(schoolsData || [])].find(o => o._id === filters.schoolId) || null}
                         onChange={(event, newValue) => handleFilterChange('schoolId', newValue ? newValue._id : 'all')}
                         isOptionEqualToValue={(option, value) => option._id === value._id}
                         renderInput={(params) => <TextField {...params} variant="filled" label="School" />}
@@ -204,13 +212,13 @@ export const TermlyAverageAnalytics = () => {
             </Modal>
 
             <Box display="grid" gridTemplateColumns="repeat(3, 1fr)" gap="20px" mb="20px">
-                <Box backgroundColor={colors.primary[400]} display="flex" flexDirection="column" alignItems="center" justifyContent="center" p="20px" borderRadius="8px" boxShadow="0px 2px 4px rgba(0,0,0,0.1)">
-                    <Typography variant="h5" color={colors.greenAccent[500]}>Total Records</Typography>
-                    <Typography variant="h3" fontWeight="bold" color={colors.grey[100]}>{data.stats.totalRecords}</Typography>
+                <Box backgroundColor="#f4f6f8" display="flex" flexDirection="column" alignItems="center" justifyContent="center" p="20px" borderRadius="8px" boxShadow="0px 2px 4px rgba(0,0,0,0.1)">
+                    <Typography variant="h3" fontWeight="bold" color="#2196f3" mb="5px">{data.stats.totalRecords}</Typography>
+                    <Typography variant="h6" color="#333" fontWeight="bold">Total Records</Typography>
                 </Box>
-                <Box backgroundColor={colors.primary[400]} display="flex" flexDirection="column" alignItems="center" justifyContent="center" p="20px" borderRadius="8px" boxShadow="0px 2px 4px rgba(0,0,0,0.1)">
-                    <Typography variant="h5" color={colors.greenAccent[500]}>Overall Average</Typography>
-                    <Typography variant="h3" fontWeight="bold" color={colors.grey[100]}>{data.stats.overallAverage}%</Typography>
+                <Box backgroundColor="#f4f6f8" display="flex" flexDirection="column" alignItems="center" justifyContent="center" p="20px" borderRadius="8px" boxShadow="0px 2px 4px rgba(0,0,0,0.1)">
+                    <Typography variant="h3" fontWeight="bold" color="#9c27b0" mb="5px">{data.stats.overallAverage}%</Typography>
+                    <Typography variant="h6" color="#333" fontWeight="bold">Overall Average</Typography>
                 </Box>
                 <Box display="flex" alignItems="center" justifyContent="center">
                     <Button variant="contained" color="secondary" onClick={handleExport} sx={{ p: "15px 30px", fontSize: "16px", fontWeight: "bold" }} disabled={data.records.length === 0}>
