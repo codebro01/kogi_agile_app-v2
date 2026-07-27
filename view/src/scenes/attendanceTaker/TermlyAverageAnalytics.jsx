@@ -31,10 +31,15 @@ export const TermlyAverageAnalytics = () => {
     const { data: schoolsData } = schoolState;
 
     useEffect(() => {
-        if (!schoolsData || schoolsData.length === 0) {
+        if (isAdminOrCct) {
             dispatch(fetchSchools({ schoolType: '', lgaOfEnrollment: '' }));
         }
-    }, [dispatch, schoolsData]);
+    }, [dispatch, isAdminOrCct]);
+
+    const assignedSchools = storedUser?.assignedSchools || [];
+    const schoolsOptions = isAdminOrCct 
+        ? [{ _id: 'all', schoolName: 'All Schools' }, ...(schoolsData || [])] 
+        : [{ _id: 'all', schoolName: 'All Schools' }, ...assignedSchools];
 
     const [filters, setFilters] = useState({
         schoolId: 'all',
@@ -153,12 +158,13 @@ export const TermlyAverageAnalytics = () => {
                 <Typography variant="h6" color={colors.grey[100]} mb="15px">Filters</Typography>
                 <Box display="grid" gridTemplateColumns="repeat(auto-fit, minmax(200px, 1fr))" gap="15px">
                     <Autocomplete
-                        options={[{ _id: 'all', schoolName: 'All Schools' }, ...(schoolsData || [])]}
+                        options={schoolsOptions}
                         getOptionLabel={(option) => option.schoolName || ''}
-                        value={[{ _id: 'all', schoolName: 'All Schools' }, ...(schoolsData || [])].find(o => o._id === filters.schoolId) || null}
+                        value={schoolsOptions.find(o => o._id === filters.schoolId) || null}
                         onChange={(event, newValue) => handleFilterChange('schoolId', newValue ? newValue._id : 'all')}
                         isOptionEqualToValue={(option, value) => option._id === value._id}
-                        renderInput={(params) => <TextField {...params} variant="filled" label="School" />}
+                        renderInput={(params) => <TextField {...params} variant="filled" label="School" placeholder="Search School" />}
+                        disableClearable
                     />
                     
                     <FormControl variant="filled">
