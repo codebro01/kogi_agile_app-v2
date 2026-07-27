@@ -144,7 +144,11 @@ export const TermlyAverageAnalytics = () => {
         datasets: [
             {
                 label: 'Average Score',
-                data: [data.chartData.First, data.chartData.Second, data.chartData.Third],
+                data: [
+                    Number(data.chartData?.First || 0), 
+                    Number(data.chartData?.Second || 0), 
+                    Number(data.chartData?.Third || 0)
+                ],
                 backgroundColor: '#388e3c',
             }
         ]

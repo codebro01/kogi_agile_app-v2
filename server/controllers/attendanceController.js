@@ -1271,9 +1271,16 @@ export const getTermlyAverageAnalytics = async (req, res) => {
     };
 
     records.forEach(r => {
-      if (termStats[r.term]) {
-        termStats[r.term].total += (r.averageScore || 0);
-        termStats[r.term].count += 1;
+      let normalizedTerm = r.term;
+      if (typeof r.term === 'string') {
+        if (r.term.includes('First')) normalizedTerm = 'First Term';
+        else if (r.term.includes('Second') || r.term.includes('Seond')) normalizedTerm = 'Second Term'; // handle the user's typo too
+        else if (r.term.includes('Third')) normalizedTerm = 'Third Term';
+      }
+
+      if (termStats[normalizedTerm]) {
+        termStats[normalizedTerm].total += (Number(r.averageScore) || 0);
+        termStats[normalizedTerm].count += 1;
       }
     });
 
