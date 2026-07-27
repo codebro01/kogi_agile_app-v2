@@ -1227,7 +1227,12 @@ export const getTermlyAverageAnalytics = async (req, res) => {
       matchStage['session'] = session;
     }
     if (term) {
-      matchStage['term'] = term;
+      let mappedTerms = [term];
+      if (term.includes('First')) mappedTerms.push('First');
+      if (term.includes('Second')) mappedTerms.push('Second', 'Seond', 'Seond Term');
+      if (term.includes('Third')) mappedTerms.push('Third');
+      
+      matchStage['term'] = { $in: mappedTerms };
     }
 
     if (Object.keys(matchStage).length > 0) {
