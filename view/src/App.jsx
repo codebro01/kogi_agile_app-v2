@@ -442,6 +442,10 @@ function App() {
                           element={<AttendanceTakerDashboard />}
                         />
                         <Route
+                          path="/payroll-specialist-dashboard/termly-average-analytics"
+                          element={<TermlyAverageAnalytics />}
+                        />
+                        <Route
                           path="/payroll-specialist-dashboard/update-attendance-sheet"
                           element={<UpdateAttendanceSheet />}
                         />

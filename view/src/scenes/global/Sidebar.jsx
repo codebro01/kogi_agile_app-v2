@@ -711,6 +711,13 @@ const Sidebar = ({ isSidebar }) => {
                     selected={selected}
                     setSelected={setSelected}
                   />
+                  <Item
+                    title="Termly Average Analytics"
+                    to={'/payroll-specialist-dashboard/termly-average-analytics'}
+                    icon={<BarChartOutlinedIcon />}
+                    selected={selected}
+                    setSelected={setSelected}
+                  />
                   {/* <Item
                     title="Export Attendance"
                     to={'/payroll-specialist-dashboard/update-attendance-sheet'}
