@@ -108,7 +108,8 @@ import {
   submitSchoolDailyAttendance,
   getSchoolBasedAttendanceAnalytics,
   getSchoolBasedMonthlyTrend,
-  getSchoolMonthlyBarChart
+  getSchoolMonthlyBarChart,
+  getTermlyAverageAnalytics
 } from './attendanceController.js'
 
 export {
@@ -205,4 +206,5 @@ export {
   getSchoolBasedAttendanceAnalytics,
   getSchoolBasedMonthlyTrend,
   getSchoolMonthlyBarChart,
+  getTermlyAverageAnalytics,
 }

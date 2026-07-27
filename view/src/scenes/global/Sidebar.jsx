@@ -1,5 +1,5 @@
 import { useState, useContext } from 'react'
-import { ProSidebar, Menu, MenuItem } from 'react-pro-sidebar'
+import { ProSidebar, Menu, MenuItem, SubMenu } from 'react-pro-sidebar'
 import { Box, IconButton, Typography, useTheme, Switch } from '@mui/material'
 import { Link } from 'react-router-dom'
 import 'react-pro-sidebar/dist/css/styles.css'
@@ -359,17 +359,34 @@ const Sidebar = ({ isSidebar }) => {
                   setSelected={setSelected}
                 /> */}
 
-                <Item
+                <SubMenu
                   title="Tracking"
-                  to={
-                    userPermissions.includes('handle_registrars')
-                      ? '/admin-dashboard/export-school-attendance'
-                      : 'enumerator-dashboard/view-all-students-data'
-                  }
                   icon={<EventNoteIcon />}
-                  selected={selected}
-                  setSelected={setSelected}
-                />
+                  style={{ color: colors.grey[100] }}
+                >
+                  <Item
+                    title="Attendance Analytics"
+                    to={
+                      userPermissions.includes('handle_registrars')
+                        ? '/admin-dashboard/export-school-attendance'
+                        : 'enumerator-dashboard/view-all-students-data'
+                    }
+                    icon={<EventNoteIcon />}
+                    selected={selected}
+                    setSelected={setSelected}
+                  />
+                  <Item
+                    title="Termly Average Analytics"
+                    to={
+                      userPermissions.includes('handle_registrars')
+                        ? '/admin-dashboard/termly-average-analytics'
+                        : 'enumerator-dashboard/view-all-students-data'
+                    }
+                    icon={<BarChartOutlinedIcon />}
+                    selected={selected}
+                    setSelected={setSelected}
+                  />
+                </SubMenu>
 
                 <Item
                   title="Manage Admins"
@@ -771,6 +788,13 @@ const Sidebar = ({ isSidebar }) => {
                     title="Termly Average"
                     to={'/attendance-taker-dashboard/termly-average'}
                     icon={<DescriptionIcon />}
+                    selected={selected}
+                    setSelected={setSelected}
+                  />
+                  <Item
+                    title="Termly Average Analytics"
+                    to={'/attendance-taker-dashboard/termly-average-analytics'}
+                    icon={<BarChartOutlinedIcon />}
                     selected={selected}
                     setSelected={setSelected}
                   />

@@ -6,6 +6,7 @@ import Dashboard from './scenes/dashboard'
 import { CssBaseline, ThemeProvider } from '@mui/material'
 import { ColorModeContext, useMode } from './theme'
 import { AttendanceTakerDashboard } from './scenes/attendanceTaker/Dashboard.jsx'
+import { TermlyAverageAnalytics } from './scenes/attendanceTaker/TermlyAverageAnalytics.jsx'
 // import BrandingSignUpPage from "./scenes/auth/register";
 import {
   SignInForm,
@@ -170,6 +171,10 @@ function App() {
                         <Route
                           path="/admin-dashboard/attendance-analytics"
                           element={<AttendanceTakerDashboard />}
+                        />
+                        <Route
+                          path="/admin-dashboard/termly-average-analytics"
+                          element={<TermlyAverageAnalytics />}
                         />
                         <Route
                           path="/admin-dashboard/update-attendance-sheet"
@@ -588,6 +593,10 @@ function App() {
                         <Route
                           path="/attendance-taker-dashboard/termly-average"
                           element={<TermlyAverage />}
+                        />
+                        <Route
+                          path="/attendance-taker-dashboard/termly-average-analytics"
+                          element={<TermlyAverageAnalytics />}
                         />
 
                         <Route

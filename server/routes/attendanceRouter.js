@@ -14,7 +14,8 @@ import {
   submitSchoolDailyAttendance,
   getSchoolBasedAttendanceAnalytics,
   getSchoolBasedMonthlyTrend,
-  getSchoolMonthlyBarChart
+  getSchoolMonthlyBarChart,
+  getTermlyAverageAnalytics
 } from '../controllers/index.js'
 import express from 'express'
 
@@ -60,6 +61,12 @@ router.get(
   authMiddleware,
   authorizePermission(['handle_registrars', 'handle_payments', 'handle_attendance']),
   getTermlyAverage
+)
+router.get(
+  '/termly-average-analytics',
+  authMiddleware,
+  authorizePermission(['handle_registrars', 'handle_payments', 'handle_attendance']),
+  getTermlyAverageAnalytics
 )
 router.get(
   '/download-attendance-record',

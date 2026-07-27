@@ -1186,3 +1186,114 @@ export const getSchoolMonthlyBarChart = async (req, res) => {
     res.status(500).json({ message: 'Error fetching monthly bar chart data' });
   }
 };
+
+// -----------------------------------------------------------------------------
+// Termly Average Analytics
+// -----------------------------------------------------------------------------
+
+export const getTermlyAverageAnalytics = async (req, res) => {
+  try {
+    const { schoolId, cohort, presentClass, session, term } = req.query;
+
+    const pipeline = [
+      {
+        $lookup: {
+          from: 'students', // Ensure this matches your Student collection name
+          localField: 'studentId',
+          foreignField: '_id',
+          as: 'student',
+        },
+      },
+      {
+        $unwind: {
+          path: '$student',
+          preserveNullAndEmptyArrays: false, // We only want averages for existing students
+        },
+      },
+    ];
+
+    const matchStage = {};
+
+    if (schoolId && schoolId !== 'all') {
+      matchStage['student.schoolId'] = new mongoose.Types.ObjectId(schoolId);
+    }
+    if (cohort) {
+      matchStage['student.cohort'] = Number(cohort);
+    }
+    if (presentClass) {
+      matchStage['student.presentClass'] = presentClass;
+    }
+    if (session) {
+      matchStage['session'] = session;
+    }
+    if (term) {
+      matchStage['term'] = term;
+    }
+
+    if (Object.keys(matchStage).length > 0) {
+      pipeline.push({ $match: matchStage });
+    }
+
+    // Add necessary fields and sort
+    pipeline.push(
+      {
+        $project: {
+          _id: 1,
+          term: 1,
+          session: 1,
+          averageScore: 1,
+          'student.firstname': 1,
+          'student.surname': 1,
+          'student.middlename': 1,
+          'student.presentClass': 1,
+          'student.cohort': 1,
+          'student.accountNumber': 1,
+          'student.schoolId': 1,
+          createdAt: 1,
+        }
+      },
+      { $sort: { createdAt: -1 } }
+    );
+
+    const records = await TermlyAverage.aggregate(pipeline);
+
+    // Calculate overall statistics
+    const totalRecords = records.length;
+    const sumScore = records.reduce((sum, r) => sum + (r.averageScore || 0), 0);
+    const overallAverage = totalRecords > 0 ? (sumScore / totalRecords).toFixed(2) : 0;
+
+    // Calculate Chart Data (Average per term)
+    // We group by term to build a bar chart.
+    const termStats = {
+      'First Term': { total: 0, count: 0 },
+      'Second Term': { total: 0, count: 0 },
+      'Third Term': { total: 0, count: 0 },
+    };
+
+    records.forEach(r => {
+      if (termStats[r.term]) {
+        termStats[r.term].total += (r.averageScore || 0);
+        termStats[r.term].count += 1;
+      }
+    });
+
+    const chartData = {
+      'First': termStats['First Term'].count > 0 ? (termStats['First Term'].total / termStats['First Term'].count).toFixed(2) : 0,
+      'Second': termStats['Second Term'].count > 0 ? (termStats['Second Term'].total / termStats['Second Term'].count).toFixed(2) : 0,
+      'Third': termStats['Third Term'].count > 0 ? (termStats['Third Term'].total / termStats['Third Term'].count).toFixed(2) : 0,
+    };
+
+    res.status(200).json({
+      records,
+      stats: {
+        totalRecords,
+        overallAverage,
+      },
+      chartData,
+    });
+  } catch (err) {
+    console.error('Error in getTermlyAverageAnalytics:', err);
+    res.status(500).json({ message: 'Error fetching termly average analytics' });
+  }
+};
+
