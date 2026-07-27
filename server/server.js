@@ -168,14 +168,18 @@ app.use(customErrorHandler)
 const startDB = async () => {
   try {
     await connectDB(process.env.MONGO_URI)
-    // const primary = await PrimarySchools.find({});
-    // const secondary = await Schools.find({});
-
-    // const allSchools = [...primary, ...secondary];
-
-    // await AllSchools.insertMany(allSchools);
-
-    // await ensureIndexes()
+    
+    // Initialize SystemControl document if it doesn't exist
+    const { SystemControl } = await import('./models/index.js');
+    const systemControlCount = await SystemControl.countDocuments();
+    if (systemControlCount === 0) {
+      await SystemControl.create({
+        allowAttendance: true,
+        allowEnrollment: true,
+        allowVerification: true,
+      });
+      console.log('✅ SystemControl default configuration initialized');
+    }
 
     app.listen(PORT, () => {
       console.log('app connected to port:' + PORT)

@@ -19,6 +19,8 @@ import { SchoolAttendance } from "./schoolAttendance.js";
 import { StudentStatusEvent } from "./studentStatusEventSchema.js";
 
 
+import { SystemControl } from "./systemControlSchema.js";
+
 export {
   AllSchools,
   Attendance,
@@ -39,4 +41,5 @@ export {
   TermlyAverage,
   SchoolAttendance,
   StudentStatusEvent,
+  SystemControl,
 }
