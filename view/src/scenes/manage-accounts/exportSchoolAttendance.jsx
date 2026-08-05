@@ -655,13 +655,12 @@ export const ExportSchoolAttendance = () => {
             placeholder="Enter attendance score" // Add this line for default text
             required
             inputProps={{
-              pattern: '^[0-9]{2,3}$', // Enforces 2 to 3 digits only
               title: 'Only 2 to 3 digits are allowed', // Error message shown on invalid input
               maxLength: 3, // Ensures a maximum of 3 characters
+              min: 0,
+              max: 100
             }}
-            onInput={(e) => {
-              e.target.value = e.target.value.replace(/\D/g, '') // Remove non-digit characters
-            }}
+            type="number"
             InputProps={{
               sx: {
                 height: '50px', // Controls the height of the inner input field
