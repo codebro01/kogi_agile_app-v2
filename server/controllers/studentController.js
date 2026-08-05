@@ -1378,6 +1378,14 @@ export const getStudentsAttendance = async (req, res, next) => {
       results = results.filter(r => r.attendancePercentage >= minPercentage);
     }
 
+    // If any time-based filter is active, remove students whose school had no attendance
+    // recorded in that period. A student with totalSchoolDays=0 means the attendance query
+    // returned nothing for their school, which means they don't belong in this filtered export.
+    const hasTimePeriodFilter = !!(term || session || month || year || dateFrom || dateTo);
+    if (hasTimePeriodFilter) {
+      results = results.filter(r => r.totalSchoolDays > 0);
+    }
+
     if (results.length === 0) {
       return next(new NotFoundError('No record found after attendance calculation'));
     }

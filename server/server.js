@@ -169,17 +169,17 @@ const startDB = async () => {
   try {
     await connectDB(process.env.MONGO_URI)
     
-    // Initialize SystemControl document if it doesn't exist
-    const { SystemControl } = await import('./models/index.js');
-    const systemControlCount = await SystemControl.countDocuments();
-    if (systemControlCount === 0) {
-      await SystemControl.create({
-        allowAttendance: true,
-        allowEnrollment: true,
-        allowVerification: true,
-      });
-      console.log('✅ SystemControl default configuration initialized');
-    }
+    // // Initialize SystemControl document if it doesn't exist
+    // const { SystemControl } = await import('./models/index.js');
+    // const systemControlCount = await SystemControl.countDocuments();
+    // if (systemControlCount === 0) {
+    //   await SystemControl.create({
+    //     allowAttendance: true,
+    //     allowEnrollment: true,
+    //     allowVerification: true,
+    //   });
+    //   console.log('✅ SystemControl default configuration initialized');
+    // }
 
     app.listen(PORT, () => {
       console.log('app connected to port:' + PORT)

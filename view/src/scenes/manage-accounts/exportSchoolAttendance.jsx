@@ -77,7 +77,7 @@ export const ExportSchoolAttendance = () => {
     percentage: '',
     dateFrom: '',
     dateTo: '',
-    withBankDetails: true, 
+    withBankDetails: false, 
   })
 
   const monthOptions = [
@@ -168,9 +168,12 @@ export const ExportSchoolAttendance = () => {
     withBankDetails: filters.withBankDetails
   }
   const filteredParams = Object.entries(params)
-    .filter(([_, value]) => value != null && value !== '') // Filter out empty values
+    .filter(([key, value]) => {
+      if (key === 'withBankDetails') return value === true; // Only include if explicitly true
+      return value != null && value !== ''; // Filter out empty values for all other fields
+    })
     .reduce((acc, [key, value]) => {
-      acc[key] = value // Directly add each key-value pair to the accumulator
+      acc[key] = value
       return acc
     }, {})
 
@@ -739,7 +742,7 @@ export const ExportSchoolAttendance = () => {
         <FormGroup>
           <FormControlLabel
             control={<Checkbox 
-                defaultChecked 
+                checked={filters.withBankDetails || false} 
                 onChange = {(e)=> setFilters(prev => {
                     const {checked} = e.target;
                     return {
