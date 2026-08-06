@@ -77,7 +77,7 @@ export const ExportSchoolAttendance = () => {
     percentage: '',
     dateFrom: '',
     dateTo: '',
-    withBankDetails: false, 
+    withBankDetails: true, 
   })
 
   const monthOptions = [

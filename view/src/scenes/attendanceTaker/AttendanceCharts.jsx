@@ -24,9 +24,13 @@ export const AttendanceCharts = ({ type, data }) => {
     const colors = tokens(theme.palette.mode);
 
     if (type === 'pie') {
+        // Calculate how many ineligible students are just chronically absent (not transferred/died/dropout)
+        const pureIneligible = Math.max(0, (data.ineligible || 0) - ((data.transferred || 0) + (data.died || 0) + (data.dropout || 0)));
+        
         // Build slices — filter out zero-value entries so they don't pollute the legend or chart
         const allSlices = [
             { label: 'Eligible (≥ 70%)',       value: data.eligible    || 0, color: CHART_COLORS.present.light   },
+            { label: 'Ineligible (< 70%)',     value: pureIneligible,        color: CHART_COLORS.absent.light    },
             { label: 'Transferred / Relocated', value: data.transferred || 0, color: CHART_COLORS.transferred.bg  },
             { label: 'Died',                    value: data.died        || 0, color: CHART_COLORS.died.bg          },
             { label: 'Dropout',                 value: data.dropout     || 0, color: CHART_COLORS.dropout.bg       },

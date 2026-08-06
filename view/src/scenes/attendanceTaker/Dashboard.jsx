@@ -441,7 +441,7 @@ export const AttendanceTakerDashboard = () => {
                     {isLoadingStats ? <Skeleton variant="text" width={50} /> : (stats.daysOpened || 0).toLocaleString()}
                 </Typography>
                 <Typography fontWeight={600} fontSize="0.9rem" color="#424242">
-                    📅 Number of Days School Opened
+                    Number of Days School Opened
                 </Typography>
             </Box>
 
