@@ -936,6 +936,9 @@ export const getSchoolBasedAttendanceAnalytics = async (req, res) => {
 
     // --- If cohort filter is set, get the list of student IDs in that cohort (scoped to school) ---
     let cohortStudentIds = null;
+    // For Cohort 1: also track the FULL count (including students without accountNumber)
+    // so totalStudents = 13,359 rather than 13,356. Those 3 extra show as Ineligible.
+    let cohort1TotalCount = null;
     if (cohort) {
       const cohortStudentQuery = { cohort: Number(cohort) };
       // Also scope by school so the school filter is respected
@@ -945,6 +948,10 @@ export const getSchoolBasedAttendanceAnalytics = async (req, res) => {
         } else {
           cohortStudentQuery.schoolId = new mongoose.Types.ObjectId(schoolId);
         }
+      }
+      // For Cohort 1: get the unrestricted total BEFORE adding accountNumber filter
+      if (Number(cohort) === 1) {
+        cohort1TotalCount = await Student.countDocuments(cohortStudentQuery);
       }
       cohortStudentQuery.accountNumber = { $exists: true, $ne: '' }; // Only genuine enrolled students
       const cohortStudents = await Student.find(cohortStudentQuery, '_id').lean();
@@ -1048,7 +1055,14 @@ export const getSchoolBasedAttendanceAnalytics = async (req, res) => {
     stats.daysOpened = uniqueDays.size;
 
     if (cohortStudentIds) {
-      stats.totalStudents = cohortStudentIds.size;
+      if (cohort1TotalCount !== null) {
+        // Cohort 1 special rule: totalStudents = ALL cohort 1 students (including without bank details)
+        // Eligible stays as calculated. Ineligible = total - eligible (absorbs the ~3 students without bank details)
+        stats.totalStudents = cohort1TotalCount;
+        stats.ineligible = Math.max(0, cohort1TotalCount - stats.eligible);
+      } else {
+        stats.totalStudents = cohortStudentIds.size;
+      }
     } else {
       let totalEnrolledSum = 0;
       Object.values(latestPerSchool).forEach(record => {
