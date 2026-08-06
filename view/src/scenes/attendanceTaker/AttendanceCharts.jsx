@@ -130,11 +130,12 @@ export const AttendanceCharts = ({ type, data }) => {
     }
 
     if (type === 'bar' && data.groupA && data.groupB) {
-        const labels = ['Present', 'Absent', 'Transferred', 'Dropout', 'Died'];
-        
-        const totalA = data.groupA.present + data.groupA.absent + data.groupA.transferred + data.groupA.dropout + data.groupA.died;
-        const totalB = data.groupB.present + data.groupB.absent + data.groupB.transferred + data.groupB.dropout + data.groupB.died;
-        
+        // Use eligible/ineligible as totals — present/absent are no longer populated
+        const labels = ['Eligible (≥70%)', 'Ineligible (<70%)', 'Transferred', 'Dropout', 'Died'];
+
+        const totalA = (data.groupA.eligible || 0) + (data.groupA.ineligible || 0);
+        const totalB = (data.groupB.eligible || 0) + (data.groupB.ineligible || 0);
+
         const getPct = (val, total) => total > 0 ? Number(((val / total) * 100).toFixed(1)) : 0;
 
         const chartData = {
@@ -143,22 +144,22 @@ export const AttendanceCharts = ({ type, data }) => {
                 {
                     label: data.groupALabel || 'Group A',
                     data: [
-                        getPct(data.groupA.present, totalA),
-                        getPct(data.groupA.absent, totalA),
-                        getPct(data.groupA.transferred, totalA),
-                        getPct(data.groupA.dropout, totalA),
-                        getPct(data.groupA.died, totalA)
+                        getPct(data.groupA.eligible    || 0, totalA),
+                        getPct(data.groupA.ineligible  || 0, totalA),
+                        getPct(data.groupA.transferred || 0, totalA),
+                        getPct(data.groupA.dropout     || 0, totalA),
+                        getPct(data.groupA.died        || 0, totalA)
                     ],
                     backgroundColor: colors.blueAccent[500],
                 },
                 {
                     label: data.groupBLabel || 'Group B',
                     data: [
-                        getPct(data.groupB.present, totalB),
-                        getPct(data.groupB.absent, totalB),
-                        getPct(data.groupB.transferred, totalB),
-                        getPct(data.groupB.dropout, totalB),
-                        getPct(data.groupB.died, totalB)
+                        getPct(data.groupB.eligible    || 0, totalB),
+                        getPct(data.groupB.ineligible  || 0, totalB),
+                        getPct(data.groupB.transferred || 0, totalB),
+                        getPct(data.groupB.dropout     || 0, totalB),
+                        getPct(data.groupB.died        || 0, totalB)
                     ],
                     backgroundColor: colors.greenAccent[500],
                 }
