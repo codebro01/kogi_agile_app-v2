@@ -38,7 +38,7 @@ export const AttendanceTakerDashboard = () => {
 
     // Filters
     const [schoolId, setSchoolId] = useState('all');
-    const [cohort, setCohort] = useState('');
+    const [cohort, setCohort] = useState('1');  // Default to Cohort 1
     const [fromDate, setFromDate] = useState('');
     const [toDate, setToDate] = useState('');
     const [month, setMonth] = useState(() => {
@@ -48,7 +48,7 @@ export const AttendanceTakerDashboard = () => {
         return (now.getMonth() + 1).toString();
     });
     const [year, setYear] = useState(new Date().getFullYear().toString());
-    const [term, setTerm] = useState('');
+    const [term, setTerm] = useState('First Term');  // Default to First Term
     const [session, setSession] = useState('');
     const [trendSession, setTrendSession] = useState('');
     const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
