@@ -62,6 +62,7 @@ export const AttendanceTakerDashboard = () => {
         if (analyticsAbortRef.current) analyticsAbortRef.current.abort();
         analyticsAbortRef.current = new AbortController();
         setIsLoadingStats(true);
+        console.log('[fetchAnalytics] Starting request with filters:', filters);
         try {
             const token = localStorage.getItem("token");
             const assignedSchools = storedUser?.assignedSchools || [];
@@ -69,17 +70,24 @@ export const AttendanceTakerDashboard = () => {
             if (filters.schoolId === 'all') {
                 querySchoolId = isAdminOrCct ? 'all' : assignedSchools.map(s => s._id).join(',');
             }
+            console.log('[fetchAnalytics] querySchoolId:', querySchoolId);
             const res = await axios.get(`${API_URL}/attendance/school-analytics`, {
                 params: { schoolId: querySchoolId, cohort: filters.cohort, fromDate: filters.fromDate, toDate: filters.toDate, term: filters.term, session: filters.session },
                 headers: { Authorization: `Bearer ${token}` },
                 withCredentials: true,
                 signal: analyticsAbortRef.current.signal,
             });
-            setStats(prev => ({ ...prev, ...res.data.stats }));
+            console.log('[fetchAnalytics] Request SUCCESS, res.data:', res.data);
+            setStats(prev => {
+                const nextStats = { ...prev, ...res.data.stats };
+                return nextStats;
+            });
+            setIsLoadingStats(false);
         } catch (err) {
-            if (axios.isCancel(err) || err.name === 'CanceledError') return;
-            console.error(err);
-        } finally {
+            if (axios.isCancel(err) || err.name === 'CanceledError') {
+                return; // Do NOT set loading to false, the next request is handling it
+            }
+            console.error('[fetchAnalytics] Request ERROR:', err);
             setIsLoadingStats(false);
         }
     }, [isAdminOrCct, storedUser, API_URL]);
@@ -102,10 +110,10 @@ export const AttendanceTakerDashboard = () => {
                 signal: barAbortRef.current.signal,
             });
             setMonthlyBarData(res.data.monthlyData || []);
+            setIsLoadingBar(false);
         } catch (err) {
             if (axios.isCancel(err) || err.name === 'CanceledError') return;
             console.error(err);
-        } finally {
             setIsLoadingBar(false);
         }
     }, [isAdminOrCct, storedUser, API_URL]);
@@ -128,10 +136,10 @@ export const AttendanceTakerDashboard = () => {
                 signal: trendAbortRef.current.signal,
             });
             setTrend(res.data.trend);
+            setIsLoadingTrend(false);
         } catch (err) {
             if (axios.isCancel(err) || err.name === 'CanceledError') return;
             console.error(err);
-        } finally {
             setIsLoadingTrend(false);
         }
     }, [isAdminOrCct, storedUser, API_URL]);
@@ -365,7 +373,7 @@ export const AttendanceTakerDashboard = () => {
                     overflow="hidden" minHeight="110px">
                     <StatBox
                         title={isLoadingStats ? <Skeleton variant="text" width={70} /> : (stats.eligible || 0).toLocaleString()}
-                        subtitle="Total Eligible (≥ 70% Attendance)"
+                        subtitle="Total Eligible"
                         titleColor="#388e3c"
                         subtitleColor="#424242"
                     />
@@ -381,7 +389,7 @@ export const AttendanceTakerDashboard = () => {
                         overflow="hidden" minHeight="110px">
                         <StatBox
                             title={isLoadingStats ? <Skeleton variant="text" width={70} /> : (stats.ineligible || 0).toLocaleString()}
-                            subtitle="Total Ineligible (< 70% Attendance)"
+                            subtitle="Total Ineligible"
                             titleColor="#d32f2f"
                             subtitleColor="#424242"
                         />

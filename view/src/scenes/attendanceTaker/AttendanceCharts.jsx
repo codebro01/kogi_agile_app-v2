@@ -39,7 +39,8 @@ export const AttendanceCharts = ({ type, data }) => {
             datasets: [{
                 data: visibleSlices.map(s => s.value),
                 backgroundColor: visibleSlices.map(s => s.color),
-                borderWidth: 2,
+                // No border when only one slice — prevents the white gap line
+                borderWidth: visibleSlices.length > 1 ? 2 : 0,
                 borderColor: '#fff',
                 hoverOffset: 10,
             }],
