@@ -24,24 +24,27 @@ export const AttendanceCharts = ({ type, data }) => {
     const colors = tokens(theme.palette.mode);
 
     if (type === 'pie') {
+        // Build slices — filter out zero-value entries so they don't pollute the legend or chart
+        const allSlices = [
+            { label: 'Eligible (≥ 70%)',       value: data.eligible    || 0, color: CHART_COLORS.present.light   },
+            { label: 'Transferred / Relocated', value: data.transferred || 0, color: CHART_COLORS.transferred.bg  },
+            { label: 'Died',                    value: data.died        || 0, color: CHART_COLORS.died.bg          },
+            { label: 'Dropout',                 value: data.dropout     || 0, color: CHART_COLORS.dropout.bg       },
+        ];
+        // Always show Eligible even if 0; only show the others when they are > 0
+        const visibleSlices = allSlices.filter((s, i) => i === 0 || s.value > 0);
+
         const chartData = {
-            labels: ['Eligible (>= 70%)', 'Ineligible (< 70%)', 'Transferred', 'Dropout', 'Died'],
-            datasets: [
-                {
-                    data: [data.eligible, data.ineligible, data.transferred, data.dropout, data.died],
-                    backgroundColor: [
-                        CHART_COLORS.present.light, // Reuse present color for eligible
-                        CHART_COLORS.absent.light,  // Reuse absent color for ineligible
-                        CHART_COLORS.transferred.bg,
-                        CHART_COLORS.dropout.bg,
-                        CHART_COLORS.died.bg,
-                    ],
-                    borderWidth: 0,
-                    hoverOffset: 8,
-                    
-                },
-            ],
+            labels: visibleSlices.map(s => s.label),
+            datasets: [{
+                data: visibleSlices.map(s => s.value),
+                backgroundColor: visibleSlices.map(s => s.color),
+                borderWidth: 2,
+                borderColor: '#fff',
+                hoverOffset: 10,
+            }],
         };
+
         const pieOptions = {
             maintainAspectRatio: false,
             plugins: {
@@ -50,7 +53,7 @@ export const AttendanceCharts = ({ type, data }) => {
                     labels: {
                         color: LEGEND_COLOR,
                         font: BOLD_FONT,
-                        padding: 14,
+                        padding: 16,
                         usePointStyle: true,
                     }
                 },
@@ -72,18 +75,27 @@ export const AttendanceCharts = ({ type, data }) => {
                 datalabels: {
                     color: '#ffffff',
                     font: BOLD_FONT,
-                    textStrokeColor: 'rgba(0,0,0,0.5)',
+                    textStrokeColor: 'rgba(0,0,0,0.6)',
                     textStrokeWidth: 3,
+                    // Only show label when slice is large enough to be visible (>0)
                     formatter: (value, context) => {
+                        if (!value || value === 0) return ''; // hide zero labels
                         const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                        const pct = total > 0 ? ((value / total) * 100).toFixed(1) + '%' : '0%';
-                        return (value || 0).toLocaleString();
+                        const pct = total > 0 ? ((value / total) * 100).toFixed(1) + '%' : '';
+                        return `${value.toLocaleString()}\n${pct}`;
+                    },
+                    // Also hide label if the slice is too small (< 3%)
+                    display: (context) => {
+                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                        const value = context.dataset.data[context.dataIndex];
+                        return total > 0 && (value / total) > 0.03;
                     }
                 }
             }
         };
         return <Pie data={chartData} options={pieOptions} />;
     }
+
 
     if (type === 'line') {
         const labels = Object.keys(data);

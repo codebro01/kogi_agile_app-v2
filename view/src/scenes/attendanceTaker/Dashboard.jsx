@@ -336,42 +336,109 @@ export const AttendanceTakerDashboard = () => {
                 </Box>
             )}
 
-            {/* Top row: Total Students, Days Opened, Eligible */}
-            <Box display="grid" gridTemplateColumns="repeat(3, 1fr)" gap="20px" mb="16px">
-                <Box backgroundColor="#f4f6f8" display="flex" alignItems="center" justifyContent="center" borderRadius="8px" boxShadow="0px 2px 4px rgba(0,0,0,0.1)" overflow="hidden">
-                    <StatBox title={isLoadingStats ? <Skeleton variant="text" width={60} /> : (stats.totalStudents || 0).toLocaleString()} subtitle="Total Students" titleColor="#0288d1" subtitleColor="#424242" />
+            {/* ══ KPI CARDS SECTION ══
+                Layout:  [Total Students]  [Eligible]  [Ineligible + its breakdown]
+                The right column is a flex-column so Ineligible card sits on top of
+                Transferred / Died / Dropout — they always align perfectly.
+            */}
+            <Box display="flex" gap="20px" mb="20px" flexWrap="wrap">
+
+                {/* ── Column 1: Total Students Enrolled ── */}
+                <Box flex="1" minWidth="200px"
+                    backgroundColor="#f4f6f8"
+                    display="flex" alignItems="center" justifyContent="center"
+                    borderRadius="8px" boxShadow="0px 2px 4px rgba(0,0,0,0.1)"
+                    overflow="hidden" minHeight="110px">
+                    <StatBox
+                        title={isLoadingStats ? <Skeleton variant="text" width={70} /> : (stats.totalStudents || 0).toLocaleString()}
+                        subtitle="Total Students Enrolled"
+                        titleColor="#0288d1"
+                        subtitleColor="#424242"
+                    />
                 </Box>
-                <Box backgroundColor="#f4f6f8" display="flex" alignItems="center" justifyContent="center" borderRadius="8px" boxShadow="0px 2px 4px rgba(0,0,0,0.1)" overflow="hidden">
-                    <StatBox title={isLoadingStats ? <Skeleton variant="text" width={60} /> : (stats.daysOpened || 0).toLocaleString()} subtitle="Days Opened" titleColor="#7b1fa2" subtitleColor="#424242" />
+
+                {/* ── Column 2: Total Eligible ── */}
+                <Box flex="1" minWidth="200px"
+                    backgroundColor="#e8f5e9"
+                    display="flex" alignItems="center" justifyContent="center"
+                    borderRadius="8px" boxShadow="0px 2px 4px rgba(56,142,60,0.2)"
+                    overflow="hidden" minHeight="110px">
+                    <StatBox
+                        title={isLoadingStats ? <Skeleton variant="text" width={70} /> : (stats.eligible || 0).toLocaleString()}
+                        subtitle="Total Eligible (≥ 70% Attendance)"
+                        titleColor="#388e3c"
+                        subtitleColor="#424242"
+                    />
                 </Box>
-                {/* <Box backgroundColor="#f4f6f8" display="flex" alignItems="center" justifyContent="center" borderRadius="8px" boxShadow="0px 2px 4px rgba(0,0,0,0.1)" overflow="hidden">
-                    <StatBox title={isLoadingStats ? <Skeleton variant="text" width={60} /> : (stats.present || 0).toLocaleString()} subtitle="Present" titleColor="#388e3c" subtitleColor="#424242" />
-                </Box> */}
-                <Box backgroundColor="#f4f6f8" display="flex" alignItems="center" justifyContent="center" borderRadius="8px" boxShadow="0px 2px 4px rgba(0,0,0,0.1)" overflow="hidden">
-                    <StatBox title={isLoadingStats ? <Skeleton variant="text" width={60} /> : (stats.eligible || 0).toLocaleString()} subtitle="Eligible (>= 70%)" titleColor="#388e3c" subtitleColor="#424242" />
+
+                {/* ── Column 3: Ineligible header card + 3 breakdown sub-cards stacked below ── */}
+                <Box flex="1" minWidth="200px" display="flex" flexDirection="column" gap="10px">
+
+                    {/* Ineligible total */}
+                    <Box backgroundColor="#ffebee"
+                        display="flex" alignItems="center" justifyContent="center"
+                        borderRadius="8px" boxShadow="0px 2px 4px rgba(211,47,47,0.2)"
+                        overflow="hidden" minHeight="110px">
+                        <StatBox
+                            title={isLoadingStats ? <Skeleton variant="text" width={70} /> : (stats.ineligible || 0).toLocaleString()}
+                            subtitle="Total Ineligible (< 70% Attendance)"
+                            titleColor="#d32f2f"
+                            subtitleColor="#424242"
+                        />
+                    </Box>
+
+                    {/* 3 breakdown sub-cards side by side */}
+                    <Box display="grid" gridTemplateColumns="repeat(3, 1fr)" gap="10px">
+                        <Box backgroundColor="#fff3e0"
+                            display="flex" alignItems="center" justifyContent="center"
+                            borderRadius="8px" boxShadow="0px 2px 4px rgba(245,124,0,0.15)"
+                            overflow="hidden" minHeight="75px">
+                            <StatBox
+                                title={isLoadingStats ? <Skeleton variant="text" width={40} /> : (stats.transferred || 0).toLocaleString()}
+                                subtitle="Transferred"
+                                titleColor="#f57c00"
+                                subtitleColor="#424242"
+                            />
+                        </Box>
+                        <Box backgroundColor="#eceff1"
+                            display="flex" alignItems="center" justifyContent="center"
+                            borderRadius="8px" boxShadow="0px 2px 4px rgba(69,90,100,0.15)"
+                            overflow="hidden" minHeight="75px">
+                            <StatBox
+                                title={isLoadingStats ? <Skeleton variant="text" width={40} /> : (stats.died || 0).toLocaleString()}
+                                subtitle="Died"
+                                titleColor="#455a64"
+                                subtitleColor="#424242"
+                            />
+                        </Box>
+                        <Box backgroundColor="#efebe9"
+                            display="flex" alignItems="center" justifyContent="center"
+                            borderRadius="8px" boxShadow="0px 2px 4px rgba(141,110,99,0.15)"
+                            overflow="hidden" minHeight="75px">
+                            <StatBox
+                                title={isLoadingStats ? <Skeleton variant="text" width={40} /> : (stats.dropout || 0).toLocaleString()}
+                                subtitle="Dropout"
+                                titleColor="#8d6e63"
+                                subtitleColor="#424242"
+                            />
+                        </Box>
+                    </Box>
                 </Box>
             </Box>
 
-            {/* Bottom row: Ineligible, Transferred, Died, Dropout */}
-            <Box display="grid" gridTemplateColumns="repeat(auto-fit, minmax(140px, 1fr))" gap="20px" mb="20px">
-                {/* <Box backgroundColor="#f4f6f8" display="flex" alignItems="center" justifyContent="center" borderRadius="8px" boxShadow="0px 2px 4px rgba(0,0,0,0.1)" overflow="hidden">
-                    <StatBox title={isLoadingStats ? <Skeleton variant="text" width={60} /> : (stats.absent || 0).toLocaleString()} subtitle="Absent" titleColor="#d32f2f" subtitleColor="#424242" />
-                </Box> */}
-                <Box backgroundColor="#f4f6f8" display="flex" alignItems="center" justifyContent="center" borderRadius="8px" boxShadow="0px 2px 4px rgba(0,0,0,0.1)" overflow="hidden">
-                    <StatBox title={isLoadingStats ? <Skeleton variant="text" width={60} /> : (stats.ineligible || 0).toLocaleString()} subtitle="Ineligible (< 70%)" titleColor="#d32f2f" subtitleColor="#424242" />
-                </Box>
-                <Box backgroundColor="#f4f6f8" display="flex" alignItems="center" justifyContent="center" borderRadius="8px" boxShadow="0px 2px 4px rgba(0,0,0,0.1)" overflow="hidden">
-                    <StatBox title={isLoadingStats ? <Skeleton variant="text" width={60} /> : (stats.transferred || 0).toLocaleString()} subtitle="Transferred" titleColor="#f57c00" subtitleColor="#424242" />
-                </Box>
-                <Box backgroundColor="#f4f6f8" display="flex" alignItems="center" justifyContent="center" borderRadius="8px" boxShadow="0px 2px 4px rgba(0,0,0,0.1)" overflow="hidden">
-                    <StatBox title={isLoadingStats ? <Skeleton variant="text" width={60} /> : (stats.died || 0).toLocaleString()} subtitle="Died" titleColor="#455a64" subtitleColor="#424242" />
-                </Box>
-                <Box backgroundColor="#f4f6f8" display="flex" alignItems="center" justifyContent="center" borderRadius="8px" boxShadow="0px 2px 4px rgba(0,0,0,0.1)" overflow="hidden">
-                    <StatBox title={isLoadingStats ? <Skeleton variant="text" width={60} /> : (stats.dropout || 0).toLocaleString()} subtitle="Dropout" titleColor="#8d6e63" subtitleColor="#424242" />
-                </Box>
+            {/* ── Days Opened — standalone pill ── */}
+            <Box mb="20px" display="inline-flex" alignItems="center" gap="12px"
+                sx={{ backgroundColor: '#f3e5f5', borderRadius: '8px', px: '24px', py: '12px', boxShadow: '0px 2px 4px rgba(123,31,162,0.15)' }}>
+                <Typography fontWeight={700} fontSize="1.6rem" color="#7b1fa2" lineHeight={1}>
+                    {isLoadingStats ? <Skeleton variant="text" width={50} /> : (stats.daysOpened || 0).toLocaleString()}
+                </Typography>
+                <Typography fontWeight={600} fontSize="0.9rem" color="#424242">
+                    📅 Number of Days School Opened
+                </Typography>
             </Box>
 
             <Box display="flex" gap="20px" flexWrap="wrap">
+                {/* Pie chart — Eligible vs Ineligible breakdown */}
                 <Box flex="1" minWidth="280px" backgroundColor={colors.primary[400]} p="20px" borderRadius="8px">
                     <Typography variant="h5" fontWeight="600" mb="20px">Attendance Analysis</Typography>
                     <Box height="300px">
