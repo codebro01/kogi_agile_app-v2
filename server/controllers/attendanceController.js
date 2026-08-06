@@ -1156,7 +1156,12 @@ export const getSchoolMonthlyBarChart = async (req, res) => {
       }
     }
 
-    if (term) matchQuery.term = term;
+    // Normalize term — match both "First" and "First Term" formats
+    if (term) {
+      const normalized = term.includes('Term') ? term : `${term} Term`;
+      const short = normalized.replace(' Term', '');
+      matchQuery.term = { $in: [normalized, short] };
+    }
     if (session) matchQuery.session = session;
 
     // Cohort student IDs if needed
@@ -1170,6 +1175,7 @@ export const getSchoolMonthlyBarChart = async (req, res) => {
           cohortQuery.schoolId = new mongoose.Types.ObjectId(schoolId);
         }
       }
+      cohortQuery.accountNumber = { $exists: true, $ne: '' }; // Only genuine enrolled students
       const cohortStudents = await Student.find(cohortQuery, '_id').lean();
       cohortStudentIds = new Set(cohortStudents.map(s => s._id.toString()));
     }
