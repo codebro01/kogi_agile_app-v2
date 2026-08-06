@@ -367,7 +367,7 @@ export const AttendanceTakerDashboard = () => {
 
                 {/* ── Column 2: Total Eligible ── */}
                 <Box flex="1" minWidth="200px"
-                    backgroundColor="#e8f5e9"
+                    backgroundColor="#e8f5e9" 
                     display="flex" alignItems="center" justifyContent="center"
                     borderRadius="8px" boxShadow="0px 2px 4px rgba(56,142,60,0.2)"
                     overflow="hidden" minHeight="110px">
