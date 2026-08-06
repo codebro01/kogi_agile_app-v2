@@ -883,9 +883,10 @@ export const getSchoolBasedAttendanceAnalytics = async (req, res) => {
   try {
     const { schoolId, term, session, fromDate, toDate, cohort } = req.query;
 
+    console.log('[school-analytics] HIT - schoolId:', schoolId, 'cohort:', cohort, 'term:', term);
     if (schoolId === '') {
       return res.status(200).json({
-        stats: { totalStudents: 0, total: 0, absent: 0, present: 0, transferred: 0, dropout: 0, died: 0, daysOpened: 0 }
+        stats: { totalStudents: 0, total: 0, absent: 0, present: 0, eligible: 0, ineligible: 0, transferred: 0, dropout: 0, died: 0, daysOpened: 0 }
       });
     }
 
@@ -952,11 +953,27 @@ export const getSchoolBasedAttendanceAnalytics = async (req, res) => {
       .select('schoolId date totalEnrolled attendanceTaken absentees.studentId absentees.student absentees.cohort')
       .lean();
 
+    // --- Fetch students matching the school/cohort filters for student-level calculations ---
+    const studentQuery = {};
+    if (schoolId && schoolId !== 'all') {
+      if (schoolId.includes(',')) {
+        studentQuery.schoolId = { $in: schoolId.split(',').map(id => new mongoose.Types.ObjectId(id.trim())) };
+      } else {
+        studentQuery.schoolId = new mongoose.Types.ObjectId(schoolId);
+      }
+    }
+    if (cohort) studentQuery.cohort = Number(cohort);
+    
+    // Only fetch necessary fields to keep memory usage low
+    const students = await Student.find(studentQuery, '_id schoolId').lean();
+
     const stats = {
       totalStudents: 0,
       total: 0,
-      absent: 0,
+      absent: 0, // Keeping these for backwards compatibility, but they will remain 0
       present: 0,
+      eligible: 0,
+      ineligible: 0,
       transferred: 0,
       dropout: 0,
       died: 0,
@@ -965,6 +982,8 @@ export const getSchoolBasedAttendanceAnalytics = async (req, res) => {
 
     const uniqueDays = new Set();
     const latestPerSchool = {};
+    const schoolDaysMap = {};
+    const studentAbsenceCount = {};
 
     // Status events (transferred, dropout, deceased)
     const statusEvents = await StudentStatusEvent.find(statusMatchQuery).lean();
@@ -976,45 +995,53 @@ export const getSchoolBasedAttendanceAnalytics = async (req, res) => {
       if (event.status === 'deceased') stats.died++;
     });
 
-    // Calculate present and absent from the records
+    // Process attendance records to build absence maps and track school days
     attendanceRecords.forEach(record => {
       if (!record.attendanceTaken) return;
 
-      // Track latest record per school for totalStudents
       const sid = record.schoolId?.toString();
       if (sid) {
+        // Track latest record per school for totalStudents estimation if needed
         if (!latestPerSchool[sid] || new Date(record.date) > new Date(latestPerSchool[sid].date)) {
           latestPerSchool[sid] = record;
         }
+        // Count total school days for this school
+        schoolDaysMap[sid] = (schoolDaysMap[sid] || 0) + 1;
       }
 
       const dateStr = new Date(record.date).toISOString().split('T')[0];
       uniqueDays.add(dateStr);
 
-      if (cohortStudentIds) {
-        // Cohort filter: count absentees only in that cohort
-        const cohortAbsentCount = (record.absentees || []).filter(a =>
-          cohortStudentIds.has((a.studentId || a.student)?.toString())
-        ).length;
-        // For cohort present count, we need cohort total enrolled in this school
-        // Use absentee cohort field if available, else fall back to full cohort list
-        const cohortAbsenteesWithCohort = (record.absentees || []).filter(a => String(a.cohort) === String(cohort));
-        const cohortAbsentFinal = cohortAbsenteesWithCohort.length || cohortAbsentCount;
-        // Present = cohortStudents in this school - absent
-        // We approximate: total cohort students - absent cohort students
-        const schoolCohortTotal = [...cohortStudentIds].length; // total cohort students across filter
-        stats.absent += cohortAbsentFinal;
-        stats.present += Math.max(0, schoolCohortTotal - cohortAbsentFinal);
+      // Track absences per student
+      (record.absentees || []).forEach(a => {
+        const studentId = (a.studentId || a.student)?.toString();
+        if (studentId && studentId !== '[object Object]') {
+          studentAbsenceCount[studentId] = (studentAbsenceCount[studentId] || 0) + 1;
+        }
+      });
+    });
+
+    // Calculate Eligible / Ineligible per student
+    students.forEach(student => {
+      const sId = student._id.toString();
+      const schId = student.schoolId?.toString();
+      const totalSchoolDays = schoolDaysMap[schId] || 0;
+      
+      // If the school didn't take any attendance in the filtered period, skip this student
+      if (totalSchoolDays === 0) return;
+
+      const absentDays = studentAbsenceCount[sId] || 0;
+      const presentDays = Math.max(0, totalSchoolDays - absentDays);
+      const attendancePercentage = (presentDays / totalSchoolDays) * 100;
+
+      if (attendancePercentage >= 70) {
+        stats.eligible++;
       } else {
-        const enrolled = record.totalEnrolled || 0;
-        const absentCount = (record.absentees || []).length;
-        const presentCount = Math.max(0, enrolled - absentCount);
-        stats.absent += absentCount;
-        stats.present += presentCount;
+        stats.ineligible++;
       }
     });
 
-    stats.total = stats.present + stats.absent;
+    stats.total = stats.eligible + stats.ineligible;
     stats.daysOpened = uniqueDays.size;
 
     if (cohortStudentIds) {
@@ -1026,6 +1053,7 @@ export const getSchoolBasedAttendanceAnalytics = async (req, res) => {
       });
       stats.totalStudents = totalEnrolledSum;
     }
+    console.log('[school-analytics] RESPONSE stats:', JSON.stringify(stats));
     res.status(200).json({ stats });
   } catch (err) {
     console.error(err);

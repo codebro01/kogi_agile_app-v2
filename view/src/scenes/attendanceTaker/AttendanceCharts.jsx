@@ -25,13 +25,13 @@ export const AttendanceCharts = ({ type, data }) => {
 
     if (type === 'pie') {
         const chartData = {
-            labels: ['Present', 'Absent', 'Transferred', 'Dropout', 'Died'],
+            labels: ['Eligible (>= 70%)', 'Ineligible (< 70%)', 'Transferred', 'Dropout', 'Died'],
             datasets: [
                 {
-                    data: [data.present, data.absent, data.transferred, data.dropout, data.died],
+                    data: [data.eligible, data.ineligible, data.transferred, data.dropout, data.died],
                     backgroundColor: [
-                        CHART_COLORS.present.light,
-                        CHART_COLORS.absent.light,
+                        CHART_COLORS.present.light, // Reuse present color for eligible
+                        CHART_COLORS.absent.light,  // Reuse absent color for ineligible
                         CHART_COLORS.transferred.bg,
                         CHART_COLORS.dropout.bg,
                         CHART_COLORS.died.bg,
@@ -77,7 +77,7 @@ export const AttendanceCharts = ({ type, data }) => {
                     formatter: (value, context) => {
                         const total = context.dataset.data.reduce((a, b) => a + b, 0);
                         const pct = total > 0 ? ((value / total) * 100).toFixed(1) + '%' : '0%';
-                        return value.toLocaleString();
+                        return (value || 0).toLocaleString();
                     }
                 }
             }

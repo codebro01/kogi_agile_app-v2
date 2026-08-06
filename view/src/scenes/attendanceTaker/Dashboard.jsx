@@ -27,7 +27,7 @@ export const AttendanceTakerDashboard = () => {
     const schoolState = useSelector((state) => state.schools);
     const { data: schoolsData, loading: schoolsLoading } = schoolState;
 
-    const [stats, setStats] = useState({ totalStudents: 0, total: 0, absent: 0, present: 0, transferred: 0, dropout: 0, died: 0, daysOpened: 0 });
+    const [stats, setStats] = useState({ totalStudents: 0, total: 0, absent: 0, present: 0, eligible: 0, ineligible: 0, transferred: 0, dropout: 0, died: 0, daysOpened: 0 });
     const [trend, setTrend] = useState({});
     const [monthlyBarData, setMonthlyBarData] = useState([]);
 
@@ -75,7 +75,7 @@ export const AttendanceTakerDashboard = () => {
                 withCredentials: true,
                 signal: analyticsAbortRef.current.signal,
             });
-            setStats(res.data.stats);
+            setStats(prev => ({ ...prev, ...res.data.stats }));
         } catch (err) {
             if (axios.isCancel(err) || err.name === 'CanceledError') return;
             console.error(err);
@@ -336,7 +336,7 @@ export const AttendanceTakerDashboard = () => {
                 </Box>
             )}
 
-            {/* Top row: Total Students, Days Opened, Present */}
+            {/* Top row: Total Students, Days Opened, Eligible */}
             <Box display="grid" gridTemplateColumns="repeat(3, 1fr)" gap="20px" mb="16px">
                 <Box backgroundColor="#f4f6f8" display="flex" alignItems="center" justifyContent="center" borderRadius="8px" boxShadow="0px 2px 4px rgba(0,0,0,0.1)" overflow="hidden">
                     <StatBox title={isLoadingStats ? <Skeleton variant="text" width={60} /> : (stats.totalStudents || 0).toLocaleString()} subtitle="Total Students" titleColor="#0288d1" subtitleColor="#424242" />
@@ -344,15 +344,21 @@ export const AttendanceTakerDashboard = () => {
                 <Box backgroundColor="#f4f6f8" display="flex" alignItems="center" justifyContent="center" borderRadius="8px" boxShadow="0px 2px 4px rgba(0,0,0,0.1)" overflow="hidden">
                     <StatBox title={isLoadingStats ? <Skeleton variant="text" width={60} /> : (stats.daysOpened || 0).toLocaleString()} subtitle="Days Opened" titleColor="#7b1fa2" subtitleColor="#424242" />
                 </Box>
-                <Box backgroundColor="#f4f6f8" display="flex" alignItems="center" justifyContent="center" borderRadius="8px" boxShadow="0px 2px 4px rgba(0,0,0,0.1)" overflow="hidden">
+                {/* <Box backgroundColor="#f4f6f8" display="flex" alignItems="center" justifyContent="center" borderRadius="8px" boxShadow="0px 2px 4px rgba(0,0,0,0.1)" overflow="hidden">
                     <StatBox title={isLoadingStats ? <Skeleton variant="text" width={60} /> : (stats.present || 0).toLocaleString()} subtitle="Present" titleColor="#388e3c" subtitleColor="#424242" />
+                </Box> */}
+                <Box backgroundColor="#f4f6f8" display="flex" alignItems="center" justifyContent="center" borderRadius="8px" boxShadow="0px 2px 4px rgba(0,0,0,0.1)" overflow="hidden">
+                    <StatBox title={isLoadingStats ? <Skeleton variant="text" width={60} /> : (stats.eligible || 0).toLocaleString()} subtitle="Eligible (>= 70%)" titleColor="#388e3c" subtitleColor="#424242" />
                 </Box>
             </Box>
 
-            {/* Bottom row: Absent, Transferred, Died, Dropout */}
+            {/* Bottom row: Ineligible, Transferred, Died, Dropout */}
             <Box display="grid" gridTemplateColumns="repeat(auto-fit, minmax(140px, 1fr))" gap="20px" mb="20px">
-                <Box backgroundColor="#f4f6f8" display="flex" alignItems="center" justifyContent="center" borderRadius="8px" boxShadow="0px 2px 4px rgba(0,0,0,0.1)" overflow="hidden">
+                {/* <Box backgroundColor="#f4f6f8" display="flex" alignItems="center" justifyContent="center" borderRadius="8px" boxShadow="0px 2px 4px rgba(0,0,0,0.1)" overflow="hidden">
                     <StatBox title={isLoadingStats ? <Skeleton variant="text" width={60} /> : (stats.absent || 0).toLocaleString()} subtitle="Absent" titleColor="#d32f2f" subtitleColor="#424242" />
+                </Box> */}
+                <Box backgroundColor="#f4f6f8" display="flex" alignItems="center" justifyContent="center" borderRadius="8px" boxShadow="0px 2px 4px rgba(0,0,0,0.1)" overflow="hidden">
+                    <StatBox title={isLoadingStats ? <Skeleton variant="text" width={60} /> : (stats.ineligible || 0).toLocaleString()} subtitle="Ineligible (< 70%)" titleColor="#d32f2f" subtitleColor="#424242" />
                 </Box>
                 <Box backgroundColor="#f4f6f8" display="flex" alignItems="center" justifyContent="center" borderRadius="8px" boxShadow="0px 2px 4px rgba(0,0,0,0.1)" overflow="hidden">
                     <StatBox title={isLoadingStats ? <Skeleton variant="text" width={60} /> : (stats.transferred || 0).toLocaleString()} subtitle="Transferred" titleColor="#f57c00" subtitleColor="#424242" />

@@ -88,5 +88,9 @@ schoolAttendanceSchema.index({ date: 1 });
 schoolAttendanceSchema.index({ term: 1, session: 1 });
 schoolAttendanceSchema.index({ schoolId: 1, term: 1, session: 1 });
 schoolAttendanceSchema.index({ 'absentees.studentId': 1 });
+// Compound indexes for full dashboard filter: school + term + session + date range
+schoolAttendanceSchema.index({ schoolId: 1, term: 1, session: 1, date: 1 });
+schoolAttendanceSchema.index({ term: 1, session: 1, date: 1 });
+schoolAttendanceSchema.index({ attendanceTaken: 1, schoolId: 1, date: 1 });
 
 export const SchoolAttendance = model('SchoolAttendance', schoolAttendanceSchema);

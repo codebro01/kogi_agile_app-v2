@@ -221,6 +221,7 @@ StudentSchema.index({ accountNumber: 1 })
 StudentSchema.index({ schoolId: 1 })
 StudentSchema.index({ presentClass: 1 })
 StudentSchema.index({ cohort: 1 })
+StudentSchema.index({ schoolId: 1, cohort: 1 })  // Dashboard: filter by school AND cohort together
 StudentSchema.index({ createdAt: -1 })
 StudentSchema.index({ updatedAt: -1 })
 

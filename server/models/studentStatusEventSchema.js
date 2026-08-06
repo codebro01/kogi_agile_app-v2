@@ -50,4 +50,11 @@ const studentStatusEventSchema = new Schema(
   { timestamps: true }
 );
 
+// Indexes for attendance dashboard analytics queries
+studentStatusEventSchema.index({ schoolId: 1 });
+studentStatusEventSchema.index({ date: 1 });
+studentStatusEventSchema.index({ term: 1, session: 1 });
+studentStatusEventSchema.index({ schoolId: 1, term: 1, session: 1 });
+studentStatusEventSchema.index({ schoolId: 1, term: 1, session: 1, date: 1 });
+
 export const StudentStatusEvent = mongoose.model('StudentStatusEvent', studentStatusEventSchema);
