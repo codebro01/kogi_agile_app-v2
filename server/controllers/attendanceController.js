@@ -441,6 +441,7 @@ export const getAttendanceAnalytics = async (req, res) => {
     }
     if (cohort) studentMatch.cohort = Number(cohort);
     if (presentClass) studentMatch.presentClass = presentClass;
+    studentMatch.accountNumber = { $exists: true, $ne: '' }; // Only genuine enrolled students
 
     const students = await Student.find(studentMatch).select('_id').lean();
     const studentIds = students.map(s => s._id);
@@ -945,6 +946,7 @@ export const getSchoolBasedAttendanceAnalytics = async (req, res) => {
           cohortStudentQuery.schoolId = new mongoose.Types.ObjectId(schoolId);
         }
       }
+      cohortStudentQuery.accountNumber = { $exists: true, $ne: '' }; // Only genuine enrolled students
       const cohortStudents = await Student.find(cohortStudentQuery, '_id').lean();
       cohortStudentIds = new Set(cohortStudents.map(s => s._id.toString()));
     }
@@ -963,6 +965,7 @@ export const getSchoolBasedAttendanceAnalytics = async (req, res) => {
       }
     }
     if (cohort) studentQuery.cohort = Number(cohort);
+    studentQuery.accountNumber = { $exists: true, $ne: '' }; // Only genuine enrolled students
     
     // Only fetch necessary fields to keep memory usage low
     const students = await Student.find(studentQuery, '_id schoolId').lean();
