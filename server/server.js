@@ -24,6 +24,7 @@ import {
   attendanceRouter,
   verifierRouter,
   attendanceTakerAuthRouter,
+  systemControlRouter,
 } from './routes/index.js'
 import {
   authMiddleware,
@@ -154,6 +155,7 @@ app.use('/api/v1/wards', wards)
 app.use('/api/v1/attendance', attendanceRouter)
 app.use('/api/v1/verifier', verifierRouter)
 app.use('/api/v1/attendance-takers', attendanceTakerAuthRouter)
+app.use('/api/v1/system-control', authMiddleware, systemControlRouter)
 
 app.use('/api/v1/payments', paymentRouter)
 // app.get("*", (req, res) => {

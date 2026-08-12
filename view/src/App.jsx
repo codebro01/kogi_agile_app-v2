@@ -70,6 +70,7 @@ import CreateVerifier from './scenes/manage-accounts/createVerifier.jsx'
 import PhotoCard from './scenes/manage-accounts/photoCard.jsx'
 import { CreateAttendanceTaker } from './scenes/manage-accounts/createAttendanceTaker.jsx'
 import { ManageAttendanceTakers } from './scenes/manage-accounts/manageAttendanceTakers.jsx'
+import SystemControl from './scenes/system-control/index.jsx'
 
 function App() {
   const [theme, colorMode] = useMode()
@@ -271,6 +272,10 @@ function App() {
                         <Route
                           path="/admin-dashboard/update-parent-relationship"
                           element={<UpdateParentRelationship />}
+                        />
+                        <Route
+                          path="/admin-dashboard/system-control"
+                          element={<SystemControl />}
                         />
                         <Route
                           path="/enumerator-dashboard/update-student/:id"

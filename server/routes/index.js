@@ -9,6 +9,7 @@ import schoolsRouter from './schoolsRouter.js';
 import attendanceRouter from './attendanceRouter.js';
 import verifierRouter from './verifierRouter.js'
 import attendanceTakerAuthRouter from './auth/attendanceTakerAuth.js'
+import systemControlRouter from './systemControlRoutes.js'
 
 export {
   schoolsRouter,
@@ -22,4 +23,5 @@ export {
   attendanceRouter,
   verifierRouter,
   attendanceTakerAuthRouter,
+  systemControlRouter,
 }

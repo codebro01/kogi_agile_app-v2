@@ -388,19 +388,23 @@ const Sidebar = ({ isSidebar }) => {
                   />
                 </SubMenu>
 
-                <Item
-                  title="Manage Admins"
-                  to={
-                    userPermissions.includes('handle_registrars')
-                      ? 'admin-dashboard/manage-accounts/admins'
-                      : 'enumerator-dashboard/view-all-students-data'
-                  }
-                  icon={<AdminPanelSettingsIcon />}
-                  selected={selected}
-                  setSelected={setSelected}
-                />
+                <SubMenu 
+                  title="Manage Users" 
+                  icon={<PeopleOutlinedIcon />}
+                  style={{ color: colors.grey[100] }}
+                >
+                  <Item
+                    title="Manage Admins"
+                    to={
+                      userPermissions.includes('handle_registrars')
+                        ? 'admin-dashboard/manage-accounts/admins'
+                        : 'enumerator-dashboard/view-all-students-data'
+                    }
+                    icon={<AdminPanelSettingsIcon />}
+                    selected={selected}
+                    setSelected={setSelected}
+                  />
 
-                <>
                   <Item
                     title="Manage Enumerators"
                     to={
@@ -412,6 +416,7 @@ const Sidebar = ({ isSidebar }) => {
                     selected={selected}
                     setSelected={setSelected}
                   />
+                  
                   <Item
                     title="Manage Payroll Specialists"
                     to={
@@ -423,6 +428,23 @@ const Sidebar = ({ isSidebar }) => {
                     selected={selected}
                     setSelected={setSelected}
                   />
+
+                  <Item
+                    title="Manage Attendance Takers"
+                    to={'/admin-dashboard/manage-accounts/attendance-takers'}
+                    icon={<EventNoteIcon />}
+                    selected={selected}
+                    setSelected={setSelected}
+                  />
+                </SubMenu>
+
+                <Item
+                  title="System Control"
+                  to={'/admin-dashboard/system-control'}
+                  icon={<AdminPanelSettingsIcon />}
+                  selected={selected}
+                  setSelected={setSelected}
+                />
 
                   <Item
                     title="School / LGA"
@@ -455,13 +477,6 @@ const Sidebar = ({ isSidebar }) => {
                     setSelected={setSelected}
                   />
                   <Item
-                    title="Manage Attendance Takers"
-                    to={'/admin-dashboard/manage-accounts/attendance-takers'}
-                    icon={<EventNoteIcon />}
-                    selected={selected}
-                    setSelected={setSelected}
-                  />
-                  <Item
                     title="Recycle Bin"
                     to={'/admin-dashboard/student/restore'}
                     icon={<FolderDeleteIcon />}
@@ -469,7 +484,6 @@ const Sidebar = ({ isSidebar }) => {
                     setSelected={setSelected}
                   />
                 </>
-              </>
             )}
 
             {/**********************************   Admin Sidebar ******************************** */}
