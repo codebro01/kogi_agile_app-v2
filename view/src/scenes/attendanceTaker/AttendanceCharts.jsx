@@ -192,8 +192,14 @@ export const AttendanceCharts = ({ type, data }) => {
 
     if (type === 'monthly-bar') {
         const labels = (data || []).map(d => d.label);
-        const presentData = (data || []).map(d => d.present);
-        const absentData = (data || []).map(d => d.absent);
+        const presentData = (data || []).map(d => {
+            const total = (d.present || 0) + (d.absent || 0);
+            return total > 0 ? Number((((d.present || 0) / total) * 100).toFixed(1)) : 0;
+        });
+        const absentData = (data || []).map(d => {
+            const total = (d.present || 0) + (d.absent || 0);
+            return total > 0 ? Number((((d.absent || 0) / total) * 100).toFixed(1)) : 0;
+        });
 
         const chartData = {
             labels,
@@ -243,7 +249,7 @@ export const AttendanceCharts = ({ type, data }) => {
                     bodyFont: BOLD_FONT,
                     callbacks: {
                         label: function (context) {
-                            return ` ${context.dataset.label}: ${context.raw.toLocaleString()}`;
+                            return ` ${context.dataset.label}: ${context.raw}%`;
                         }
                     }
                 },
@@ -252,7 +258,7 @@ export const AttendanceCharts = ({ type, data }) => {
                     font: BOLD_FONT,
                     anchor: 'end',
                     align: 'top',
-                    formatter: (value) => value.toLocaleString()
+                    formatter: (value) => value > 0 ? `${value}%` : ''
                 }
             },
             scales: {
@@ -267,12 +273,12 @@ export const AttendanceCharts = ({ type, data }) => {
                 },
                 y: {
                     beginAtZero: true,
-                    suggestedMax: Math.max(...presentData, ...absentData) * 1.2,  // 20% headroom above tallest bar
+                    suggestedMax: 100,
 
                     ticks: {
                         color: TICK_COLOR,
                         font: BOLD_FONT,
-                        callback: (v) => v.toLocaleString()
+                        callback: (v) => v + '%'
                     },
                     grid: { color: 'rgba(240,240,240,0.1)' }
                 }

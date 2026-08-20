@@ -1176,10 +1176,32 @@ export const getSchoolMonthlyBarChart = async (req, res) => {
       const short = normalized.replace(' Term', '');
       matchQuery.term = { $in: [normalized, short] };
     }
-    if (session) matchQuery.session = session;
+
+    const sessionDates = {
+      '2024/2025': { start: '2024-09-15', end: '2025-07-24' },
+      '2025/2026': { start: '2025-09-15', end: '2026-07-24' },
+      '2026/2027': { start: '2026-09-15', end: '2027-07-24' },
+      '2027/2028': { start: '2027-09-15', end: '2028-07-24' },
+      '2028/2029': { start: '2028-09-15', end: '2029-07-24' },
+      '2029/2030': { start: '2029-09-15', end: '2030-07-24' }
+    };
+
+    if (session) {
+      if (sessionDates[session]) {
+        if (!matchQuery.date) matchQuery.date = {};
+        matchQuery.date.$gte = new Date(sessionDates[session].start);
+        const end = new Date(sessionDates[session].end);
+        end.setDate(end.getDate() + 1);
+        matchQuery.date.$lt = end;
+      } else {
+        // Return empty if session is not in our predefined ranges
+        return res.status(200).json({ monthlyData: [] });
+      }
+    }
 
     // Cohort student IDs if needed
     let cohortStudentIds = null;
+    let schoolCohortCounts = {};
     if (cohort) {
       const cohortQuery = { cohort: Number(cohort) };
       if (schoolId && schoolId !== 'all') {
@@ -1190,16 +1212,36 @@ export const getSchoolMonthlyBarChart = async (req, res) => {
         }
       }
       cohortQuery.accountNumber = { $exists: true, $ne: '' }; // Only genuine enrolled students
-      const cohortStudents = await Student.find(cohortQuery, '_id').lean();
+      const cohortStudents = await Student.find(cohortQuery, '_id schoolId').lean();
       cohortStudentIds = new Set(cohortStudents.map(s => s._id.toString()));
+      
+      cohortStudents.forEach(s => {
+        if (s.schoolId) {
+          const sId = s.schoolId.toString();
+          schoolCohortCounts[sId] = (schoolCohortCounts[sId] || 0) + 1;
+        }
+      });
     }
 
     const records = await SchoolAttendance.find(matchQuery)
-      .select('date totalEnrolled attendanceTaken absentees.studentId absentees.cohort')
+      .select('schoolId date totalEnrolled attendanceTaken absentees.studentId absentees.student absentees.cohort')
       .lean();
 
     const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const monthlyMap = {}; // key: "YYYY-MM"
+
+    // If a valid session is selected, prepopulate the months so they appear in order
+    if (session && sessionDates[session]) {
+      let current = new Date(sessionDates[session].start);
+      const end = new Date(sessionDates[session].end);
+      while (current <= end) {
+        const key = `${current.getUTCFullYear()}-${String(current.getUTCMonth() + 1).padStart(2, '0')}`;
+        const label = `${MONTH_NAMES[current.getUTCMonth()]} ${current.getUTCFullYear()}`;
+        monthlyMap[key] = { label, present: 0, absent: 0 };
+        // move to next month
+        current.setUTCMonth(current.getUTCMonth() + 1);
+      }
+    }
 
     records.forEach(record => {
       if (!record.attendanceTaken) return;
@@ -1216,7 +1258,8 @@ export const getSchoolMonthlyBarChart = async (req, res) => {
         const cohortAbsent = (record.absentees || []).filter(a =>
           cohortStudentIds.has((a.studentId || a.student)?.toString())
         ).length;
-        const cohortTotal = cohortStudentIds.size;
+        const schoolIdStr = record.schoolId?.toString();
+        const cohortTotal = schoolCohortCounts[schoolIdStr] || 0;
         monthlyMap[key].absent += cohortAbsent;
         monthlyMap[key].present += Math.max(0, cohortTotal - cohortAbsent);
       } else {
