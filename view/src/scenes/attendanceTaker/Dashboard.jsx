@@ -32,6 +32,11 @@ export const AttendanceTakerDashboard = () => {
     const [trend, setTrend] = useState({});
     const [monthlyBarData, setMonthlyBarData] = useState([]);
     
+    // Eligible Students by LGA
+    const [lgaEligibilityLga, setLgaEligibilityLga] = useState('Adavi');
+    const [lgaEligibilityCount, setLgaEligibilityCount] = useState(null);
+    const [isLoadingLgaEligibility, setIsLoadingLgaEligibility] = useState(false);
+    
     // Eligible Students states
     const [eligibleStudents, setEligibleStudents] = useState([]);
     const [eligibleTotal, setEligibleTotal] = useState(0);
@@ -187,6 +192,27 @@ export const AttendanceTakerDashboard = () => {
         }
     }, [API_URL]);
 
+    const fetchLgaEligibility = useCallback(async (selectedLga) => {
+        if (!selectedLga) return;
+        setIsLoadingLgaEligibility(true);
+        try {
+            const token = localStorage.getItem('token');
+            const res = await axios.get(`${API_URL}/attendance/eligible-by-lga`, {
+                params: {
+                    lga: selectedLga
+                },
+                headers: { Authorization: `Bearer ${token}` },
+                withCredentials: true,
+            });
+            setLgaEligibilityCount(res.data.totalEligible || 0);
+        } catch (err) {
+            console.error(err);
+            setLgaEligibilityCount(0);
+        } finally {
+            setIsLoadingLgaEligibility(false);
+        }
+    }, [API_URL]);
+
     // Collect all current filter values into one object
     const getCurrentFilters = useCallback(() => ({
         schoolId, cohort, fromDate, toDate, term, session, trendSession, month, year
@@ -210,6 +236,12 @@ export const AttendanceTakerDashboard = () => {
             dispatch(fetchSchools({ schoolType: '', lgaOfEnrollment: '' }));
         }
     }, [dispatch, isAdminOrCct]);
+
+    useEffect(() => {
+        if (lgaEligibilityLga) {
+            fetchLgaEligibility(lgaEligibilityLga);
+        }
+    }, [lgaEligibilityLga, fetchLgaEligibility]);
 
     // Initial load on mount only
     useEffect(() => {
@@ -490,15 +522,28 @@ export const AttendanceTakerDashboard = () => {
                 </Box>
             </Box>
 
-            {/* ── Days Opened — standalone pill ── */}
-            <Box mb="20px" display="inline-flex" alignItems="center" gap="12px"
-                sx={{ backgroundColor: '#f3e5f5', borderRadius: '8px', px: '24px', py: '12px', boxShadow: '0px 2px 4px rgba(123,31,162,0.15)' }}>
-                <Typography fontWeight={700} fontSize="1.6rem" color="#7b1fa2" lineHeight={1}>
-                    {isLoadingStats ? <Skeleton variant="text" width={50} /> : (stats.daysOpened || 0).toLocaleString()}
-                </Typography>
-                <Typography fontWeight={600} fontSize="0.9rem" color="#424242">
-                    Number of Days School Opened
-                </Typography>
+            <Box display="flex" gap="20px" flexWrap="wrap" mb="20px">
+                {/* ── Days Opened — standalone pill ── */}
+                <Box display="inline-flex" alignItems="center" gap="12px"
+                    sx={{ backgroundColor: '#f3e5f5', borderRadius: '8px', px: '24px', py: '12px', boxShadow: '0px 2px 4px rgba(123,31,162,0.15)' }}>
+                    <Typography fontWeight={700} fontSize="1.6rem" color="#7b1fa2" lineHeight={1}>
+                        {isLoadingStats ? <Skeleton variant="text" width={50} /> : (stats.daysOpened || 0).toLocaleString()}
+                    </Typography>
+                    <Typography fontWeight={600} fontSize="0.9rem" color="#424242">
+                        Number of Days School Opened
+                    </Typography>
+                </Box>
+
+                {/* ── Schools Covered — standalone pill ── */}
+                <Box display="inline-flex" alignItems="center" gap="12px"
+                    sx={{ backgroundColor: '#e3f2fd', borderRadius: '8px', px: '24px', py: '12px', boxShadow: '0px 2px 4px rgba(25,118,210,0.15)' }}>
+                    <Typography fontWeight={700} fontSize="1.6rem" color="#1976d2" lineHeight={1}>
+                        {isLoadingStats ? <Skeleton variant="text" width={50} /> : (stats.schoolsCovered || 0).toLocaleString()}
+                    </Typography>
+                    <Typography fontWeight={600} fontSize="0.9rem" color="#424242">
+                        Total Schools Covered
+                    </Typography>
+                </Box>
             </Box>
 
             <Box display="flex" gap="20px" flexWrap="wrap">
@@ -536,6 +581,57 @@ export const AttendanceTakerDashboard = () => {
                             </Box>
                         ) : (
                             <AttendanceCharts type="monthly-bar" data={monthlyBarData} />
+                        )}
+                    </Box>
+                </Box>
+            </Box>
+
+            {/* ── LGA Eligibility ── */}
+            <Box mt="20px" backgroundColor={colors.primary[400]} p="20px" borderRadius="8px" display="flex" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap="20px">
+                <Box>
+                    <Typography variant="h5" fontWeight="600" mb="10px">Total Eligible Students by LGA</Typography>
+                    <Typography variant="body2" color="textSecondary" maxWidth="400px">
+                        Select an LGA to view its total number of eligible students. This count is independent of the school filters above.
+                    </Typography>
+                </Box>
+                <Box display="flex" alignItems="center" gap="20px">
+                    <FormControl variant="filled" sx={{ minWidth: 200 }}>
+                        <InputLabel>Select LGA</InputLabel>
+                        <Select 
+                            value={lgaEligibilityLga} 
+                            onChange={(e) => setLgaEligibilityLga(e.target.value)}
+                        >
+                            {[
+                                "Adavi", "Ajaokuta", "Ankpa", "Bassa", "Dekina", "Ibaji", "Idah", "Igalamela Odolu", "Ijumu", 
+                                "Kabba/Bunu", "Kogi", "Lokoja", "Mopa Muro", "Ofu", "Ogori/Magongo", "Okehi", "Okene", 
+                                "Olamaboro", "Omala", "Yagba East", "Yagba West"
+                            ].map(lga => (
+                                <MenuItem key={lga} value={lga}>{lga}</MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+
+                    <Box 
+                        sx={{ 
+                            backgroundColor: '#e8f5e9', 
+                            padding: '10px 24px', 
+                            borderRadius: '8px', 
+                            boxShadow: '0 2px 4px rgba(56,142,60,0.15)',
+                            minWidth: '150px',
+                            textAlign: 'center'
+                        }}
+                    >
+                        {isLoadingLgaEligibility ? (
+                            <CircularProgress size={24} color="success" />
+                        ) : (
+                            <>
+                                <Typography fontWeight={700} fontSize="1.8rem" color="#388e3c" lineHeight={1}>
+                                    {(lgaEligibilityCount || 0).toLocaleString()}
+                                </Typography>
+                                <Typography fontWeight={600} fontSize="0.8rem" color="#424242" mt="4px">
+                                    Eligible Students
+                                </Typography>
+                            </>
                         )}
                     </Box>
                 </Box>

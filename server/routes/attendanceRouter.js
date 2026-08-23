@@ -16,7 +16,8 @@ import {
   getSchoolBasedMonthlyTrend,
   getSchoolMonthlyBarChart,
   getTermlyAverageAnalytics,
-  getEligibleStudentsList
+  getEligibleStudentsList,
+  getEligibleByLga
 } from '../controllers/index.js'
 import express from 'express'
 
@@ -112,6 +113,13 @@ router.get(
   authMiddleware,
   authorizePermission(['handle_registrars', 'handle_payments', 'handle_attendance']),
   getEligibleStudentsList
+)
+
+router.get(
+  '/eligible-by-lga',
+  authMiddleware,
+  authorizePermission(['handle_registrars', 'handle_payments', 'handle_attendance']),
+  getEligibleByLga
 )
 
 // Result Average Features

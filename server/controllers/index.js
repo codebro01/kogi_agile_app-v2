@@ -110,7 +110,8 @@ import {
   getSchoolBasedMonthlyTrend,
   getSchoolMonthlyBarChart,
   getTermlyAverageAnalytics,
-  getEligibleStudentsList
+  getEligibleStudentsList,
+  getEligibleByLga
 } from './attendanceController.js'
 
 export {
@@ -209,4 +210,5 @@ export {
   getSchoolMonthlyBarChart,
   getTermlyAverageAnalytics,
   getEligibleStudentsList,
+  getEligibleByLga
 }

@@ -996,7 +996,8 @@ export const getSchoolBasedAttendanceAnalytics = async (req, res) => {
       transferred: 0,
       dropout: 0,
       died: 0,
-      daysOpened: 0
+      daysOpened: 0,
+      schoolsCovered: 0
     };
 
     const uniqueDays = new Set();
@@ -1062,6 +1063,7 @@ export const getSchoolBasedAttendanceAnalytics = async (req, res) => {
 
     stats.total = stats.eligible + stats.ineligible;
     stats.daysOpened = uniqueDays.size;
+    stats.schoolsCovered = Object.keys(schoolDaysMap).length;
 
     if (cohortStudentIds) {
       if (cohort1TotalCount !== null) {
@@ -1532,5 +1534,93 @@ export const getEligibleStudentsList = async (req, res, next) => {
   } catch (err) {
     console.error(err);
     next(err);
+  }
+};
+
+export const getEligibleByLga = async (req, res, next) => {
+  try {
+    const { lga, cohort, term, session, fromDate, toDate } = req.query;
+
+    if (!lga || lga === '') {
+      return res.status(200).json({ totalEligible: 0, lga: '' });
+    }
+
+    // 1. Find all students in this LGA (and cohort if specified)
+    const studentMatchQuery = { lgaOfEnrollment: { $regex: new RegExp(`^${lga}$`, 'i') } };
+    if (cohort) {
+      studentMatchQuery.cohort = Number(cohort);
+    }
+    studentMatchQuery.accountNumber = { $exists: true, $ne: '' }; // only genuine students
+
+    const students = await Student.find(studentMatchQuery, '_id schoolId').lean();
+    if (students.length === 0) {
+      return res.status(200).json({ totalEligible: 0, lga });
+    }
+
+    // We need the unique school IDs for these students
+    const schoolIds = [...new Set(students.map(s => s.schoolId?.toString()).filter(Boolean))];
+
+    if (schoolIds.length === 0) {
+      return res.status(200).json({ totalEligible: 0, lga });
+    }
+
+    // 2. Fetch attendance for these schools
+    const attendanceMatchQuery = { schoolId: { $in: schoolIds.map(id => new mongoose.Types.ObjectId(id)) } };
+
+    if (term) {
+      const normalized = term.includes('Term') ? term : `${term} Term`;
+      const short = normalized.replace(' Term', '');
+      attendanceMatchQuery.term = { $in: [normalized, short] };
+    }
+    if (session) attendanceMatchQuery.session = session;
+    if (fromDate || toDate) {
+      attendanceMatchQuery.date = {};
+      if (fromDate) attendanceMatchQuery.date.$gte = new Date(fromDate);
+      if (toDate) attendanceMatchQuery.date.$lte = new Date(new Date(toDate).setHours(23, 59, 59, 999));
+    }
+
+    const schoolAttendances = await SchoolAttendance.find(attendanceMatchQuery, 'schoolId absentees').lean();
+
+    const schoolDaysMap = {};
+    const studentAbsenceCount = {};
+
+    for (const record of schoolAttendances) {
+      const schId = record.schoolId?.toString();
+      if (!schId) continue;
+      schoolDaysMap[schId] = (schoolDaysMap[schId] || 0) + 1;
+
+      for (const absentee of record.absentees) {
+        const sId = (absentee?.studentId || absentee?.student)?.toString();
+        if (!sId || sId === '[object Object]') continue;
+        studentAbsenceCount[sId] = (studentAbsenceCount[sId] || 0) + 1;
+      }
+    }
+
+    // 3. Compute eligibility
+    let eligibleCount = 0;
+    for (const student of students) {
+      const sId = student._id.toString();
+      const schId = student.schoolId?.toString();
+      const totalSchoolDays = schoolDaysMap[schId] || 0;
+      
+      if (totalSchoolDays === 0) continue;
+
+      const absentDays = studentAbsenceCount[sId] || 0;
+      const presentDays = Math.max(0, totalSchoolDays - absentDays);
+      const attendancePercentage = (presentDays / totalSchoolDays) * 100;
+
+      if (attendancePercentage >= 70) {
+        eligibleCount++;
+      }
+    }
+
+    return res.status(200).json({
+      totalEligible: eligibleCount,
+      lga
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Error fetching eligible by LGA' });
   }
 };
