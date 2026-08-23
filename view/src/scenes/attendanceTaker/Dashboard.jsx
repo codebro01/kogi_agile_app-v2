@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Box, Typography, useTheme, Card, CardContent, FormControl, InputLabel, Select, MenuItem, TextField, Button, Skeleton, Autocomplete, LinearProgress, Fade } from '@mui/material';
+import { Box, Typography, useTheme, Card, CardContent, FormControl, InputLabel, Select, MenuItem, TextField, Button, Skeleton, Autocomplete, LinearProgress, Fade, Table, TableHead, TableRow, TableCell, TableBody, TableContainer, Paper, Pagination, InputAdornment, CircularProgress } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { tokens } from '../../theme';
 import Header from '../../components/Header';
@@ -8,6 +8,7 @@ import { AttendanceCharts } from './AttendanceCharts';
 import { CompareAttendanceModal } from './CompareAttendanceModal';
 import StatBox from '../../components/StatBox';
 import EmailIcon from '@mui/icons-material/Email';
+import SearchIcon from '@mui/icons-material/Search';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchSchools } from '../../components/schoolsSlice';
 import { useAuth } from '../auth/authContext.jsx';
@@ -30,6 +31,14 @@ export const AttendanceTakerDashboard = () => {
     const [stats, setStats] = useState({ totalStudents: 0, total: 0, absent: 0, present: 0, eligible: 0, ineligible: 0, transferred: 0, dropout: 0, died: 0, daysOpened: 0 });
     const [trend, setTrend] = useState({});
     const [monthlyBarData, setMonthlyBarData] = useState([]);
+    
+    // Eligible Students states
+    const [eligibleStudents, setEligibleStudents] = useState([]);
+    const [eligibleTotal, setEligibleTotal] = useState(0);
+    const [eligiblePage, setEligiblePage] = useState(1);
+    const [eligibleSearch, setEligibleSearch] = useState('');
+    const [isLoadingEligible, setIsLoadingEligible] = useState(false);
+    const eligibleLimit = 10;
 
     // Loading states
     const [isLoadingStats, setIsLoadingStats] = useState(false);
@@ -57,6 +66,7 @@ export const AttendanceTakerDashboard = () => {
     const analyticsAbortRef = useRef(null);
     const trendAbortRef = useRef(null);
     const barAbortRef = useRef(null);
+    const searchDebounceRef = useRef(null);
 
     const fetchAnalytics = useCallback(async (filters) => {
         if (analyticsAbortRef.current) analyticsAbortRef.current.abort();
@@ -144,6 +154,39 @@ export const AttendanceTakerDashboard = () => {
         }
     }, [isAdminOrCct, storedUser, API_URL]);
 
+    const fetchEligibleStudents = useCallback(async (filters, page = 1, search = '') => {
+        if (!filters.schoolId || filters.schoolId === 'all') {
+            setEligibleStudents([]);
+            setEligibleTotal(0);
+            return;
+        }
+        setIsLoadingEligible(true);
+        try {
+            const token = localStorage.getItem('token');
+            const res = await axios.get(`${API_URL}/attendance/eligible-students`, {
+                params: {
+                    schoolId: filters.schoolId,
+                    cohort: filters.cohort,
+                    fromDate: filters.fromDate,
+                    toDate: filters.toDate,
+                    term: filters.term,
+                    session: filters.session,
+                    page,
+                    limit: eligibleLimit,
+                    search
+                },
+                headers: { Authorization: `Bearer ${token}` },
+                withCredentials: true,
+            });
+            setEligibleStudents(res.data.students || []);
+            setEligibleTotal(res.data.total || 0);
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setIsLoadingEligible(false);
+        }
+    }, [API_URL]);
+
     // Collect all current filter values into one object
     const getCurrentFilters = useCallback(() => ({
         schoolId, cohort, fromDate, toDate, term, session, trendSession, month, year
@@ -155,7 +198,11 @@ export const AttendanceTakerDashboard = () => {
         fetchAnalytics(filters);
         fetchMonthlyBar(filters);
         fetchTrend(filters);
-    }, [getCurrentFilters, fetchAnalytics, fetchMonthlyBar, fetchTrend]);
+        
+        // Reset page to 1 when filters change
+        setEligiblePage(1);
+        fetchEligibleStudents(filters, 1, eligibleSearch);
+    }, [getCurrentFilters, fetchAnalytics, fetchMonthlyBar, fetchTrend, fetchEligibleStudents, eligibleSearch]);
 
     // Load schools list for admins
     useEffect(() => {
@@ -283,6 +330,15 @@ export const AttendanceTakerDashboard = () => {
 
                 <Button variant="contained" color="info" sx={{ ml: 2 }} onClick={() => setIsCompareModalOpen(true)}>
                     Compare Performance
+                </Button>
+
+                <Button
+                    variant="contained"
+                    color="warning"
+                    sx={{ ml: 2 }}
+                    onClick={() => navigate(userPermissions.includes('handle_registrars') ? '/admin-dashboard/export-school-attendance' : '/export-attendance-sheet')}
+                >
+                    Export Attendance Sheet to Excel
                 </Button>
 
                 <Button
@@ -484,6 +540,144 @@ export const AttendanceTakerDashboard = () => {
                     </Box>
                 </Box>
             </Box>
+
+            {/* ══ ELIGIBLE STUDENTS TABLE ══ */}
+            {/* Only show when a specific school is selected */}
+            {schoolId && schoolId !== 'all' && (
+                <Box mt="30px" backgroundColor={colors.primary[400]} p="20px" borderRadius="8px">
+                    <Box display="flex" justifyContent="space-between" alignItems="center" mb="16px" flexWrap="wrap" gap="10px">
+                        <Box>
+                            <Typography variant="h5" fontWeight="700" color="#388e3c">
+                                Eligible Students (≥70% Attendance)
+                            </Typography>
+                            <Typography variant="body2" color="textSecondary">
+                                {isLoadingEligible ? 'Loading...' : `${eligibleTotal.toLocaleString()} student(s) eligible in selected school`}
+                            </Typography>
+                        </Box>
+                        <TextField
+                            variant="outlined"
+                            size="small"
+                            placeholder="Search by name or ID..."
+                            value={eligibleSearch}
+                            onChange={(e) => {
+                                const val = e.target.value;
+                                setEligibleSearch(val);
+                                // Debounce the search
+                                if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+                                searchDebounceRef.current = setTimeout(() => {
+                                    setEligiblePage(1);
+                                    const filters = getCurrentFilters();
+                                    fetchEligibleStudents(filters, 1, val);
+                                }, 400);
+                            }}
+                            InputProps={{
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <SearchIcon fontSize="small" />
+                                    </InputAdornment>
+                                ),
+                                endAdornment: isLoadingEligible ? (
+                                    <InputAdornment position="end">
+                                        <CircularProgress size={18} />
+                                    </InputAdornment>
+                                ) : null
+                            }}
+                            sx={{ minWidth: 260 }}
+                        />
+                    </Box>
+
+                    {isLoadingEligible && eligibleStudents.length === 0 ? (
+                        <Box display="flex" justifyContent="center" py="40px">
+                            <CircularProgress color="success" />
+                        </Box>
+                    ) : eligibleStudents.length === 0 ? (
+                        <Box display="flex" justifyContent="center" alignItems="center" py="40px">
+                            <Typography color="textSecondary">
+                                {eligibleSearch ? 'No matching eligible students found.' : 'No eligible students found for this school and filter combination.'}
+                            </Typography>
+                        </Box>
+                    ) : (
+                        <>
+                            <TableContainer component={Paper} sx={{ borderRadius: '6px', maxHeight: 420, overflow: 'auto' }}>
+                                <Table stickyHeader size="small">
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell sx={{ fontWeight: 700, backgroundColor: '#1b5e20', color: '#fff' }}>#</TableCell>
+                                            <TableCell sx={{ fontWeight: 700, backgroundColor: '#1b5e20', color: '#fff' }}>Student ID</TableCell>
+                                            <TableCell sx={{ fontWeight: 700, backgroundColor: '#1b5e20', color: '#fff' }}>Surname</TableCell>
+                                            <TableCell sx={{ fontWeight: 700, backgroundColor: '#1b5e20', color: '#fff' }}>First Name</TableCell>
+                                            <TableCell sx={{ fontWeight: 700, backgroundColor: '#1b5e20', color: '#fff' }}>Class</TableCell>
+                                            <TableCell sx={{ fontWeight: 700, backgroundColor: '#1b5e20', color: '#fff' }}>Cohort</TableCell>
+                                            <TableCell sx={{ fontWeight: 700, backgroundColor: '#1b5e20', color: '#fff' }}>Days Present</TableCell>
+                                            <TableCell sx={{ fontWeight: 700, backgroundColor: '#1b5e20', color: '#fff' }}>Days School Opened</TableCell>
+                                            <TableCell sx={{ fontWeight: 700, backgroundColor: '#1b5e20', color: '#fff' }}>Attendance %</TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {eligibleStudents.map((student, index) => {
+                                            const rowNum = (eligiblePage - 1) * eligibleLimit + index + 1;
+                                            return (
+                                                <TableRow
+                                                    key={student._id}
+                                                    sx={{
+                                                        '&:nth-of-type(odd)': { backgroundColor: '#f1f8e9' },
+                                                        '&:hover': { backgroundColor: '#dcedc8' },
+                                                    }}
+                                                >
+                                                    <TableCell>{rowNum}</TableCell>
+                                                    <TableCell>{student.randomId || '-'}</TableCell>
+                                                    <TableCell>{student.surname}</TableCell>
+                                                    <TableCell>{student.firstname}</TableCell>
+                                                    <TableCell>{student.presentClass || '-'}</TableCell>
+                                                    <TableCell>{student.cohort || '-'}</TableCell>
+                                                    <TableCell>{student.presentDays}</TableCell>
+                                                    <TableCell>{student.totalSchoolDays}</TableCell>
+                                                    <TableCell>
+                                                        <Box
+                                                            sx={{
+                                                                display: 'inline-block',
+                                                                px: 1,
+                                                                py: 0.3,
+                                                                borderRadius: '12px',
+                                                                backgroundColor: student.attendancePercentage >= 90 ? '#c8e6c9' : '#dcedc8',
+                                                                color: '#1b5e20',
+                                                                fontWeight: 700,
+                                                                fontSize: '0.82rem'
+                                                            }}
+                                                        >
+                                                            {student.attendancePercentage}%
+                                                        </Box>
+                                                    </TableCell>
+                                                </TableRow>
+                                            );
+                                        })}
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
+
+                            {/* Pagination */}
+                            <Box display="flex" justifyContent="space-between" alignItems="center" mt="14px" flexWrap="wrap" gap="8px">
+                                <Typography variant="body2" color="textSecondary">
+                                    Showing {((eligiblePage - 1) * eligibleLimit) + 1}–{Math.min(eligiblePage * eligibleLimit, eligibleTotal)} of {eligibleTotal.toLocaleString()} eligible students
+                                </Typography>
+                                <Pagination
+                                    count={Math.ceil(eligibleTotal / eligibleLimit)}
+                                    page={eligiblePage}
+                                    onChange={(_, newPage) => {
+                                        setEligiblePage(newPage);
+                                        const filters = getCurrentFilters();
+                                        fetchEligibleStudents(filters, newPage, eligibleSearch);
+                                    }}
+                                    color="success"
+                                    size="small"
+                                    showFirstButton
+                                    showLastButton
+                                />
+                            </Box>
+                        </>
+                    )}
+                </Box>
+            )}
 
             <CompareAttendanceModal
                 open={isCompareModalOpen}

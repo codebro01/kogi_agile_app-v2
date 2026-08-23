@@ -1403,3 +1403,125 @@ export const getTermlyAverageAnalytics = async (req, res) => {
   }
 };
 
+export const getEligibleStudentsList = async (req, res, next) => {
+  try {
+    const { schoolId, term, session, fromDate, toDate, cohort, search, page = 1, limit = 10 } = req.query;
+
+    if (!schoolId || schoolId === '') {
+      return res.status(200).json({ students: [], total: 0, page: 1, limit: 10 });
+    }
+
+    const studentMatchQuery = {};
+    if (schoolId && schoolId !== 'all') {
+      if (schoolId.includes(',')) {
+        studentMatchQuery.schoolId = { $in: schoolId.split(',').map(id => new mongoose.Types.ObjectId(id.trim())) };
+      } else {
+        studentMatchQuery.schoolId = new mongoose.Types.ObjectId(schoolId);
+      }
+    }
+    if (cohort) {
+      studentMatchQuery.cohort = Number(cohort);
+    }
+    
+    if (search) {
+      studentMatchQuery.$or = [
+        { firstname: { $regex: new RegExp(search, 'i') } },
+        { surname: { $regex: new RegExp(search, 'i') } },
+        { randomId: { $regex: new RegExp(search, 'i') } }
+      ];
+    }
+
+    const students = await Student.aggregate([
+      { $match: studentMatchQuery },
+      {
+        $project: {
+          _id: 1, randomId: 1, surname: 1, firstname: 1, middlename: 1, 
+          ward: 1, presentClass: 1, cohort: 1, lgaOfEnrollment: 1, schoolId: 1
+        }
+      }
+    ]).allowDiskUse(true);
+
+    if (students.length === 0) {
+      return res.status(200).json({ students: [], total: 0, page: 1, limit: parseInt(limit) });
+    }
+
+    const attendanceMatchQuery = {};
+    if (schoolId && schoolId !== 'all') {
+      if (schoolId.includes(',')) {
+        attendanceMatchQuery.schoolId = { $in: schoolId.split(',').map(id => new mongoose.Types.ObjectId(id.trim())) };
+      } else {
+        attendanceMatchQuery.schoolId = new mongoose.Types.ObjectId(schoolId);
+      }
+    }
+    
+    if (term) {
+      const normalized = term.includes('Term') ? term : `${term} Term`;
+      const short = normalized.replace(' Term', '');
+      attendanceMatchQuery.term = { $in: [normalized, short] };
+    }
+    if (session) attendanceMatchQuery.session = session;
+    if (fromDate || toDate) {
+      attendanceMatchQuery.date = {};
+      if (fromDate) attendanceMatchQuery.date.$gte = new Date(fromDate);
+      if (toDate) attendanceMatchQuery.date.$lte = new Date(new Date(toDate).setHours(23, 59, 59, 999));
+    }
+
+    const schoolAttendances = await SchoolAttendance.find(attendanceMatchQuery, 'schoolId absentees').lean();
+
+    const schoolDaysMap = {};
+    const studentAbsenceCount = {};
+
+    for (const record of schoolAttendances) {
+      const schId = record.schoolId?.toString();
+      if (!schId) continue;
+      schoolDaysMap[schId] = (schoolDaysMap[schId] || 0) + 1;
+
+      for (const absentee of record.absentees) {
+        const sId = (absentee?.studentId || absentee?.student)?.toString();
+        if (!sId || sId === '[object Object]') continue;
+        studentAbsenceCount[sId] = (studentAbsenceCount[sId] || 0) + 1;
+      }
+    }
+
+    let eligibleStudents = [];
+    for (const student of students) {
+      const sId = student._id.toString();
+      const schId = student.schoolId?.toString();
+      const totalSchoolDays = schoolDaysMap[schId] || 0;
+      
+      if (totalSchoolDays === 0) continue;
+
+      const absentDays = studentAbsenceCount[sId] || 0;
+      const presentDays = Math.max(0, totalSchoolDays - absentDays);
+      const attendancePercentage = (presentDays / totalSchoolDays) * 100;
+
+      if (attendancePercentage >= 70) {
+        eligibleStudents.push({
+          ...student,
+          totalSchoolDays,
+          absentDays,
+          presentDays,
+          attendancePercentage: parseFloat(attendancePercentage.toFixed(2))
+        });
+      }
+    }
+
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const startIndex = (pageNum - 1) * limitNum;
+    const endIndex = pageNum * limitNum;
+    
+    const paginatedStudents = eligibleStudents.slice(startIndex, endIndex);
+
+    return res.status(200).json({
+      students: paginatedStudents,
+      total: eligibleStudents.length,
+      page: pageNum,
+      limit: limitNum
+    });
+
+  } catch (err) {
+    console.error(err);
+    next(err);
+  }
+};

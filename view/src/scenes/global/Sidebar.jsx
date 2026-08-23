@@ -368,7 +368,7 @@ const Sidebar = ({ isSidebar }) => {
                     title="Attendance Analytics"
                     to={
                       userPermissions.includes('handle_registrars')
-                        ? '/admin-dashboard/export-school-attendance'
+                        ? '/admin-dashboard/attendance-analytics'
                         : 'enumerator-dashboard/view-all-students-data'
                     }
                     icon={<EventNoteIcon />}
@@ -599,7 +599,7 @@ const Sidebar = ({ isSidebar }) => {
                     title="Tracking"
                     to={
                       userPermissions.includes('handle_registrars')
-                        ? '/admin-dashboard/export-school-attendance'
+                        ? '/admin-dashboard/attendance-analytics'
                         : 'enumerator-dashboard/view-all-students-data'
                     }
                     icon={<EventNoteIcon />}

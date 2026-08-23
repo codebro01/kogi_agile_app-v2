@@ -310,14 +310,14 @@ export const ExportSchoolAttendance = () => {
             width: '100%',
           }}
         >
-          <Button
+          {/* <Button
             variant="contained"
             color="info"
             sx={{ ml: 2, padding: '10px 20px', fontSize: '14px' }}
             onClick={() => navigate('/admin-dashboard/attendance-analytics')}
           >
             See Attendance Analytics
-          </Button>
+          </Button> */}
         </Grid>
     
       <Grid container spacing={4} sx={{ width: '100%' }}>
@@ -767,14 +767,14 @@ export const ExportSchoolAttendance = () => {
           }}
         >
           <ExportSubmitButton label="Export attendance sheet to Excel" />
-          <Button
+          {/* <Button
             variant="contained"
             color="info"
             sx={{ ml: 2, padding: '10px 20px', fontSize: '14px' }}
             onClick={() => navigate('/admin-dashboard/attendance-analytics')}
           >
             See Attendance Analytics
-          </Button>
+          </Button> */}
         </Grid>
       )}
       <>
