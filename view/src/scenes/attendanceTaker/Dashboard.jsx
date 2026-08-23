@@ -395,7 +395,7 @@ export const AttendanceTakerDashboard = () => {
                             letterSpacing: 0.4,
                         }}
                     >
-                        ⏳ Please wait while your attendance data is being prepared...
+                        Please wait while your attendance data is being prepared...
                     </Typography>
                 </Box>
             )}

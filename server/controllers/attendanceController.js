@@ -937,7 +937,7 @@ export const getSchoolBasedAttendanceAnalytics = async (req, res) => {
     // --- If cohort filter is set, get the list of student IDs in that cohort (scoped to school) ---
     let cohortStudentIds = null;
     // For Cohort 1: also track the FULL count (including students without accountNumber)
-    // so totalStudents = 13,359 rather than 13,356. Those 3 extra show as Ineligible.
+    // so totalStudents absorbs those ~3 students without bank details into Ineligible.
     let cohort1TotalCount = null;
     if (cohort) {
       const cohortStudentQuery = { cohort: Number(cohort) };
@@ -949,9 +949,18 @@ export const getSchoolBasedAttendanceAnalytics = async (req, res) => {
           cohortStudentQuery.schoolId = new mongoose.Types.ObjectId(schoolId);
         }
       }
-      // Cohort 1 total is fixed at 13,359 as per programme enrollment records
+      // For Cohort 1: count ALL cohort 1 students (with AND without accountNumber)
+      // scoped to the same school filter — so per-school views are accurate.
       if (Number(cohort) === 1) {
-        cohort1TotalCount = 13359;
+        const cohort1TotalQuery = { cohort: 1 };
+        if (schoolId && schoolId !== 'all') {
+          if (schoolId.includes(',')) {
+            cohort1TotalQuery.schoolId = { $in: schoolId.split(',').map(id => new mongoose.Types.ObjectId(id.trim())) };
+          } else {
+            cohort1TotalQuery.schoolId = new mongoose.Types.ObjectId(schoolId);
+          }
+        }
+        cohort1TotalCount = await Student.countDocuments(cohort1TotalQuery);
       }
       cohortStudentQuery.accountNumber = { $exists: true, $ne: '' }; // Only genuine enrolled students
       const cohortStudents = await Student.find(cohortStudentQuery, '_id').lean();
